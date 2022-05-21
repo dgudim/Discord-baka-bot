@@ -1,8 +1,10 @@
-import DiscordJS, { Intents } from 'discord.js';
-import dotenv from 'dotenv';
+import DiscordJS, { Intents } from 'discord.js'; // discord api
+import dotenv from 'dotenv'; // evironment vars
+import { execSync } from 'child_process'; // syscalls
 dotenv.config();
 
-class CommandReply {
+
+class CommandReply { // simple class for command callbacks
 
     description: string;
     callback_func: Function;
@@ -14,11 +16,17 @@ class CommandReply {
 
 }
 
-const messageReplies = new Map([
+const messageReplies = new Map([ // put your message replies here
     ["ping",
         (message: DiscordJS.Message) => {
             message.reply({
                 content: 'pong'
+            });
+        }],
+    ["windows",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: '🐧 Linux 🐧'
             });
         }],
     ["pain and suffering",
@@ -29,12 +37,12 @@ const messageReplies = new Map([
         }],
 ]);
 
-const commandReplies = new Map([
+const commandReplies = new Map([ // put your command actions here
     ['server_status', new CommandReply(
         'get current minecraft server status',
         (interaction: DiscordJS.BaseCommandInteraction) => {
             interaction.reply({
-                content: 'not implemented',
+                content: execSync('minecraftd status', { encoding: 'utf-8' }),
                 ephemeral: false
             });
         })]]);

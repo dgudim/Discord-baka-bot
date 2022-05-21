@@ -2,10 +2,42 @@ import DiscordJS, { Intents } from 'discord.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+class CommandReply {
+
+    description: string;
+    callback_func: Function;
+
+    constructor(description: string, callback_func: Function) {
+        this.description = description;
+        this.callback_func = callback_func;
+    }
+
+}
+
 const messageReplies = new Map([
-    ["ping", "pong"],
-    ["pain and suffering", "main and buffering"],
+    ["ping",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: 'pong'
+            });
+        }],
+    ["pain and suffering",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: 'main() and buffering'
+            });
+        }],
 ]);
+
+const commandReplies = new Map([
+    ['server_status', new CommandReply(
+        'get current minecraft server status',
+        (interaction: DiscordJS.BaseCommandInteraction) => {
+            interaction.reply({
+                content: 'not implemented',
+                ephemeral: false
+            });
+        })]]);
 
 const client = new DiscordJS.Client({
     intents: [
@@ -26,34 +58,31 @@ client.on('ready', () => {
         commands = client.application?.commands;
     }
 
-    commands?.create({
-        name: 'ping',
-        description: 'test comand.'
-    });
+    for (const [name, command] of commandReplies) {
+        commands?.create({
+            name: name,
+            description: command.description
+        });
+    }
 
 });
 
 client.on('messageCreate', (message) => {
     const msg_content = message.content.toLocaleLowerCase();
     if (messageReplies.has(msg_content)) {
-        message.reply({
-            content: messageReplies.get(msg_content)
-        });
+        messageReplies.get(msg_content)!(message);
     }
 });
 
 client.on('interactionCreate', async (interaction) => {
-    if(!interaction.isCommand()){
+    if (!interaction.isCommand()) {
         return;
     }
 
-    const {commandName, options} = interaction;
+    const { commandName, options } = interaction;
 
-    if (commandName === 'ping') {
-        interaction.reply({
-            content: 'pong',
-            ephemeral: true
-        });
+    if (commandReplies.has(commandName)) {
+        commandReplies.get(commandName)?.callback_func(interaction);
     }
 });
 

@@ -1,8 +1,9 @@
 import { MessageEmbed } from 'discord.js';
-import DiscordJS from 'discord.js'; // discord api
 import util from 'util';
 const exec = util.promisify(require('child_process').exec);
 import { ICommand } from "wokcommands";
+
+const execIds = [];
 
 export default {
     category: 'Administration',
@@ -10,13 +11,15 @@ export default {
 
     slash: true,
     testOnly: true,
+    ownerOnly: true,
+    hidden: true,
 
     expectedArgs: '<command> <as root>',
     expectedArgsTypes: ['STRING', 'INTEGER'],
     minArgs: 1,
     maxArgs: 2,
 
-    callback: async ({ interaction, args, member}) => {
+    callback: async ({ interaction, args }) => {
         const embed = new MessageEmbed();
         embed.setTitle("exec");
         embed.setDescription("executing " + args[0] + "...");
@@ -25,32 +28,7 @@ export default {
             embeds: [embed]
         });
 
-        var asRoot = false;
-        const hasAdminRole = member.roles.cache.some(role => role.name.toLowerCase() === 'admin');
-        const hasSudoRole = member.roles.cache.some(role => role.name.toLowerCase() === 'sudo');
-
-        if (!hasAdminRole){
-            embed.setDescription("can't execute, missing admin role");
-            embed.setColor('RED');
-            interaction.editReply({
-                embeds: [embed]
-            });
-            return;
-        }
-
-        if (parseInt(args[1]) >= 1) {
-            if (hasSudoRole) {
-                asRoot = true;
-            } else {
-                embed.setDescription("can't execute as sudo, missing sudo role");
-                embed.setColor('RED');
-                interaction.editReply({
-                    embeds: [embed]
-                });
-                return;
-            }
-        }
-        
+        const asRoot = parseInt(args[1]) >= 1;
 
         try {
 

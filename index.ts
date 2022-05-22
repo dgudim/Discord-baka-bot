@@ -16,6 +16,7 @@ client.on('ready', () => {
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
+        botOwners: ['410761741484687371', '470215458889662474'],
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '']
     }).setDefaultPrefix('').setColor(0x005555);
 });

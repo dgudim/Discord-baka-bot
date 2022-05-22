@@ -17,7 +17,7 @@ client.on('ready', () => {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '']
-    }).setDefaultPrefix('');
+    }).setDefaultPrefix('').setColor(0x005555);
 });
 
 client.login(process.env.TOKEN);

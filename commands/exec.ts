@@ -54,11 +54,11 @@ export default {
 
         try {
 
-            const { stdout, stderr } = await exec("runuser -l " + (asRoot ? "root" : "kloud") + " -c 'timeout 5s " + args[0] + "'");
+            const { stdout, stderr } = await exec(asRoot ? ("timeout 5s " + args[0]) : ("runuser -l kloud -c 'timeout 5s " + args[0] + "'"));
             
             if (stderr) {
                 embed.setColor('RED');
-                embed.addField(stderr, 'error while executing');
+                embed.addField(stderr.toString().slice(0, 255), 'error while executing');
             } else if (stdout) {
                 embed.setColor('GREEN');
                 embed.addField('execution sucessfull', stdout.toString().slice(0, 1023));
@@ -68,7 +68,7 @@ export default {
             }
         } catch (err) {
             embed.setColor('RED');
-            embed.addField(err + "", 'error while executing');
+            embed.addField((err + "").slice(0, 255), 'error while executing');
         }
 
         embed.setDescription("result of executing " + args[0]);

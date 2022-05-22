@@ -3,8 +3,6 @@ import util from 'util';
 const exec = util.promisify(require('child_process').exec);
 import { ICommand } from "wokcommands";
 
-const execIds = [];
-
 export default {
     category: 'Administration',
     description: 'Execute any command on the server',

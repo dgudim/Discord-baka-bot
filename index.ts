@@ -48,19 +48,18 @@ export function toggleTerminalChannel(channel: DiscordJS.TextBasedChannel | null
         });
 
         terminalShellsByChannel.set(channel_id, shell_session);
-        channelTerminalShellUsers.set(channel_id, [client_id]);
+        channelTerminalShellUsers.set(channel_id, []);
     }
 
-    const client_index = channelTerminalShellUsers.get(channel_id)?.indexOf(client_id) || -1;
-
-    console.log(channelTerminalShellUsers);
-
-    if (client_index === -1) {
+    let client_index = channelTerminalShellUsers.get(channel_id)!.indexOf(client_id);
+    
+    if (client_index == -1) {
         channelTerminalShellUsers.get(channel_id)?.push(client_id);
         added = true;
     } else {
         channelTerminalShellUsers.get(channel_id)?.splice(client_index, 1);
     }
+
     return added;
 };
 

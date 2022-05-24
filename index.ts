@@ -145,7 +145,7 @@ client.on('messageCreate', (message) => {
     channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
         terminalShellsByChannel.get(message.channelId)?.stdin.write(
             isButin(message.content.trim()) ? message.content.trim() + "\n" :
-                "timeout 5s " + message.content.trim() + "\n");
+                "timeout 5s " + message.content.trim() + " | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' \n");
         return;
     }
 

@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
-let currentDirectory = "/home/kloud/Documents/JS";
+let currentDirectory = "/home/public_files";
 
 let path = require('path');
 let walk = function (dir: string, done: Function) {

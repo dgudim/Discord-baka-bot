@@ -10,10 +10,12 @@ export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type:
             });
             config.set(key, dir.endsWith('/') ? dir : (dir + "/"));
             config.save();
+            return true;
         } else {
             channel?.send({
                 content: `Invalid ${dir_type} directory, will use previous`
             });
+            return false;
         }
     }
 }

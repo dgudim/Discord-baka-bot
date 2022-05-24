@@ -19,8 +19,7 @@ let walk = function (dir: string, done: Function) {
                         next();
                     });
                 } else {
-                    if ((file.endsWith(".jpg") || file.endsWith(".png")) 
-                        && stat && stat.size <= 1024 * 8){
+                    if ((file.endsWith(".jpg") || file.endsWith(".png"))){
                         results.push(file);
                     }
                     next();

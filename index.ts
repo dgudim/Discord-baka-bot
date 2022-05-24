@@ -101,6 +101,24 @@ const messageReplies = new Map([ // put your message replies here
                 content: 'main() and buffering'
             });
         }],
+    ["понял",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: 'не поняла'
+            });
+        }],
+    ["amogus",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: 'sus'
+            });
+        }],
+    ["amogus",
+        (message: DiscordJS.Message) => {
+            message.reply({
+                content: 'sus'
+            });
+        }],
 ]);
 
 client.on('ready', () => {

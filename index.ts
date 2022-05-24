@@ -8,6 +8,17 @@ dotenv.config();
 const terminalShellsByChannel = new Map<string, ChildProcessWithoutNullStreams>();
 const channelTerminalShellUsers = new Map<string, Array<string>>();
 
+const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
+    'cd', 'command', 'compgen', 'complete', 'declare', 'dirs', 'disown', 'echo', 'enable', 'eval',
+    'exec', 'exit', 'export', 'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let', 'local',
+    'logout', 'popd', 'printf', 'pushd', 'pwd', 'read', 'readonly', 'set', 'shift', 'shopt', 'source',
+    'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait']
+
+
+function isButin(str: string) {
+    return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
+}
+
 function sendToChannel(channel: DiscordJS.TextBasedChannel | null, content: string) {
     if (channel) {
         const len = content.length;
@@ -40,11 +51,10 @@ export function toggleTerminalChannel(channel: DiscordJS.TextBasedChannel | null
         });
 
         shell_session.on('close', (code) => {
-            if (code !== 0) {
-                sendToChannel(channel, 'shell session exited with code ' + code);
-                terminalShellsByChannel.delete(channel_id);
-                channelTerminalShellUsers.set(channel_id, []);
-            }
+            sendToChannel(channel, 'shell session exited with code ' + code);
+            sendToChannel(channel, 'turned OFF terminal mode for all users in this channel');
+            terminalShellsByChannel.delete(channel_id);
+            channelTerminalShellUsers.set(channel_id, []);
         });
 
         terminalShellsByChannel.set(channel_id, shell_session);
@@ -52,7 +62,7 @@ export function toggleTerminalChannel(channel: DiscordJS.TextBasedChannel | null
     }
 
     let client_index = channelTerminalShellUsers.get(channel_id)!.indexOf(client_id);
-    
+
     if (client_index == -1) {
         channelTerminalShellUsers.get(channel_id)?.push(client_id);
         added = true;
@@ -112,7 +122,9 @@ client.on('ready', () => {
 client.on('messageCreate', (message) => {
 
     if (terminalShellsByChannel.has(message.channelId) && channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
-        terminalShellsByChannel.get(message.channelId)?.stdin.write("timeout 5s " + message.content + "\n");
+        terminalShellsByChannel.get(message.channelId)?.stdin.write(
+            isButin(message.content.trim()) ? message.content.trim() + "\n" :
+                "timeout 5s " + message.content.trim() + "\n");
         return;
     }
 

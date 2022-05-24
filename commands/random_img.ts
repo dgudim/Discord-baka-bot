@@ -20,7 +20,7 @@ let walk = function (dir: string, done: Function) {
                     });
                 } else {
                     if ((file.endsWith(".jpg") || file.endsWith(".png")) 
-                        && fs.statSync(file).size <= 1024 * 8){
+                        && stat && stat.size <= 1024 * 8){
                         results.push(file);
                     }
                     next();
@@ -34,7 +34,7 @@ export default {
     category: 'Administration',
     description: 'Get random image from the directory',
 
-    slash: true,
+    slash: 'both',
     testOnly: true,
     ownerOnly: true,
     hidden: true,
@@ -44,16 +44,18 @@ export default {
     minArgs: 0,
     maxArgs: 1,
 
-    callback: ({ interaction, args }) => {
+    callback: ({ interaction, message, args }) => {
+
+        const channel = interaction ? interaction.channel : message.channel;
 
         if (args[0]) {
             if (fs.existsSync(args[0]) && fs.statSync(args[0]).isDirectory()) {
-                interaction.channel?.send({
+                channel?.send({
                     content: "Changed image directory to " + args[0]
                 });
                 currentDirectory = args[0].endsWith('/') ? args[0] : (args[0] + "/");
             } else {
-                interaction.channel?.send({
+                channel?.send({
                     content: "Invalid image directory, will use previous"
                 });
             }
@@ -64,7 +66,7 @@ export default {
                 if(err) throw err;
                 let file = results[Math.floor(Math.random() * results.length)];
 
-                interaction.channel?.send({
+                channel?.send({
                     files: [{
                         attachment: file,
                         name: file.substring(file.lastIndexOf('/') + 1)

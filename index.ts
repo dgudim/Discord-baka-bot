@@ -1,8 +1,21 @@
-import DiscordJS, { Intents } from 'discord.js'; // discord api
+import { Intents, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
 import WOKCommands from 'wokcommands';
 import path from 'path';
 import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+
+import ConfigTS from "configstore-ts";
+
+export interface IConfig {
+    send_file_dir: string;
+    img_dir: string;
+}
+
+export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json"), { 
+    send_file_dir: '/home/kloud/Downloads/',
+    img_dir: '/home/public_files'
+ });
+
 dotenv.config();
 
 const terminalShellsByChannel = new Map<string, ChildProcessWithoutNullStreams>();
@@ -20,7 +33,7 @@ function isButin(str: string) {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
 }
 
-function sendToChannel(channel: DiscordJS.TextBasedChannel | null, content: string) {
+function sendToChannel(channel: TextBasedChannel | null, content: string) {
     if (channel) {
         const len = content.length;
         let pos = 0;
@@ -33,7 +46,7 @@ function sendToChannel(channel: DiscordJS.TextBasedChannel | null, content: stri
     }
 }
 
-export function toggleTerminalChannel(channel: DiscordJS.TextBasedChannel | null, client_id: string) {
+export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string) {
     let added = false;
     const channel_id = channel?.id || '';
     if (!terminalShellsByChannel.has(channel_id)) {
@@ -74,7 +87,7 @@ export function toggleTerminalChannel(channel: DiscordJS.TextBasedChannel | null
     return added;
 };
 
-const client = new DiscordJS.Client({
+const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_MESSAGES,
@@ -84,31 +97,31 @@ const client = new DiscordJS.Client({
 
 const messageReplies = new Map([ // put your message replies here
     ["ping",
-        (message: DiscordJS.Message) => {
+        (message: Message) => {
             message.reply({
                 content: 'pong'
             });
         }],
     ["windows",
-        (message: DiscordJS.Message) => {
+        (message: Message) => {
             message.reply({
                 content: '🐧 Linux 🐧'
             });
         }],
     ["pain and suffering",
-        (message: DiscordJS.Message) => {
+        (message: Message) => {
             message.reply({
                 content: 'main() and buffering'
             });
         }],
     ["понял",
-        (message: DiscordJS.Message) => {
+        (message: Message) => {
             message.reply({
                 content: 'не поняла'
             });
         }],
     ["amogus",
-        (message: DiscordJS.Message) => {
+        (message: Message) => {
             message.reply({
                 content: 'sus'
             });

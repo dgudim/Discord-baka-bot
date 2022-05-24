@@ -1,3 +1,4 @@
 /.env
 /node_modules
 /tempCodeRunnerFile.ts
+/local.json

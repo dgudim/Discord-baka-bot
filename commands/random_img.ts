@@ -1,8 +1,9 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
-let currentDirectory = "/home/public_files";
+import path from 'path';
+import { config } from "../index"
+import { changeSavedDirectory } from "../utils";
 
-let path = require('path');
 let walk = function (dir: string, done: Function) {
     let results: Array<string> = [];
     fs.readdir(dir, function (err, list) {
@@ -47,21 +48,10 @@ export default {
 
         const channel = interaction ? interaction.channel : message.channel;
 
-        if (args[0]) {
-            if (fs.existsSync(args[0]) && fs.statSync(args[0]).isDirectory()) {
-                channel?.send({
-                    content: "Changed image directory to " + args[0]
-                });
-                currentDirectory = args[0].endsWith('/') ? args[0] : (args[0] + "/");
-            } else {
-                channel?.send({
-                    content: "Invalid image directory, will use previous"
-                });
-            }
-        }
+        changeSavedDirectory(channel, 'image', args[0], 'img_dir');
 
         try {
-            walk(currentDirectory, function (err: string, results: Array<string>) {
+            walk(config.get('img_dir'), function (err: string, results: Array<string>) {
                 if(err) throw err;
                 let file = results[Math.floor(Math.random() * results.length)];
 

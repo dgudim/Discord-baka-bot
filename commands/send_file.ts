@@ -1,7 +1,8 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
 import https from 'https';
-let currentDirectory = "/home/kloud/Downloads/";
+import { config, IConfig} from "../index"
+import { changeSavedDirectory } from "../utils";
 
 export default {
     category: 'Administration',
@@ -19,22 +20,11 @@ export default {
 
     callback: ({ message, args }) => {
 
-        if (args[0]) {
-            if (fs.existsSync(args[0]) && fs.statSync(args[0]).isDirectory()) {
-                message.channel?.send({
-                    content: "Changed save directory to " + args[0]
-                });
-                currentDirectory = args[0].endsWith('/') ? args[0] : (args[0] + "/");
-            } else {
-                message.channel?.send({
-                    content: "Invalid save directory, will use previous"
-                });
-            }
-        }
-
+        changeSavedDirectory(message.channel, 'save', args[0], 'send_file_dir');
+        
         if (message.attachments.size) {
             for (let i = 0; i < message.attachments.size; i++) {
-                const file = fs.createWriteStream(currentDirectory + message.attachments.at(i)?.name);
+                const file = fs.createWriteStream(config.get<string>('send_file_dir') + message.attachments.at(i)?.name);
                 https.get(message.attachments.at(i)?.url + "", (response) => {
                     response.pipe(file);
 
@@ -47,9 +37,7 @@ export default {
                 });
             }
 
-            return "saving " + message.attachments.size + " file(s) to " + currentDirectory;
-        } else {
-            return "no files attached"
+            return "saving " + message.attachments.size + " file(s) to " + config.get('send_file_dir');
         }
 
     }

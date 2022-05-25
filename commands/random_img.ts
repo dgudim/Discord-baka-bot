@@ -57,6 +57,7 @@ export default {
                 channel?.send({
                     content: `constructing image database index, loaded ${index.length} images`
                 });
+                indexUpToDate = true;
             }
 
             let file = index[Math.floor(Math.random() * index.length)];

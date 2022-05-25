@@ -35,8 +35,8 @@ export default {
 
     slash: 'both',
     testOnly: true,
-    ownerOnly: true,
-    hidden: true,
+    ownerOnly: false,
+    hidden: false,
 
     expectedArgs: '<directory path>',
     expectedArgsTypes: ['STRING'],

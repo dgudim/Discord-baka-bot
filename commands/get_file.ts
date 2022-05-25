@@ -25,7 +25,7 @@ export default {
             return "Can't send directories"
         }
 
-        if (fs.statSync(args[0]).size > 1024 * 8){
+        if (fs.statSync(args[0]).size > 1024 * 1024 * 8){
             return "File too big ( > 8mb)"
         }
 

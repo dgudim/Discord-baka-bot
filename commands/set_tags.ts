@@ -24,7 +24,7 @@ export default {
             return "No image selected"
         }
 
-        if(args.length == 0){
+        if (args.length == 0) {
             return "No tags provided"
         }
 
@@ -40,7 +40,7 @@ export default {
             (args.length > 4 ? ` -xmp-xmp:character='${args[4]}'` : "") +
             (args.length > 5 ? ` -xmp-xmp:tags='${args[5]}'` : "");
 
-        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}'`), () => {
+        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}' && rm '${getLastFile()}'_original`), () => {
             getImageMetatags(getLastFile(), channel);
         });
 

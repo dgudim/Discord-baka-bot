@@ -15,10 +15,9 @@ let walk = function (dir: string) {
         if (stat && stat.isDirectory()) {
             results = results.concat(walk(file));
         } else {
-            if ((file.endsWith(".jpg") || file.endsWith(".png"))) {
-                if (stat && stat.size < 1024 * 1024 * 8){
-                    results.push(file);
-                }
+            if ((file.endsWith(".jpg") || file.endsWith(".jpeg") || file.endsWith(".png")) 
+            && stat && stat.size <= 1024 * 1024 * 8) {
+                results.push(file);
             }
         }
     });
@@ -43,12 +42,12 @@ export default {
 
         const channel = interaction ? interaction.channel : message.channel;
 
-        if(changeSavedDirectory(channel, 'image', args[0], 'img_dir')){
+        if (changeSavedDirectory(channel, 'image', args[0], 'img_dir')) {
             indexUpToDate = false;
         }
 
         try {
-            if(!indexUpToDate){
+            if (!indexUpToDate) {
                 index = walk(config.get('img_dir'));
                 channel?.send({
                     content: `constructing image database index, loaded ${index.length} images`

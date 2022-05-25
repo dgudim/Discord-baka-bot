@@ -10,9 +10,8 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    callback: async ({ interaction, message }) => {
+    callback: async ({ interaction, message, channel }) => {
 
-        const channel = interaction ? interaction.channel : message.channel;
         const user = interaction ? interaction.user : message.author;
 
         const sucessfull = toggleTerminalChannel(channel, user.id);

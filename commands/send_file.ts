@@ -1,7 +1,7 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
 import https from 'https';
-import { config, IConfig} from "../index"
+import { config } from "../index"
 import { changeSavedDirectory } from "../utils";
 
 export default {

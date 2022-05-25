@@ -16,10 +16,9 @@ let walk = function (dir: string) {
             results = results.concat(walk(file));
         } else {
             if ((file.endsWith(".jpg") || file.endsWith(".png"))) {
-                if (stat && stat.size > 1024 * 8){
-                    console.log(stat.size);
+                if (stat && stat.size < 1024 * 8){
+                    results.push(file);
                 }
-                results.push(file);
             }
         }
     });

@@ -8,14 +8,17 @@ let index: Array<string> = [];
 
 let walk = function (dir: string) {
     let results: Array<string> = [];
-    var list = fs.readdirSync(dir);
+    let list = fs.readdirSync(dir);
     list.forEach(function (file) {
         file = dir + '/' + file;
-        var stat = fs.statSync(file);
+        let stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
             results = results.concat(walk(file));
         } else {
             if ((file.endsWith(".jpg") || file.endsWith(".png"))) {
+                if (stat && stat.size > 1024 * 8){
+                    console.log(stat.size);
+                }
                 results.push(file);
             }
         }

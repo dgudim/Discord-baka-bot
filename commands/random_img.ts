@@ -53,7 +53,7 @@ export default {
             if (!indexUpToDate) {
                 index = walk(config.get('img_dir'));
                 channel?.send({
-                    content: `constructing image database index, loaded ${index.length} images`
+                    content: `getting images, loaded ${index.length} images`
                 });
                 indexUpToDate = true;
             }

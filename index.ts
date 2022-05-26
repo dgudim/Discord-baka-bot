@@ -173,16 +173,12 @@ client.on('ready', () => {
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
     console.log('exiftool config written');
 
-    const wok = new WOKCommands(client, {
+    new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '']
     }).setDefaultPrefix(prefix).setColor(0x005555);
-
-    const { slashCommands } = wok;
-
-    //slashCommands.delete('979411473874964481');
 });
 
 client.on('messageCreate', (message) => {

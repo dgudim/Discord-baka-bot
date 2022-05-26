@@ -168,12 +168,9 @@ client.on('ready', () => {
     1; #end
     `;
 
-    fs.writeFile(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig, 
-    function (err) {
-        if (err) return console.log(err);
-        console.log('exiftool config written');
-    });
-    
+    fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
+    console.log('exiftool config written');
+
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,

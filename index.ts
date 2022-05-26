@@ -18,6 +18,7 @@ export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json")
     img_dir: '/home/public_files'
 });
 
+export let image_args_arr: string[] = [];
 export let image_args: string = "";
 export let image_args_types: string[] = [];
 export let xpm_image_args: string[] = [];
@@ -151,6 +152,7 @@ client.on('ready', () => {
     `;
 
     for (let i = 0; i < img_tags.length; i++) {
+        image_args_arr.push(img_tags[i].name.toLowerCase().replace(' ', '-'));
         image_args += (i > 0 ? ' ' : '') + `<${img_tags[i].name}>`;
         image_args_types.push(img_tags[i].type.toUpperCase());
         xpm_image_args.push(`-xmp-xmp:${img_tags[i].xmpName}=`);
@@ -158,7 +160,7 @@ client.on('ready', () => {
         exifToolConfig += `
         ${img_tags[i].xmpName.toUpperCase()} => {
             Name => '${img_tags[i].xmpName.toUpperCase()}'
-        }` + (i != img_tags.length-1 ? "," : "");
+        }` + (i != img_tags.length - 1 ? "," : "");
     }
 
     exifToolConfig += `
@@ -171,12 +173,16 @@ client.on('ready', () => {
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
     console.log('exiftool config written');
 
-    new WOKCommands(client, {
+    const wok = new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '']
     }).setDefaultPrefix(prefix).setColor(0x005555);
+
+    const { slashCommands } = wok;
+
+    //slashCommands.delete('979411473874964481');
 });
 
 client.on('messageCreate', (message) => {

@@ -1,5 +1,6 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
+import path from "path";
 import https from 'https';
 import { config } from "../index"
 import { changeSavedDirectory } from "../utils";
@@ -22,9 +23,9 @@ export default {
 
         changeSavedDirectory(message.channel, 'save', args[0], 'send_file_dir');
         
-        if (message.attachments.size) {
+        if (message.attachments) {
             for (let i = 0; i < message.attachments.size; i++) {
-                const file = fs.createWriteStream(config.get<string>('send_file_dir') + message.attachments.at(i)?.name);
+                const file = fs.createWriteStream(path.join(config.get<string>('send_file_dir'), message.attachments.at(i)?.name || "undefined"));
                 https.get(message.attachments.at(i)?.url + "", (response) => {
                     response.pipe(file);
 

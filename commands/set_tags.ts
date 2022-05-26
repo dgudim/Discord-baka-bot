@@ -3,6 +3,7 @@ import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
 import { getFileName, getImageMetatags, getLastFile } from '../utils';
+import { image_args, image_args_types, xpm_image_args } from '..';
 
 export default {
     category: 'Misc',
@@ -13,8 +14,8 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<A_lvl> <H_lvl> <D_lvl> <Author> <Character> <Tags>',
-    expectedArgsTypes: ['INTEGER', 'INTEGER', 'INTEGER', 'STRING', 'STRING', 'STRING'],
+    expectedArgs: image_args,
+    expectedArgsTypes: image_args_types,
     minArgs: 0,
     maxArgs: 6,
 
@@ -32,13 +33,13 @@ export default {
         embed.setTitle("New metatags");
         embed.setDescription(getFileName(getLastFile()));
 
-        const confString =
-            (args.length > 0 ? ` -xmp-xmp:alvl='${args[0]}'` : "") +
-            (args.length > 1 ? ` -xmp-xmp:hlvl='${args[1]}'` : "") +
-            (args.length > 2 ? ` -xmp-xmp:dlvl='${args[2]}'` : "") +
-            (args.length > 3 ? ` -xmp-xmp:author='${args[3]}'` : "") +
-            (args.length > 4 ? ` -xmp-xmp:character='${args[4]}'` : "") +
-            (args.length > 5 ? ` -xmp-xmp:tags='${args[5]}'` : "");
+        let confString = "";
+
+        for (let i = 0; i < xpm_image_args.length; i++) {
+            if (args.length > i) {
+                confString += ` ${xpm_image_args[i]}'${args[i]}'`;
+            }
+        }
 
         exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}' && rm '${getLastFile()}'_original`), () => {
             getImageMetatags(getLastFile(), channel);

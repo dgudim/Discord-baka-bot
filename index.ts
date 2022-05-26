@@ -1,5 +1,6 @@
 import { Intents, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
-import WOKCommands from 'wokcommands';
+import WOKCommands, { optionTypes } from 'wokcommands';
+import img_tags from './image_tags.json';
 import path from 'path';
 import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
@@ -12,9 +13,14 @@ export interface IConfig {
 }
 
 export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json"), { 
-    send_file_dir: '/home/kloud/Downloads/',
+    send_file_dir: '/home/kloud/Downloads',
     img_dir: '/home/public_files'
  });
+
+export let image_args: string;
+export let image_args_types: optionTypes[];
+export let xpm_image_args: string[];
+export let xpm_image_args_grep: string;
 
 dotenv.config();
 
@@ -53,7 +59,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         const shell_session = spawn('/bin/sh');
 
         shell_session.on('error', (err) => {
-            sendToChannel(channel, 'Failed to start screen session: ' + err);
+            sendToChannel(channel, 'Failed to start shell session: ' + err);
         });
 
         shell_session.stdout.on('data', (data) => {
@@ -136,6 +142,13 @@ client.on('ready', () => {
             name: 'prefix is ' + prefix
         }]
     });
+
+    for (let i = 0; i < img_tags.length; i++){
+        image_args += (i > 0 ? ' ' : '') + `<${img_tags[i].name}>`;
+        image_args_types.push(img_tags[i].type == 'integer' ? 'INTEGER' : 'STRING');
+        xpm_image_args.push(`-xmp-xmp:${img_tags[i].xmpName}=`);
+        xpm_image_args_grep += ` -e '${img_tags[i].xmpName}'`;
+    }
 
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),

@@ -1,0 +1,32 @@
+[
+    {
+        "xmpName": "alvl",
+        "name": "Art level",
+        "type": "integer"
+    },
+    {
+        "xmpName": "hlvl",
+        "name": "Horny level",
+        "type": "integer"
+    },
+    {
+        "xmpName": "dlvl",
+        "name": "Depth level",
+        "type": "integer"
+    },
+    {
+        "xmpName": "author",
+        "name": "Author",
+        "type": "string"
+    },
+    {
+        "xmpName": "character",
+        "name": "Character",
+        "type": "string"
+    },
+    {
+        "xmpName": "tags",
+        "name": "Tags",
+        "type": "string"
+    }
+]

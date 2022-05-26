@@ -1,5 +1,5 @@
 import { MessageEmbed, TextBasedChannel } from "discord.js";
-import { config } from "./index"
+import { config, xpm_image_args_grep } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
 
@@ -36,7 +36,7 @@ export function getFileName(file: string) {
 }
 
 export function getImageMetatags(file: string, channel: TextBasedChannel | null){
-    exec(("exiftool -xmp:all '" + file + "' | grep -e 'Alvl' -e 'Hlvl' -e 'Dlvl' -e 'Author' -e 'Character' -e 'Tags'"),
+    exec((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`),
         (error, stdout, stderr) => {
 
             const embed = new MessageEmbed();

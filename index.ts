@@ -1,7 +1,8 @@
 import { Intents, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
-import WOKCommands, { optionTypes } from 'wokcommands';
+import WOKCommands from 'wokcommands';
 import img_tags from './image_tags.json';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
@@ -12,15 +13,15 @@ export interface IConfig {
     img_dir: string;
 }
 
-export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json"), { 
+export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json"), {
     send_file_dir: '/home/kloud/Downloads',
     img_dir: '/home/public_files'
- });
+});
 
-export let image_args: string;
-export let image_args_types: optionTypes[];
-export let xpm_image_args: string[];
-export let xpm_image_args_grep: string;
+export let image_args: string = "";
+export let image_args_types: string[] = [];
+export let xpm_image_args: string[] = [];
+export let xpm_image_args_grep: string = "";
 
 dotenv.config();
 
@@ -143,13 +144,36 @@ client.on('ready', () => {
         }]
     });
 
-    for (let i = 0; i < img_tags.length; i++){
+    let exifToolConfig = `
+    %Image::ExifTool::UserDefined = (
+    'Image::ExifTool::XMP::xmp' => {
+        # (simple string, no checking, we specify the name explicitly so it stays all uppercase)
+    `;
+
+    for (let i = 0; i < img_tags.length; i++) {
         image_args += (i > 0 ? ' ' : '') + `<${img_tags[i].name}>`;
-        image_args_types.push(img_tags[i].type == 'integer' ? 'INTEGER' : 'STRING');
+        image_args_types.push(img_tags[i].type.toUpperCase());
         xpm_image_args.push(`-xmp-xmp:${img_tags[i].xmpName}=`);
         xpm_image_args_grep += ` -e '${img_tags[i].xmpName}'`;
+        exifToolConfig += `
+        ${img_tags[i].xmpName.toUpperCase()} => {
+            Name => '${img_tags[i].xmpName.toUpperCase()}'
+        }` + (i != img_tags.length-1 ? "," : "");
     }
 
+    exifToolConfig += `
+        },
+    );
+
+    1; #end
+    `;
+
+    fs.writeFile(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig, 
+    function (err) {
+        if (err) return console.log(err);
+        console.log('exiftool config written');
+    });
+    
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,

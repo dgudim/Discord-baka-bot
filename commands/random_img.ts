@@ -1,7 +1,7 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
 import { config } from "../index"
-import { changeSavedDirectory, getFileName, getImageMetatags, setLastFile } from "../utils";
+import { changeSavedDirectory, getFileName, getImageMetatags, setLastFile, walk } from "../utils";
 import sharp from "sharp";
 
 let indexUpToDate = false;
@@ -9,25 +9,6 @@ let index: Array<string> = [];
 let currImg = 0;
 
 const eight_mb = 1024 * 1024 * 8;
-
-let walk = function (dir: string) {
-    let results: Array<string> = [];
-    let list = fs.readdirSync(dir);
-    list.forEach(function (file) {
-        file = dir + '/' + file;
-        let stat = fs.statSync(file);
-        if (stat && stat.isDirectory()) {
-            results = results.concat(walk(file));
-        } else {
-            if (file.toLowerCase().endsWith(".jpg")
-                || file.toLowerCase().endsWith(".jpeg")
-                || file.toLowerCase().endsWith(".png")) {
-                results.push(file);
-            }
-        }
-    });
-    return results;
-}
 
 export default {
 

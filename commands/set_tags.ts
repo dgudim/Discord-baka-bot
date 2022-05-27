@@ -39,7 +39,7 @@ export default {
         for (let i = 0; i < interaction.options.data.length; i++) {
             index = image_args_arr.indexOf(interaction.options.data[i].name);
             if (index != -1) {
-                confString += ` ${xpm_image_args[index]}'${interaction.options.data[i].value}'`;
+                confString += ` ${xpm_image_args[index]}'${interaction.options.data[i].value?.toString().trim()}'`;
             } else {
                 console.log("No such parameter: " + interaction.options.data[i].name);
             }

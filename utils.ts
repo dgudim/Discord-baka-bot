@@ -35,7 +35,15 @@ export function getFileName(file: string) {
     return file.substring(file.lastIndexOf('/') + 1);
 }
 
-export function getImageMetatags(file: string, channel: TextBasedChannel | null){
+export function trimStringArray(arr: string[]) {
+    return arr.map(element => {
+        return element.trim();
+    }).filter(element => {
+        return element.length != 0;
+    });
+}
+
+export function getImageMetatags(file: string, channel: TextBasedChannel | null) {
     exec((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`),
         (error, stdout, stderr) => {
 
@@ -67,4 +75,27 @@ export function getImageMetatags(file: string, channel: TextBasedChannel | null)
             });
 
         });
+}
+
+export function getImageTag(img: string, tag: string): string {
+    return "";
+}
+
+export function walk(dir: string) {
+    let results: Array<string> = [];
+    let list = fs.readdirSync(dir);
+    list.forEach(function (file) {
+        file = dir + '/' + file;
+        let stat = fs.statSync(file);
+        if (stat && stat.isDirectory()) {
+            results = results.concat(walk(file));
+        } else {
+            if (file.toLowerCase().endsWith(".jpg")
+                || file.toLowerCase().endsWith(".jpeg")
+                || file.toLowerCase().endsWith(".png")) {
+                results.push(file);
+            }
+        }
+    });
+    return results;
 }

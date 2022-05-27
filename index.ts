@@ -41,7 +41,7 @@ function isButin(str: string) {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
 }
 
-function sendToChannel(channel: TextBasedChannel | null, content: string) {
+export function sendToChannel(channel: TextBasedChannel | null, content: string) {
     if (channel) {
         const len = content.length;
         let pos = 0;

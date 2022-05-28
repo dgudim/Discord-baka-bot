@@ -43,6 +43,10 @@ export function trimStringArray(arr: string[]) {
     });
 }
 
+export function mapXmpToName(xpm_tag: string) {
+    
+}
+
 export function getImageMetatags(file: string, channel: TextBasedChannel | null) {
     exec((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`),
         (error, stdout, stderr) => {

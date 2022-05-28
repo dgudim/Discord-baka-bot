@@ -1,7 +1,8 @@
 import { MessageEmbed, TextBasedChannel } from "discord.js";
-import { config, xpm_image_args_grep } from "./index"
+import { config, image_args_arr, xpm_image_args_grep } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
+import img_tags from './image_tags.json';
 
 export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string, key: string) {
     if (dir) {
@@ -43,8 +44,24 @@ export function trimStringArray(arr: string[]) {
     });
 }
 
-export function mapXmpToName(xpm_tag: string) {
-    
+export function mapXmpToName(xmp_tag: string) {
+    let index = img_tags.findIndex((element) => {
+        return element.xmpName == xmp_tag;
+    });
+    if (index != -1) {
+        return img_tags[index].name;
+    }
+    console.log(`Can't map xmp tag: ${xmp_tag} to name`);
+    return xmp_tag;
+}
+
+export function mapArgToXmp(arg: string) {
+    let index = image_args_arr.indexOf(arg);
+    if (index != -1) {
+        return img_tags[index].xmpName;
+    }
+    console.log(`Can't map arg: ${arg} to xmp tag`);
+    return arg;
 }
 
 export function getImageMetatags(file: string, channel: TextBasedChannel | null) {
@@ -61,7 +78,7 @@ export function getImageMetatags(file: string, channel: TextBasedChannel | null)
                 for (let i = 0; i < fields.length - 1; i++) {
                     const split = fields.at(i)!.split(':');
                     embed.addFields([{
-                        name: split[0].trim(),
+                        name: mapXmpToName(split[0].trim()),
                         value: split[1].trim(),
                         inline: true
                     }]);
@@ -81,8 +98,60 @@ export function getImageMetatags(file: string, channel: TextBasedChannel | null)
         });
 }
 
-export function getImageTag(img: string, tag: string): string {
+export function getImageTag(img: string, arg: string): string {
+    exec((`exiftool -xmp:all '${img}' | grep -i ${mapArgToXmp(arg)}`),
+        (error, stdout, stderr) => {
+            if (stdout) {
+                const fields = stdout.split("\n");
+                if (fields.length == 2) {
+                    return fields.at(1)!.split(':')[1].trim();
+                }
+            }
+        });
     return "";
+}
+
+const eight_mb = 1024 * 1024 * 8;
+import sharp from "sharp";
+
+export function sendImgToChannel(file: string, channel: TextBasedChannel | null){
+    if (fs.statSync(file).size > eight_mb) {
+        channel?.send({
+            content: `image too large, compressing, wait...`
+        });
+        sharp(file)
+            .resize({ width: 1920 })
+            .webp({
+                quality: 80
+            })
+            .toBuffer((err, data, info) => {
+                if (err) {
+                    channel?.send({
+                        content: 'error resizing'
+                    });
+                } else {
+                    if (info.size > eight_mb) {
+                        channel?.send({
+                            content: 'image still too large, bruh'
+                        });
+                    } else {
+                        channel?.send({
+                            files: [{
+                                attachment: data,
+                                name: getFileName(file)
+                            }]
+                        });
+                    }
+                }
+            });
+    } else {
+        channel?.send({
+            files: [{
+                attachment: file,
+                name: getFileName(file)
+            }]
+        });
+    }
 }
 
 export function walk(dir: string) {

@@ -21,7 +21,6 @@ export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json")
 export let image_args_arr: string[] = [];
 export let image_args: string = "";
 export let image_args_types: string[] = [];
-export let xpm_image_args: string[] = [];
 export let xpm_image_args_grep: string = "";
 
 dotenv.config();
@@ -155,7 +154,6 @@ client.on('ready', () => {
         image_args_arr.push(img_tags[i].name.toLowerCase().replace(' ', '-'));
         image_args += (i > 0 ? ' ' : '') + `<${img_tags[i].name}>`;
         image_args_types.push(img_tags[i].type.toUpperCase());
-        xpm_image_args.push(`-xmp-xmp:${img_tags[i].xmpName}=`);
         xpm_image_args_grep += ` -e '${img_tags[i].xmpName}'`;
         exifToolConfig += `
         ${img_tags[i].xmpName.toUpperCase()} => {

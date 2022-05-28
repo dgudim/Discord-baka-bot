@@ -3,7 +3,8 @@ import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
 import { getFileName, getImageMetatags, getLastFile } from '../utils';
-import { image_args, image_args_arr, image_args_types, xpm_image_args } from '..';
+import { image_args, image_args_arr, image_args_types } from '..';
+import img_tags from '../image_tags.json';
 
 export default {
     category: 'Misc',
@@ -39,7 +40,7 @@ export default {
         for (let i = 0; i < interaction.options.data.length; i++) {
             index = image_args_arr.indexOf(interaction.options.data[i].name);
             if (index != -1) {
-                confString += ` ${xpm_image_args[index]}'${interaction.options.data[i].value?.toString().trim()}'`;
+                confString += ` -xmp-xmp:${img_tags[index].xmpName}='${interaction.options.data[i].value?.toString().trim()}'`;
             } else {
                 console.log("No such parameter: " + interaction.options.data[i].name);
             }

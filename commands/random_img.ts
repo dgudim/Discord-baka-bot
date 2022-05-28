@@ -1,14 +1,11 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
 import { config } from "../index"
-import { changeSavedDirectory, getFileName, getImageMetatags, setLastFile, walk } from "../utils";
-import sharp from "sharp";
+import { changeSavedDirectory, getFileName, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
 
 let indexUpToDate = false;
 let index: Array<string> = [];
 let currImg = 0;
-
-const eight_mb = 1024 * 1024 * 8;
 
 export default {
 
@@ -50,43 +47,7 @@ export default {
             let file = index[currImg];
             setLastFile(file);
 
-            if (fs.statSync(file).size > eight_mb) {
-                channel?.send({
-                    content: `image too large, compressing, wait...`
-                });
-                sharp(file)
-                    .resize({ width: 1920 })
-                    .webp({
-                        quality: 80
-                    })
-                    .toBuffer((err, data, info) => {
-                        if (err) {
-                            channel?.send({
-                                content: 'error resizing'
-                            });
-                        } else {
-                            if (info.size > eight_mb) {
-                                channel?.send({
-                                    content: 'image still too large, bruh'
-                                });
-                            } else {
-                                channel?.send({
-                                    files: [{
-                                        attachment: data,
-                                        name: getFileName(file)
-                                    }]
-                                });
-                            }
-                        }
-                    });
-            } else {
-                channel?.send({
-                    files: [{
-                        attachment: file,
-                        name: getFileName(file)
-                    }]
-                });
-            }
+            sendImgToChannel(file, channel);
 
             getImageMetatags(file, channel);
 

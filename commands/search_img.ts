@@ -1,8 +1,9 @@
 import { ICommand } from "wokcommands";
 import { config, image_args_arr, sendToChannel } from "..";
-import { getImageTag, trimStringArray, walk } from "../utils";
+import { getImageTag, sendImgToChannel, trimStringArray, walk } from "../utils";
 
-let images = [];
+let images: string[] = [];
+let currImg = 0;
 
 export default {
 
@@ -21,11 +22,15 @@ export default {
 
     callback: ({ channel, args }) => {
 
-        if (args.length == 0 && images.length == 0) {
+        if (args.length == 0 && currImg == images.length - 1) {
             channel?.send({
                 content: 'No more images in list'
             });
-            //return;
+            return;
+        } else if (args.length == 0) {
+            sendImgToChannel(images[currImg], channel);
+            currImg++;
+            return;
         }
 
         images = walk(config.get('img_dir'));
@@ -36,11 +41,11 @@ export default {
             if (search_term_split.length != 2) {
                 sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
             } else {
-                if (image_args_arr.indexOf(search_term_split[0]) == -1){
+                if (image_args_arr.indexOf(search_term_split[0]) == -1) {
                     sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
                 } else {
                     let search_term_condition = trimStringArray(search_term_split[1].split(','));
-                    for(let c = 0; c < search_term_condition.length; c++) {
+                    for (let c = 0; c < search_term_condition.length; c++) {
                         images = images.filter(element => {
                             return getImageTag(element, search_term_split[0]) == search_term_condition[c];
                         });
@@ -48,8 +53,9 @@ export default {
                 }
             }
         }
+        currImg = 0;
         sendToChannel(channel, `Found ${images.length} images`);
-        
+
 
     }
 } as ICommand

@@ -54,9 +54,9 @@ export default {
         if (searchQuery){
             images = walk(config.get('img_dir'));
 
-            interaction.reply({
-                content: "searhing..."
-            });
+            // interaction.reply({
+            //     content: "searhing..."
+            // });
 
             let search_terms = trimStringArray(searchQuery.split(';'));
             for (let i = 0; i < search_terms.length; i++) {

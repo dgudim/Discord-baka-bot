@@ -8,7 +8,13 @@ let currImg = 0;
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
+    await sleep(2000);
+
     images = walk(config.get('img_dir'));
 
     let search_terms = trimStringArray(searchQuery.split(';'));

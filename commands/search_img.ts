@@ -83,10 +83,10 @@ export default {
         if(index != null){
             index = clamp(index, 0, images.length - 1);
             if (index > images.length - 1 || index < 0) {
-                sendToChannel(channel, `Index too big or no images in the list, max is ${images.length - 1}`);
+                return `Index too big or no images in the list, max is ${images.length - 1}`;
             } else {
                 currImg = index;
-                sendToChannel(channel, `Set current image index to ${index}`);
+                return `Set current image index to ${index}`;
             }
         }        
         

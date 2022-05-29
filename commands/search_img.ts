@@ -54,6 +54,8 @@ export default {
         if (searchQuery){
             images = walk(config.get('img_dir'));
 
+            console.log(interaction);
+
             interaction.reply({
                 content: "searсhing..."
             });

@@ -54,11 +54,9 @@ export default {
         if (searchQuery){
             images = walk(config.get('img_dir'));
 
-            console.log(interaction);
-
-            interaction.reply({
-                content: "searсhing..."
-            });
+            // interaction.reply({
+            //     content: "searсhing..."
+            // });
 
             let search_terms = trimStringArray(searchQuery.split(';'));
             for (let i = 0; i < search_terms.length; i++) {

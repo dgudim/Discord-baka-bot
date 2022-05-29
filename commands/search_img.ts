@@ -1,3 +1,4 @@
+import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { config, image_args_arr, sendToChannel } from "..";
 import { getImageTag, sendImgToChannel, trimStringArray, walk } from "../utils";
@@ -19,6 +20,31 @@ async function filterAsync(array: string[], callback: Function) {
 }
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
+async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
+    images = walk(config.get('img_dir'));
+
+    let search_terms = trimStringArray(searchQuery.split(';'));
+    for (let i = 0; i < search_terms.length; i++) {
+        let search_term_split = trimStringArray(search_terms[i].split('='));
+        if (search_term_split.length != 2) {
+            sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
+        } else {
+            if (image_args_arr.indexOf(search_term_split[0]) == -1) {
+                sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
+            } else {
+                let search_term_condition = trimStringArray(search_term_split[1].split(','));
+                for (let c = 0; c < search_term_condition.length; c++) {
+                    images = await filterAsync(images, async (element: string, index: number) => {
+                        return (await getImageTag(element, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
+                    });
+                }
+            }
+        }
+    }
+    currImg = 0;
+    sendToChannel(channel, `Found ${images.length} images`);
+}
 
 export default {
 
@@ -51,36 +77,7 @@ export default {
             return 'Here is your image';
         }
 
-        if (searchQuery){
-            images = walk(config.get('img_dir'));
-
-            // interaction.reply({
-            //     content: "searсhing..."
-            // });
-
-            let search_terms = trimStringArray(searchQuery.split(';'));
-            for (let i = 0; i < search_terms.length; i++) {
-                let search_term_split = trimStringArray(search_terms[i].split('='));
-                if (search_term_split.length != 2) {
-                    sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
-                } else {
-                    if (image_args_arr.indexOf(search_term_split[0]) == -1) {
-                        sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
-                    } else {
-                        let search_term_condition = trimStringArray(search_term_split[1].split(','));
-                        for (let c = 0; c < search_term_condition.length; c++) {
-                            images = await filterAsync(images, async (element: string, index: number) => {
-                                return (await getImageTag(element, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
-                            });
-                        }
-                    }
-                }
-            }
-            currImg = 0;
-            sendToChannel(channel, `Found ${images.length} images`);
-        }
-
-        if(index != null){
+        if (index != null) {
             index = clamp(index, 0, images.length - 1);
             if (index > images.length - 1 || index < 0) {
                 return `Index too big or no images in the list, max is ${images.length - 1}`;
@@ -88,7 +85,14 @@ export default {
                 currImg = index;
                 return `Set current image index to ${index}`;
             }
-        }        
+        }      
+
+        if (searchQuery){
+            searchAndSendImage(searchQuery, channel);
+            return 'searching...';
+        }  
         
+        return 'Sometring went wrong';
+
     }
 } as ICommand

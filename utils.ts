@@ -101,9 +101,11 @@ export function getImageMetatags(file: string, channel: TextBasedChannel | null)
 export function getImageTag(img: string, arg: string): string {
     exec((`exiftool -xmp:all '${img}' | grep -i ${mapArgToXmp(arg)}`),
         (error, stdout, stderr) => {
+            console.log(stdout);
             if (stdout) {
                 const fields = stdout.split("\n");
                 if (fields.length == 2) {
+                    console.log(fields.at(1)!.split(':'));
                     return fields.at(1)!.split(':')[1].trim();
                 }
             }

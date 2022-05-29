@@ -2,6 +2,8 @@ import { MessageEmbed, TextBasedChannel } from "discord.js";
 import { config, image_args_arr, xpm_image_args_grep } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
+import util from "util";
+const execPromise = util.promisify(exec);
 import img_tags from './image_tags.json';
 
 export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string, key: string) {
@@ -46,7 +48,7 @@ export function trimStringArray(arr: string[]) {
 
 export function mapXmpToName(xmp_tag: string) {
     let index = img_tags.findIndex((element) => {
-        return element.xmpName.toLowerCase() == xmp_tag.toLowerCase();
+        return element.xmpName == xmp_tag.toLowerCase();
     });
     if (index != -1) {
         return img_tags[index].name;
@@ -56,7 +58,7 @@ export function mapXmpToName(xmp_tag: string) {
 }
 
 export function mapArgToXmp(arg: string) {
-    let index = image_args_arr.indexOf(arg.toLowerCase());
+    let index = image_args_arr.indexOf(arg);
     if (index != -1) {
         return img_tags[index].xmpName;
     }
@@ -98,25 +100,25 @@ export function getImageMetatags(file: string, channel: TextBasedChannel | null)
         });
 }
 
-export function getImageTag(img: string, arg: string): string {
-    exec((`exiftool -xmp:all '${img}' | grep -i ${mapArgToXmp(arg)}`),
-        (error, stdout, stderr) => {
-            console.log(stdout);
-            if (stdout) {
-                const fields = stdout.split("\n");
-                if (fields.length == 2) {
-                    console.log(fields.at(1)!.split(':'));
-                    return fields.at(1)!.split(':')[1].trim();
-                }
+export async function getImageTag(img: string, arg: string): Promise<string> {
+    try {
+        const { stdout } = await execPromise((`exiftool -xmp:all '${img}' | grep -i ${mapArgToXmp(arg)}`));
+        if (stdout) {
+            const fields = stdout.split("\n");
+            if (fields.length == 2) {
+                return fields.at(0)!.split(':')[1].trim();
             }
-        });
-    return "";
+        }
+        return "";
+    } catch (err) {
+        return "";
+    }
 }
 
 const eight_mb = 1024 * 1024 * 8;
 import sharp from "sharp";
 
-export function sendImgToChannel(file: string, channel: TextBasedChannel | null){
+export function sendImgToChannel(file: string, channel: TextBasedChannel | null) {
     if (fs.statSync(file).size > eight_mb) {
         channel?.send({
             content: `image too large, compressing, wait...`

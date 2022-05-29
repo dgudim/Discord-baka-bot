@@ -1,6 +1,7 @@
 import { ICommand } from "wokcommands";
 import { config, image_args_arr, sendToChannel } from "..";
 import { getImageTag, sendImgToChannel, trimStringArray, walk } from "../utils";
+import filterAsync from 'node-filter-async';
 
 let images: string[] = [];
 let currImg = 0;
@@ -20,7 +21,7 @@ export default {
     minArgs: 0,
     maxArgs: 1,
 
-    callback: ({ channel, args }) => {
+    callback: async ({ channel, args, interaction }) => {
 
         if (args.length == 0 && currImg == images.length - 1) {
             channel?.send({
@@ -35,6 +36,10 @@ export default {
 
         images = walk(config.get('img_dir'));
 
+        interaction.reply({
+            content: "searhing..."
+        });
+
         let search_terms = trimStringArray(args[0].split(';'));
         for (let i = 0; i < search_terms.length; i++) {
             let search_term_split = trimStringArray(search_terms[i].split('='));
@@ -46,8 +51,8 @@ export default {
                 } else {
                     let search_term_condition = trimStringArray(search_term_split[1].split(','));
                     for (let c = 0; c < search_term_condition.length; c++) {
-                        images = images.filter(element => {
-                            return getImageTag(element, search_term_split[0]) == search_term_condition[c];
+                        images = await filterAsync(images, async (element, index) => {
+                            return (await getImageTag(element, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
                         });
                     }
                 }
@@ -55,7 +60,5 @@ export default {
         }
         currImg = 0;
         sendToChannel(channel, `Found ${images.length} images`);
-
-
     }
 } as ICommand

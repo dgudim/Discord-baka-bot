@@ -1,7 +1,7 @@
 import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { config, image_args_arr, sendToChannel } from "..";
-import { getImageTag, sendImgToChannel, trimStringArray, walk } from "../utils";
+import { changeSavedDirectory, getImageMetatags, getImageTag, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
 let currImg = 0;
@@ -52,8 +52,8 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<search-query> <index>',
-    expectedArgsTypes: ['STRING', 'INTEGER'],
+    expectedArgs: '<search-query> <index> <directory-path>',
+    expectedArgsTypes: ['STRING', 'INTEGER', 'STRING'],
     minArgs: 0,
     maxArgs: 2,
 
@@ -65,10 +65,15 @@ export default {
         let index = options.getInteger("index");
         let empty = !searchQuery && index == null;
 
+        changeSavedDirectory(channel, 'image', options.getString("directory-path"), 'img_dir');
+
         if (empty && currImg >= images.length - 1) {
             return 'No more images in list';
         } else if (empty) {
-            sendImgToChannel(images[currImg], channel);
+            let file = images[currImg];
+            sendImgToChannel(file, channel);
+            setLastFile(file);
+            getImageMetatags(file, channel);
             currImg++;
             return `Here is your image (index: ${currImg - 1})`;
         }

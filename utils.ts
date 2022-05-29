@@ -6,7 +6,7 @@ import util from "util";
 const execPromise = util.promisify(exec);
 import img_tags from './image_tags.json';
 
-export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string, key: string) {
+export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string | null, key: string) {
     if (dir) {
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
             channel?.send({

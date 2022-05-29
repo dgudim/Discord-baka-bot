@@ -55,7 +55,7 @@ export default {
     expectedArgs: '<search-query> <index> <directory-path>',
     expectedArgsTypes: ['STRING', 'INTEGER', 'STRING'],
     minArgs: 0,
-    maxArgs: 2,
+    maxArgs: 3,
 
     callback: async ({ channel, interaction }) => {
 

@@ -35,9 +35,13 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
             } else {
                 let search_term_condition = trimStringArray(search_term_split[1].split(','));
                 for (let c = 0; c < search_term_condition.length; c++) {
-                    images = await filterAsync(images, async (element: string, index: number) => {
-                        return (await getImageTag(element, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
-                    });
+                    let images_new = [];
+                    for(let i = 0; i < images.length; i++){
+                        if ((await getImageTag(images[i], search_term_split[0])).includes(search_term_condition[c].toLowerCase())){
+                            images_new.push(images[i]);
+                        }
+                    }
+                    images = images_new;
                 }
             }
         }

@@ -43,7 +43,7 @@ export default {
         let index = options.getInteger("index");
         let empty = !searchQuery && index == null;
 
-        if (empty && currImg == images.length - 1) {
+        if (empty && currImg >= images.length - 1) {
             return 'No more images in list';
         } else if (empty) {
             sendImgToChannel(images[currImg], channel);

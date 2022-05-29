@@ -46,7 +46,7 @@ export function trimStringArray(arr: string[]) {
 
 export function mapXmpToName(xmp_tag: string) {
     let index = img_tags.findIndex((element) => {
-        return element.xmpName == xmp_tag;
+        return element.xmpName.toLowerCase() == xmp_tag.toLowerCase();
     });
     if (index != -1) {
         return img_tags[index].name;
@@ -56,7 +56,7 @@ export function mapXmpToName(xmp_tag: string) {
 }
 
 export function mapArgToXmp(arg: string) {
-    let index = image_args_arr.indexOf(arg);
+    let index = image_args_arr.indexOf(arg.toLowerCase());
     if (index != -1) {
         return img_tags[index].xmpName;
     }

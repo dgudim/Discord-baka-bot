@@ -6,20 +6,12 @@ import { getImageTag, sendImgToChannel, trimStringArray, walk } from "../utils";
 let images: string[] = [];
 let currImg = 0;
 
-function checkArgument(value: any, name: any) {
-    if (!value) {
-        throw new Error(`The argument "${name}" cannot be empty`);
-    }
-}
-
-async function filterAsync(array: string[], callback: Function) {
-    checkArgument(array, 'array');
-    checkArgument(callback, 'callback');
-    const results = await Promise.all(array.map((value, index) => callback(value, index)));
-    return array.filter((_, i) => results[i]);
-}
-
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+
+const asyncFilter = async (arr: string[], predicate: (value: string, index: number, array: string[]) => unknown) => {
+    const results = await Promise.all(arr.map(predicate));
+    return arr.filter((_v, index) => results[index]);
+}
 
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
     images = walk(config.get('img_dir'));
@@ -35,13 +27,9 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
             } else {
                 let search_term_condition = trimStringArray(search_term_split[1].split(','));
                 for (let c = 0; c < search_term_condition.length; c++) {
-                    let images_new = [];
-                    for(let i = 0; i < images.length; i++){
-                        if ((await getImageTag(images[i], search_term_split[0])).includes(search_term_condition[c].toLowerCase())){
-                            images_new.push(images[i]);
-                        }
-                    }
-                    images = images_new;
+                    images = await asyncFilter(images, async (value: string, index: number, array: string[]) => {
+                        return (await getImageTag(value, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
+                    });
                 }
             }
         }
@@ -78,7 +66,7 @@ export default {
         } else if (empty) {
             sendImgToChannel(images[currImg], channel);
             currImg++;
-            return 'Here is your image';
+            return `Here is your image (index: ${currImg - 1})`;
         }
 
         if (index != null) {

@@ -8,11 +8,6 @@ let currImg = 0;
 
 const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
-const asyncFilter = async (arr: string[], predicate: (value: string, index: number, array: string[]) => unknown) => {
-    const results = await Promise.all(arr.map(predicate));
-    return arr.filter((_v, index) => results[index]);
-}
-
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
     images = walk(config.get('img_dir'));
 
@@ -27,8 +22,11 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
             } else {
                 let search_term_condition = trimStringArray(search_term_split[1].split(','));
                 for (let c = 0; c < search_term_condition.length; c++) {
-                    images = await asyncFilter(images, async (value: string, index: number, array: string[]) => {
-                        return (await getImageTag(value, search_term_split[0])).includes(search_term_condition[c].toLowerCase());
+                    const results = await Promise.all(images.map((value) => {
+                        return getImageTag(value, search_term_split[0]);
+                    }));
+                    images = images.filter((_element, index) => {
+                        return results[index].includes(search_term_condition[c].toLowerCase());
                     });
                 }
             }

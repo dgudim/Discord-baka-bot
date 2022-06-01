@@ -12,7 +12,7 @@ function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const modifiers = new Map([ // put your message replies here
+const modifiers = new Map([
     ["!=",
         (content: string, search_term: string) => {
             return !content.includes(search_term);

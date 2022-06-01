@@ -38,7 +38,7 @@ export default {
                     .map(({ value }) => value);
                 currImg = 0;
                 channel?.send({
-                    content: `getting images, loaded ${index.length} images`
+                    content: `loaded ${index.length} images`
                 });
                 indexUpToDate = true;
             }

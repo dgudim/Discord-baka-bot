@@ -46,7 +46,7 @@ export default {
             }
         }
 
-        exec((`exiftool -overwrite_original -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}'`), () => {
+        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} -overwrite_original '${getLastFile()}'`), () => {
             getImageMetatags(getLastFile(), channel);
         });
 

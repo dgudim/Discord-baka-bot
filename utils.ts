@@ -89,7 +89,13 @@ async function writeTagsToDB(file: string) {
     } catch (err) {}
 }
 
-export async function ensureTagsInDB(file: string) {
+export async function ensureTagsInDB(file: string, skip_hash_check?: boolean) {
+
+    if(skip_hash_check){
+        await writeTagsToDB(file);
+        return;
+    }
+
     let exists = db.exists(`^${file}`);
     
     let real_hash = getFileHash(file);
@@ -100,14 +106,14 @@ export async function ensureTagsInDB(file: string) {
     }
 }
 
-export async function getImageMetatags(file: string, channel: TextBasedChannel | null) {
+export async function getImageMetatags(file: string, channel: TextBasedChannel | null, skip_hash_check? : boolean) {
 
     const embed = new MessageEmbed();
     embed.setTitle("Image metadata");
     embed.setDescription(getFileName(file));
     embed.setColor('GREEN');
 
-    await ensureTagsInDB(file);
+    await ensureTagsInDB(file, skip_hash_check);
 
     for (let i = 0; i < img_tags.length; i++) {
         let path = `^${file}^tags^${img_tags[i].xmpName}`;

@@ -1,5 +1,5 @@
 import { MessageEmbed, TextBasedChannel } from "discord.js";
-import { image_args_arr, xpm_image_args_grep, db, config } from "./index"
+import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
 import util from "util";
@@ -14,8 +14,7 @@ export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type:
             channel?.send({
                 content: `Changed ${dir_type} directory to ${dir}`
             });
-            config.set(key, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir);
-            config.save();
+            db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
         } else {
             channel?.send({

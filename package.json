@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "configstore-ts": "^0.0.2",
     "discord.js": "^13.7.0",
     "dotenv": "^16.0.1",
     "node-json-db": "^1.5.0",

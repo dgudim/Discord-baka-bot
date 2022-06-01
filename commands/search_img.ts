@@ -1,6 +1,6 @@
 import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
-import { config, db, image_args_arr, sendToChannel } from "..";
+import { db, getImgDir, image_args_arr, sendToChannel } from "..";
 import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
@@ -15,7 +15,7 @@ function sleep(ms: number) {
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
     await sleep(2000);
 
-    images = walk(config.get('img_dir'));
+    images = walk(getImgDir());
 
     if (images.length > 0 && !db.exists(`^${images[0]}`)) {
         sendToChannel(channel, "refreshing image tag database, might take a while...");

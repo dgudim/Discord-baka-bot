@@ -6,21 +6,10 @@ import fs from 'fs';
 import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
-import ConfigTS from "configstore-ts";
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
-
-export interface IConfig {
-    send_file_dir: string;
-    img_dir: string;
-}
-
-export const config = new ConfigTS<IConfig>(path.join(__dirname, "./local.json"), {
-    send_file_dir: '/home/kloud/Downloads',
-    img_dir: '/home/public_files'
-});
 
 export let image_args_arr: string[] = [];
 export let image_args: string = "";
@@ -139,7 +128,20 @@ const messageReplies = new Map([ // put your message replies here
         }]
 ]);
 
+export function getImgDir(){
+    return db.getData('^img_dir');
+}
+
+export function getSendDir() {
+    return db.getData('^send_file_dir');
+}
+
 client.on('ready', () => {
+
+    if (!db.exists('^img_dir') || db.exists('^send_file_dir')){
+        db.push('^img_dir', '/home/public_files', true);
+        db.push('^send_file_dir', '/home/kloud/Downloads', true);
+    }
 
     client.user?.setPresence({
         status: 'online',

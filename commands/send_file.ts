@@ -2,8 +2,8 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { config } from "../index"
 import { changeSavedDirectory } from "../utils";
+import { getSendDir } from "..";
 
 export default {
     category: 'Administration',
@@ -25,7 +25,7 @@ export default {
         
         if (message.attachments) {
             for (let i = 0; i < message.attachments.size; i++) {
-                const file = fs.createWriteStream(path.join(config.get<string>('send_file_dir'), message.attachments.at(i)?.name || "undefined"));
+                const file = fs.createWriteStream(path.join(getSendDir(), message.attachments.at(i)?.name || "undefined"));
                 https.get(message.attachments.at(i)?.url + "", (response) => {
                     response.pipe(file);
 
@@ -38,7 +38,7 @@ export default {
                 });
             }
 
-            return "saving " + message.attachments.size + " file(s) to " + config.get('send_file_dir');
+            return `saving ${message.attachments.size} file(s) to ${getSendDir()}`;
         }
 
     }

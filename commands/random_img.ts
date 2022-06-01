@@ -1,5 +1,5 @@
 import { ICommand } from "wokcommands";
-import { config } from "../index"
+import { db, getImgDir } from "..";
 import { changeSavedDirectory, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
 
 let indexUpToDate = false;
@@ -31,7 +31,7 @@ export default {
             currImg ++;
 
             if (!indexUpToDate || currImg == index.length) {
-                index = walk(config.get('img_dir'));
+                index = walk(getImgDir());
                 index = index
                     .map(value => ({ value, sort: Math.random() }))
                     .sort((a, b) => a.sort - b.sort)

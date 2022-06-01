@@ -97,7 +97,7 @@ export default {
             }
         }
 
-        if (!searchQuery.length) {
+        if (searchQuery.length) {
             searchAndSendImage(searchQuery, channel);
             return 'searching...';
         }

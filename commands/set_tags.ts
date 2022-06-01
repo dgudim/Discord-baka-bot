@@ -2,7 +2,7 @@ import { MessageEmbed } from 'discord.js';
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
-import { getFileName, getImageMetatags, getLastFile } from '../utils';
+import { getFileName, getImageMetatags, getLastFile, normalize } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 
@@ -40,15 +40,14 @@ export default {
         for (let i = 0; i < interaction.options.data.length; i++) {
             index = image_args_arr.indexOf(interaction.options.data[i].name);
             if (index != -1) {
-                confString += ` -xmp-xmp:${img_tags[index].xmpName}='${interaction.options.data[i].value?.toString().trim()}'`;
+                confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interaction.options.data[i].value?.toString())}'`;
             } else {
                 console.log("No such parameter: " + interaction.options.data[i].name);
             }
-
         }
 
-        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}' && rm '${getLastFile()}'_original`), () => {
-            getImageMetatags(getLastFile(), channel, true);
+        exec((`exiftool -overwrite_original -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} '${getLastFile()}'`), () => {
+            getImageMetatags(getLastFile(), channel);
         });
 
         return 'new tags';

@@ -1,7 +1,7 @@
 import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { db, getImgDir, image_args_arr, sendToChannel } from "..";
-import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
+import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, normalize, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
 let currImg = 0;
@@ -27,7 +27,8 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
 
     let search_terms = trimStringArray(searchQuery.split(';'));
     for (let i = 0; i < search_terms.length; i++) {
-        let search_term_split = trimStringArray(search_terms[i].split('='));
+        let search_term_split = trimStringArray(search_terms[i].split(/(?:!|=)+/));
+        let notEquals = search_terms[i].indexOf('!') != -1;
         if (search_term_split.length != 2) {
             sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
         } else {
@@ -40,7 +41,7 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
                         return getImageTag(value, search_term_split[0]);
                     }));
                     images = images.filter((_element, index) => {
-                        return results[index].includes(search_term_condition[c].toLowerCase());
+                        return results[index].includes(search_term_condition[c]) == !notEquals;
                     });
                 }
             }
@@ -69,9 +70,9 @@ export default {
 
         let options = interaction.options;
 
-        let searchQuery = options.getString("search-query");
+        let searchQuery = normalize(options.getString("search-query"));
         let index = options.getInteger("index");
-        let empty = !searchQuery && index == null;
+        let empty = !searchQuery.length && index == null;
 
         changeSavedDirectory(channel, 'image', options.getString("directory-path"), 'img_dir');
 
@@ -96,7 +97,7 @@ export default {
             }
         }
 
-        if (searchQuery) {
+        if (!searchQuery.length) {
             searchAndSendImage(searchQuery, channel);
             return 'searching...';
         }

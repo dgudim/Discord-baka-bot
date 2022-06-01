@@ -39,9 +39,13 @@ export function getFileName(file: string) {
     return file.substring(file.lastIndexOf('/') + 1);
 }
 
+export function normalize(str: string | undefined | null) {
+    return str ? str.toLowerCase().trim() : '';
+}
+
 export function trimStringArray(arr: string[]) {
     return arr.map(element => {
-        return element.trim();
+        return normalize(element);
     }).filter(element => {
         return element.length != 0;
     });
@@ -49,7 +53,7 @@ export function trimStringArray(arr: string[]) {
 
 export function mapXmpToName(xmp_tag: string) {
     let index = img_tags.findIndex((element) => {
-        return element.xmpName == xmp_tag.toLowerCase();
+        return element.xmpName == normalize(xmp_tag);
     });
     if (index != -1) {
         return img_tags[index].name;
@@ -71,9 +75,8 @@ function getFileHash(file: string) {
     return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64');
 }
 
-async function writeTagsToDB(file: string) {
+async function writeTagsToDB(file: string, hash: string) {
 
-    let hash = getFileHash(file);
     db.push(`^${file}^hash`, hash, true);
 
     try {
@@ -88,12 +91,7 @@ async function writeTagsToDB(file: string) {
     } catch (err) {}
 }
 
-export async function ensureTagsInDB(file: string, skip_hash_check?: boolean) {
-
-    if(skip_hash_check){
-        await writeTagsToDB(file);
-        return;
-    }
+export async function ensureTagsInDB(file: string) {
 
     let exists = db.exists(`^${file}`);
     
@@ -101,18 +99,18 @@ export async function ensureTagsInDB(file: string, skip_hash_check?: boolean) {
     let database_hash = exists ? db.getData(`^${file}^hash`) : "";
 
     if (!exists || real_hash != database_hash) {
-        await writeTagsToDB(file);
+        await writeTagsToDB(file, real_hash);
     }
 }
 
-export async function getImageMetatags(file: string, channel: TextBasedChannel | null, skip_hash_check? : boolean) {
+export async function getImageMetatags(file: string, channel: TextBasedChannel | null) {
 
     const embed = new MessageEmbed();
     embed.setTitle("Image metadata");
     embed.setDescription(getFileName(file));
     embed.setColor('GREEN');
 
-    await ensureTagsInDB(file, skip_hash_check);
+    await ensureTagsInDB(file);
 
     for (let i = 0; i < img_tags.length; i++) {
         let path = `^${file}^tags^${img_tags[i].xmpName}`;

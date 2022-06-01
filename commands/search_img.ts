@@ -12,6 +12,29 @@ function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const modifiers = new Map([ // put your message replies here
+    ["!=",
+        (content: string, search_term: string) => {
+            return !content.includes(search_term);
+        }],
+    ["#=",
+        (content: string, search_term: string) => {
+            return content == search_term;
+        }],
+    ["*=",
+        (content: string, search_term: string) => {
+            return content.startsWith(search_term);
+        }],
+    ["&=",
+        (content: string, search_term: string) => {
+            return content.endsWith(search_term);
+        }],
+    ["=",
+        (content: string, search_term: string) => {
+            return content.includes(search_term);
+        }]
+]);
+
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
     await sleep(2000);
 
@@ -27,8 +50,19 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
 
     let search_terms = trimStringArray(searchQuery.split(';'));
     for (let i = 0; i < search_terms.length; i++) {
-        let search_term_split = trimStringArray(search_terms[i].split(/(?:!|=)+/));
-        let notEquals = search_terms[i].indexOf('!') != -1;
+
+        let activeModifier_key = "";
+        let activeModifier = (_content: string, _search_term: string) => true;
+        for (let [key, func] of modifiers.entries()) {
+            if (search_terms[i].indexOf(key) != -1) {
+                activeModifier_key = key;
+                activeModifier = func;
+                break;
+            }
+        }
+
+        let search_term_split = trimStringArray(search_terms[i].split(activeModifier_key));
+
         if (search_term_split.length != 2) {
             sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
         } else {
@@ -41,7 +75,7 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
                         return getImageTag(value, search_term_split[0]);
                     }));
                     images = images.filter((_element, index) => {
-                        return results[index].includes(search_term_condition[c]) == !notEquals;
+                        return activeModifier(results[index], search_term_condition[c]);
                     });
                 }
             }

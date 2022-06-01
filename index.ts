@@ -138,7 +138,7 @@ export function getSendDir() {
 
 client.on('ready', () => {
 
-    if (!db.exists('^img_dir') || db.exists('^send_file_dir')){
+    if (!db.exists('^img_dir') || !db.exists('^send_file_dir')){
         db.push('^img_dir', '/home/public_files', true);
         db.push('^send_file_dir', '/home/kloud/Downloads', true);
     }

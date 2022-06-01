@@ -1,4 +1,4 @@
-import { TextBasedChannel } from "discord.js";
+import { CommandInteraction, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { db, getImgDir, image_args_arr, sendToChannel } from "..";
 import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, normalize, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
@@ -51,6 +51,16 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
     sendToChannel(channel, `Found ${images.length} images`);
 }
 
+function safeReply(interaction: CommandInteraction, message: string) {
+    if (interaction.replied) {
+        sendToChannel(interaction.channel, message);
+    } else {
+        interaction.reply({
+            content: message
+        });
+    }
+}
+
 export default {
 
     category: 'Misc',
@@ -79,36 +89,29 @@ export default {
         if (empty && currImg >= images.length - 1) {
             return 'No more images in list';
         }
-        
+
         if (searchQuery.length) {
-            interaction.reply({
-                content: 'searching...'
-            });
+            interaction.followUp
+            safeReply(interaction, 'searching...');
             await searchAndSendImage(searchQuery, channel);
         }
 
         if (index != null) {
             index = clamp(index, 0, images.length - 1);
             if (index > images.length - 1 || index < 0) {
-                return `Index too big or no images in the list, max is ${images.length - 1}`;
+                safeReply(interaction, `Index too big or no images in the list, max is ${images.length - 1}`);
+                return;
             } else {
                 currImg = index;
-                interaction.reply({
-                    content: `Set current image index to ${index}`
-                });
+                safeReply(interaction, `Set current image index to ${index}`);
             }
         }
 
-        if (empty) {
-            let file = images[currImg];
-            sendImgToChannel(file, channel);
-            setLastFile(file);
-            await getImageMetatags(file, channel);
-            currImg++;
-            return `Here is your image (index: ${currImg - 1})`;
-        }
-
-        return 'Sometring went wrong';
-
+        let file = images[currImg];
+        sendImgToChannel(file, channel);
+        setLastFile(file);
+        await getImageMetatags(file, channel);
+        currImg++;
+        safeReply(interaction, `Here is your image (index: ${currImg - 1})`);
     }
 } as ICommand

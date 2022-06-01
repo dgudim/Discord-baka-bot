@@ -1,7 +1,7 @@
 import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
-import { config, image_args_arr, sendToChannel } from "..";
-import { changeSavedDirectory, getImageMetatags, getImageTag, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
+import { config, db, image_args_arr, sendToChannel } from "..";
+import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
 let currImg = 0;
@@ -16,6 +16,13 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
     await sleep(2000);
 
     images = walk(config.get('img_dir'));
+
+    if (db.count("^") < 10) {
+        sendToChannel(channel, "refreshing image tag database, might take a while...");
+        await Promise.all(images.map((value) => {
+            ensureTagsInDB(value);
+        }));
+    }
 
     let search_terms = trimStringArray(searchQuery.split(';'));
     for (let i = 0; i < search_terms.length; i++) {
@@ -86,13 +93,13 @@ export default {
                 currImg = index;
                 return `Set current image index to ${index}`;
             }
-        }      
+        }
 
-        if (searchQuery){
+        if (searchQuery) {
             searchAndSendImage(searchQuery, channel);
             return 'searching...';
-        }  
-        
+        }
+
         return 'Sometring went wrong';
 
     }

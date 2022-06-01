@@ -89,7 +89,7 @@ async function writeTagsToDB(file: string) {
     } catch (err) {}
 }
 
-async function ensureTagsInDB(file: string) {
+export async function ensureTagsInDB(file: string) {
     let exists = db.exists(`^${file}`);
     
     let real_hash = getFileHash(file);

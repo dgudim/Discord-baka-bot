@@ -78,13 +78,13 @@ export default {
 
         if (empty && currImg >= images.length - 1) {
             return 'No more images in list';
-        } else if (empty) {
-            let file = images[currImg];
-            sendImgToChannel(file, channel);
-            setLastFile(file);
-            await getImageMetatags(file, channel);
-            currImg++;
-            return `Here is your image (index: ${currImg - 1})`;
+        }
+        
+        if (searchQuery.length) {
+            interaction.reply({
+                content: 'searching...'
+            });
+            await searchAndSendImage(searchQuery, channel);
         }
 
         if (index != null) {
@@ -93,13 +93,19 @@ export default {
                 return `Index too big or no images in the list, max is ${images.length - 1}`;
             } else {
                 currImg = index;
-                return `Set current image index to ${index}`;
+                interaction.reply({
+                    content: `Set current image index to ${index}`
+                });
             }
         }
 
-        if (searchQuery.length) {
-            searchAndSendImage(searchQuery, channel);
-            return 'searching...';
+        if (empty) {
+            let file = images[currImg];
+            sendImgToChannel(file, channel);
+            setLastFile(file);
+            await getImageMetatags(file, channel);
+            currImg++;
+            return `Here is your image (index: ${currImg - 1})`;
         }
 
         return 'Sometring went wrong';

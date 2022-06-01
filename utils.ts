@@ -126,9 +126,7 @@ export async function getImageMetatags(file: string, channel: TextBasedChannel |
 }
 
 export async function getImageTag(file: string, arg: string): Promise<string> {
-
-    await ensureTagsInDB(file);
-
+    
     let path = `^${file}^tags^${mapArgToXmp(arg)}`;
 
     return db.exists(path) ? db.getData(path) : "";

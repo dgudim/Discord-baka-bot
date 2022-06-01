@@ -17,7 +17,7 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
 
     images = walk(config.get('img_dir'));
 
-    if (db.count("^") < 10) {
+    if (images.length > 0 && !db.exists(`^${images[0]}`)) {
         sendToChannel(channel, "refreshing image tag database, might take a while...");
         await Promise.all(images.map((value) => {
             ensureTagsInDB(value);

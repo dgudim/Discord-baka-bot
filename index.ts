@@ -7,6 +7,10 @@ import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import ConfigTS from "configstore-ts";
+import { JsonDB } from 'node-json-db';
+import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
+
+export const db = new JsonDB(new Config("db", true, true, '^'));
 
 export interface IConfig {
     send_file_dir: string;

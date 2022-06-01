@@ -73,7 +73,7 @@ export default {
             let file = images[currImg];
             sendImgToChannel(file, channel);
             setLastFile(file);
-            getImageMetatags(file, channel);
+            await getImageMetatags(file, channel);
             currImg++;
             return `Here is your image (index: ${currImg - 1})`;
         }

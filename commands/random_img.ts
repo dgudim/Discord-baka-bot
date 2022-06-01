@@ -1,7 +1,6 @@
 import { ICommand } from "wokcommands";
-import fs from "fs";
 import { config } from "../index"
-import { changeSavedDirectory, getFileName, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
+import { changeSavedDirectory, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
 
 let indexUpToDate = false;
 let index: Array<string> = [];
@@ -22,7 +21,7 @@ export default {
     minArgs: 0,
     maxArgs: 1,
 
-    callback: ({ channel, args }) => {
+    callback: async ({ channel, args }) => {
 
         if (changeSavedDirectory(channel, 'image', args[0], 'img_dir')) {
             indexUpToDate = false;
@@ -49,11 +48,11 @@ export default {
 
             sendImgToChannel(file, channel);
 
-            getImageMetatags(file, channel);
+            await getImageMetatags(file, channel);
 
             return "Here is your image"
         } catch (err) {
-            return "Unknown error: " + err;
+            return "Error: " + err;
         }
 
     }

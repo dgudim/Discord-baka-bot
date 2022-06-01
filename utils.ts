@@ -1,10 +1,12 @@
 import { MessageEmbed, TextBasedChannel } from "discord.js";
-import { config, image_args_arr, xpm_image_args_grep } from "./index"
+import { image_args_arr, xpm_image_args_grep, db, config } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
 import util from "util";
 const execPromise = util.promisify(exec);
 import img_tags from './image_tags.json';
+
+import crypto from 'crypto';
 
 export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string | null, key: string) {
     if (dir) {
@@ -66,53 +68,70 @@ export function mapArgToXmp(arg: string) {
     return arg;
 }
 
-export function getImageMetatags(file: string, channel: TextBasedChannel | null) {
-    exec((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`),
-        (error, stdout, stderr) => {
-
-            const embed = new MessageEmbed();
-            embed.setTitle("Image metadata");
-            embed.setDescription(getFileName(file));
-
-            if (stdout) {
-                embed.setColor('GREEN');
-                const fields = stdout.split("\n");
-                for (let i = 0; i < fields.length - 1; i++) {
-                    const split = fields.at(i)!.split(':');
-                    embed.addFields([{
-                        name: mapXmpToName(split[0].trim()),
-                        value: split[1].trim(),
-                        inline: true
-                    }]);
-                }
-            } else {
-                embed.setColor('YELLOW');
-                embed.addFields([{
-                    name: "no metatags",
-                    value: ":("
-                }]);
-            }
-
-            channel?.send({
-                embeds: [embed]
-            });
-
-        });
+function getFileHash(file: string) {
+    return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64');
 }
 
-export async function getImageTag(img: string, arg: string): Promise<string> {
+async function writeTagsToDB(file: string) {
+
+    let hash = getFileHash(file);
+    db.push(`^${file}^hash`, hash, true);
+
     try {
-        const { stdout } = await execPromise((`exiftool -xmp:all '${img}' | grep -i ${mapArgToXmp(arg)}`));
+        const { stdout } = await execPromise((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
         if (stdout) {
             const fields = stdout.split("\n");
-            if (fields.length == 2) {
-                return fields.at(0)!.split(':')[1].trim();
+            for (let i = 0; i < fields.length - 1; i++) {
+                const split = trimStringArray(fields.at(i)!.split(':'));
+                db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
-        return "";
-    } catch (err) {
-        return "";
+    } catch (err) {}
+}
+
+async function ensureTagsInDB(file: string) {
+    let exists = db.exists(`^${file}`);
+    
+    let real_hash = getFileHash(file);
+    let database_hash = exists ? db.getData(`^${file}^hash`) : "";
+
+    if (!exists || real_hash != database_hash) {
+        await writeTagsToDB(file);
     }
+}
+
+export async function getImageMetatags(file: string, channel: TextBasedChannel | null) {
+
+    const embed = new MessageEmbed();
+    embed.setTitle("Image metadata");
+    embed.setDescription(getFileName(file));
+    embed.setColor('GREEN');
+
+    await ensureTagsInDB(file);
+
+    for (let i = 0; i < img_tags.length; i++) {
+        let path = `^${file}^tags^${img_tags[i].xmpName}`;
+
+        embed.addFields([{
+            name: mapXmpToName(img_tags[i].xmpName),
+            value: db.exists(path) ? db.getData(path) : "-",
+            inline: true
+        }]);
+    }
+
+    channel?.send({
+        embeds: [embed]
+    });
+
+}
+
+export async function getImageTag(file: string, arg: string): Promise<string> {
+
+    await ensureTagsInDB(file);
+
+    let path = `^${file}^tags^${mapArgToXmp(arg)}`;
+
+    return db.exists(path) ? db.getData(path) : "";
 }
 
 const eight_mb = 1024 * 1024 * 8;

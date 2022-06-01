@@ -80,7 +80,7 @@ async function writeTagsToDB(file: string) {
     try {
         const { stdout } = await execPromise((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
         if (stdout) {
-            const fields = stdout.split("\n");
+            const fields = stdout.toLowerCase().split("\n");
             for (let i = 0; i < fields.length - 1; i++) {
                 const split = trimStringArray(fields.at(i)!.split(':'));
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);

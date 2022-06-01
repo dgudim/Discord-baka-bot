@@ -132,7 +132,7 @@ export async function getImageTag(file: string, arg: string): Promise<string> {
     
     let path = `^${file}^tags^${mapArgToXmp(arg)}`;
 
-    return db.exists(path) ? db.getData(path) : "";
+    return db.exists(path) ? db.getData(path) : "-";
 }
 
 const eight_mb = 1024 * 1024 * 8;

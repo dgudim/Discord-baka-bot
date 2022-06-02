@@ -31,6 +31,10 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
         {
             name: "Tags",
             value: post.tag_string_general || '-'
+        },
+        {
+            name: "Copyright",
+            value: post.tag_string_copyright || '-'
         }]);
         if (!isUrl(file)) {
             setLastTags(new tagContainer(

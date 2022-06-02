@@ -28,5 +28,10 @@
         "xmpName": "tags",
         "name": "Tags",
         "type": "string"
+    },
+    {
+        "xmpName": "copyright",
+        "name": "Copyright",
+        "type": "string"
     }
 ]

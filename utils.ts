@@ -246,16 +246,22 @@ export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function normalizeTags(tags: string){
+    return tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_');
+}
+
 export class tagContainer {
     character: string;
     author: string;
     tags: string;
+    copyright: string;
     file: string;
 
-    constructor(character: string = '', author: string = '', tags: string = '', file: string = '') {
-        this.character = character.replaceAll('_', ' ').replace(':', '_');
-        this.author = author.replaceAll('_', ' ').replace(':', '_');
-        this.tags = tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_');
+    constructor(character: string = '', author: string = '', tags: string = '', copyright: string = '', file: string = '') {
+        this.character = normalizeTags(character);
+        this.author = normalizeTags(author);
+        this.tags = normalizeTags(tags);
+        this.copyright = normalizeTags(copyright);
         this.file = file;
     }
 }

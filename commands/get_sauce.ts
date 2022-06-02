@@ -41,6 +41,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                 post.tag_string_character,
                 post.tag_string_artist,
                 post.tag_string_general,
+                post.tag_string_copyright,
                 file));
         }
     } else {

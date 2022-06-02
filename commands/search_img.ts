@@ -42,12 +42,12 @@ const modifiers = new Map([
     ["@=",
         (content: string[], search_term: string[]) => {
             return search_term.some((value) =>
-                content.some((content_value) => { content_value.includes(value) }));
+                content.some((content_value) => content_value.includes(value)));
         }],
     ["=",
         (content: string[], search_term: string[]) => {
             return search_term.every((value) =>
-                content.some((content_value) => { content_value.includes(value) }));
+                content.some((content_value) => content_value.includes(value)));
         }]
 ]);
 

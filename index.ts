@@ -28,7 +28,7 @@ const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
     'logout', 'popd', 'printf', 'pushd', 'pwd', 'read', 'readonly', 'set', 'shift', 'shopt', 'source',
     'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait'];
 
-const prefix = '>';
+export const prefix = '>';
 
 function isBuiltin(str: string) {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));

@@ -7,8 +7,10 @@ export default {
     category: 'Status',
     description: 'Get minecraft server status',
 
-    slash: true,
+    slash: 'both',
     testOnly: true,
+    ownerOnly: false,
+    hidden: false,
 
     callback: async ({ }) => {
 

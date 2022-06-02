@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed, TextBasedChannel } from "discord.js";
+import { ColorResolvable, CommandInteraction, MessageEmbed, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
@@ -25,7 +25,7 @@ export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type:
     }
 }
 
-let lastFile: string;
+let lastFile: string = "";
 
 export function getLastFile() {
     return lastFile;
@@ -133,6 +133,20 @@ export async function getImageTag(file: string, arg: string): Promise<string> {
     let path = `^${file}^tags^${mapArgToXmp(arg)}`;
 
     return db.exists(path) ? db.getData(path) : "-";
+}
+
+export function perc2color(perc: number) {
+    var r, g, b = 0;
+    if (perc < 50) {
+        r = 255;
+        g = Math.round(5.1 * perc);
+    }
+    else {
+        g = 255;
+        r = Math.round(510 - 5.10 * perc);
+    }
+    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return ('#' + ('000000' + h.toString(16)).slice(-6)) as ColorResolvable;
 }
 
 const eight_mb = 1024 * 1024 * 8;

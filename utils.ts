@@ -51,6 +51,10 @@ export function trimStringArray(arr: string[]) {
     });
 }
 
+export function isUrl(str: string) {
+    return str.startsWith('http://') || str.startsWith('https://');
+}
+
 export function mapXmpToName(xmp_tag: string) {
     let index = img_tags.findIndex((element) => {
         return element.xmpName == normalize(xmp_tag);
@@ -240,4 +244,28 @@ export function clamp(num: number, min: number, max: number) {
 
 export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export class tagContainer {
+    character: string;
+    author: string;
+    tags: string;
+    file: string;
+
+    constructor(character: string = '', author: string = '', tags: string = '', file: string = '') {
+        this.character = character.replaceAll('_', ' ');
+        this.author = author.replaceAll('_', ' ');
+        this.tags = tags.replaceAll(' ', ',').replaceAll('_', ' ');
+        this.file = file;
+    }
+}
+
+let last_tags: tagContainer = new tagContainer();
+
+export function setLastTags(tags: tagContainer) {
+    last_tags = tags;
+}
+
+export function getLastTags() {
+    return last_tags;
 }

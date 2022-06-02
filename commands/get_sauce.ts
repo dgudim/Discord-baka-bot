@@ -1,7 +1,9 @@
 import { ICommand } from "wokcommands";
-import { getFileName, getLastFile, perc2color, sendToChannel } from "../utils";
+import { getFileName, getLastFile, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
 import sagiri from "sagiri";
 import { MessageEmbed, TextBasedChannel } from "discord.js";
+const Danbooru = require('danbooru')
+const booru = new Danbooru()
 
 const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
@@ -17,24 +19,51 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
             embed.setDescription(`similarity: ${results[i].similarity}`);
             embed.setURL(results[i].url);
             embed.setImage(results[i].thumbnail);
-            embed.setFields([{
-                name: "Author",
-                value: results[i].authorName || '-'
-            },
-            {
-                name: "Author url",
-                value: results[i].authorUrl || '-'
-            },
-            {
-                name: "Site",
-                value: results[i].site
-            }]);
+            if (results[i].site == 'Danbooru') {
+                const post = await booru.posts(+getFileName(results[i].url))
+                embed.setFields([{
+                    name: "Author",
+                    value: post.tag_string_artist || '-'
+                },
+                {
+                    name: "Character",
+                    value: post.tag_string_character || '-'
+                },
+                {
+                    name: "Tags",
+                    value: post.tag_string_general || '-'
+                },
+                {
+                    name: "Site",
+                    value: results[i].site || '-'
+                }]);
+                if (!isUrl(file)) {
+                    setLastTags(new tagContainer(
+                        post.tag_string_character,
+                        post.tag_string_artist,
+                        post.tag_string_general,
+                        file));
+                }
+            } else {
+                embed.setFields([{
+                    name: "Author",
+                    value: results[i].authorName || '-'
+                },
+                {
+                    name: "Author url",
+                    value: results[i].authorUrl || '-'
+                },
+                {
+                    name: "Site",
+                    value: results[i].site
+                }]);
+            }
             channel?.send({
                 embeds: [embed]
             });
         }
     }
-    if (!images){
+    if (!images) {
         sendToChannel(channel, "No sauce found :(");
     }
 }
@@ -64,7 +93,7 @@ export default {
             return `searching sauce for ${getFileName(file)}`;
         }
 
-        if (args[0].startsWith('http://') || args[0].startsWith('https://')) {
+        if (isUrl(args[0])) {
             findSauce(args[0], channel);
             return `searching sauce for ${getFileName(args[0])}`;
         }

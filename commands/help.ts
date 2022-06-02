@@ -35,6 +35,7 @@ export default {
                      \`/search_img   \` > Searches images by a search query.
                      \`/send_file    \` > Send file to a specified directory on the server. (use with prefix)
                      \`/set_tags     \` > Sets tags for the last image displayed by _img commands.
+                     \`/get_sauce    \` > Get sauce of an image.
                      \`/server_status\` > Display minecraft server status. (can be executed with prefix)`
             },
             {

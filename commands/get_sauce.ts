@@ -9,7 +9,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     const results = await sagiri_client(file);
     let images = 0;
     for (let i = 0; i < results.length; i++) {
-        if (results[i].similarity >= 50) {
+        if (results[i].similarity >= 80) {
             images++;
             const embed = new MessageEmbed();
             embed.setTitle(`Result №${i + 1} from saucenao`);

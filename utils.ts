@@ -253,9 +253,9 @@ export class tagContainer {
     file: string;
 
     constructor(character: string = '', author: string = '', tags: string = '', file: string = '') {
-        this.character = character.replaceAll('_', ' ');
-        this.author = author.replaceAll('_', ' ');
-        this.tags = tags.replaceAll(' ', ',').replaceAll('_', ' ');
+        this.character = character.replaceAll('_', ' ').replace(':', '_');
+        this.author = author.replaceAll('_', ' ').replace(':', '_');
+        this.tags = tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_');
         this.file = file;
     }
 }

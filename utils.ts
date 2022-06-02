@@ -209,11 +209,11 @@ export function sendToChannel(channel: TextBasedChannel | null, content: string)
     }
 }
 
-export function safeReply(interaction: CommandInteraction, message: string) {
+export async function safeReply(interaction: CommandInteraction, message: string) {
     if (interaction.replied) {
         sendToChannel(interaction.channel, message);
     } else {
-        interaction.reply({
+        await interaction.reply({
             content: message
         });
     }

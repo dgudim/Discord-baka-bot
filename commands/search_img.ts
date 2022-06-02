@@ -131,18 +131,18 @@ export default {
 
         if (searchQuery.length) {
             interaction.followUp
-            safeReply(interaction, 'searching...');
+            await safeReply(interaction, 'searching...');
             await searchAndSendImage(searchQuery, channel);
         }
 
         if (index != null) {
             index = clamp(index, 0, images.length - 1);
             if (index > images.length - 1 || index < 0) {
-                safeReply(interaction, `Index too big or no images in the list, max is ${images.length - 1}`);
+                await safeReply(interaction, `Index too big or no images in the list, max is ${images.length - 1}`);
                 return;
             } else {
                 currImg = index;
-                safeReply(interaction, `Set current image index to ${index}`);
+                await safeReply(interaction, `Set current image index to ${index}`);
             }
         }
 
@@ -155,6 +155,6 @@ export default {
         setLastFile(file);
         await getImageMetatags(file, channel);
         currImg++;
-        safeReply(interaction, `Here is your image (index: ${currImg - 1})`);
+        await safeReply(interaction, `Here is your image (index: ${currImg - 1})`);
     }
 } as ICommand

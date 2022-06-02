@@ -1,5 +1,5 @@
 import { ICommand } from "wokcommands";
-import { getFileName, getLastFile, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
+import { getFileName, getLastFile, getLastTags, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
 import sagiri from "sagiri";
 import { MessageEmbed, TextBasedChannel } from "discord.js";
 const Danbooru = require('danbooru')
@@ -37,7 +37,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                     name: "Site",
                     value: results[i].site || '-'
                 }]);
-                if (!isUrl(file)) {
+                if (!isUrl(file) && getLastTags().file != file) {
                     setLastTags(new tagContainer(
                         post.tag_string_character,
                         post.tag_string_artist,

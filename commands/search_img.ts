@@ -1,37 +1,51 @@
 import { CommandInteraction, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
-import { db, getImgDir, image_args_arr, sendToChannel } from "..";
-import { changeSavedDirectory, ensureTagsInDB, getImageMetatags, getImageTag, normalize, sendImgToChannel, setLastFile, trimStringArray, walk } from "../utils";
+import { db, getImgDir, image_args_arr } from "..";
+import { changeSavedDirectory, clamp, ensureTagsInDB, getImageMetatags, getImageTag, normalize, safeReply, sendImgToChannel, sendToChannel, setLastFile, sleep, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
 let currImg = 0;
 
-const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 const modifiers = new Map([
+    ["@*=",
+        (content: string[], search_term: string[]) => {
+            return content.some((content_value) =>
+                search_term.some((search_value) => content_value.startsWith(search_value))); 
+                // any content value must start with one of the search value
+        }],
+    ["@&=",
+        (content: string[], search_term: string[]) => {
+            return content.some((content_value) =>
+                search_term.some((search_value) => content_value.endsWith(search_value)));
+            // any content value must end with one of the search values
+        }],
     ["!=",
-        (content: string, search_term: string) => {
-            return !content.includes(search_term);
+        (content: string[], search_term: string[]) => {
+            return search_term.every((value) => !content.includes(value));
         }],
     ["#=",
-        (content: string, search_term: string) => {
-            return content == search_term;
+        (content: string[], search_term: string[]) => {
+            return content.join() == search_term.join();
         }],
     ["*=",
-        (content: string, search_term: string) => {
-            return content.startsWith(search_term);
+        (content: string[], search_term: string[]) => {
+            return content.every((content_value) =>
+                search_term.some((search_value) => content_value.startsWith(search_value))); 
+                // every content value must start with one of the search value
         }],
     ["&=",
-        (content: string, search_term: string) => {
-            return content.endsWith(search_term);
+        (content: string[], search_term: string[]) => {
+            return content.every((content_value) => 
+            search_term.some((search_value) => content_value.endsWith(search_value))); 
+            // every content value must end with one of the search values
+        }],
+    ["@=",
+        (content: string[], search_term: string[]) => {
+            return search_term.some((value) => content.includes(value));
         }],
     ["=",
-        (content: string, search_term: string) => {
-            return content.includes(search_term);
+        (content: string[], search_term: string[]) => {
+            return search_term.every((value) => content.includes(value));
         }]
 ]);
 
@@ -52,7 +66,7 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
     for (let i = 0; i < search_terms.length; i++) {
 
         let activeModifier_key = "";
-        let activeModifier = (_content: string, _search_term: string) => true;
+        let activeModifier = (_content: string[], _search_term: string[]) => true;
         for (let [key, func] of modifiers.entries()) {
             if (search_terms[i].indexOf(key) != -1) {
                 activeModifier_key = key;
@@ -69,30 +83,19 @@ async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel
             if (image_args_arr.indexOf(search_term_split[0]) == -1) {
                 sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
             } else {
-                let search_term_condition = trimStringArray(search_term_split[1].split(','));
-                for (let c = 0; c < search_term_condition.length; c++) {
-                    const results = await Promise.all(images.map((value) => {
-                        return getImageTag(value, search_term_split[0]);
-                    }));
-                    images = images.filter((_element, index) => {
-                        return activeModifier(results[index], search_term_condition[c]);
-                    });
-                }
+                const results = await Promise.all(images.map((value) => {
+                    return getImageTag(value, search_term_split[0]);
+                }));
+                images = images.filter((_element, index) => {
+                    return activeModifier(
+                        trimStringArray(results[index].split(',')),
+                        trimStringArray(search_term_split[1].split(',')));
+                });
             }
         }
     }
     currImg = 0;
     sendToChannel(channel, `Found ${images.length} images`);
-}
-
-function safeReply(interaction: CommandInteraction, message: string) {
-    if (interaction.replied) {
-        sendToChannel(interaction.channel, message);
-    } else {
-        interaction.reply({
-            content: message
-        });
-    }
 }
 
 export default {

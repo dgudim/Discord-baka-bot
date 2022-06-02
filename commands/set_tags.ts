@@ -33,6 +33,7 @@ export default {
             if (lastTagsFrom_get_sauce.file == getLastFile()) {
                 confString += ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'`
                 confString += ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'`
+                confString += ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'`
                 confString += ` -xmp-xmp:tags='${lastTagsFrom_get_sauce.tags}'`
             } else {
                 return "No tags provided"

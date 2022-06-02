@@ -8,6 +8,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
+import { sendToChannel } from './utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -31,19 +32,6 @@ const prefix = '>';
 
 function isBuiltin(str: string) {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
-}
-
-export function sendToChannel(channel: TextBasedChannel | null, content: string) {
-    if (channel) {
-        const len = content.length;
-        let pos = 0;
-        while (pos < len) {
-            channel.send({
-                content: content.slice(pos, pos + 1999)
-            });
-            pos += 1999;
-        }
-    }
 }
 
 export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string) {

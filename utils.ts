@@ -1,4 +1,4 @@
-import { MessageEmbed, TextBasedChannel } from "discord.js";
+import { CommandInteraction, MessageEmbed, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
@@ -88,13 +88,13 @@ async function writeTagsToDB(file: string, hash: string) {
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
-    } catch (err) {}
+    } catch (err) { }
 }
 
 export async function ensureTagsInDB(file: string) {
 
     let exists = db.exists(`^${file}`);
-    
+
     let real_hash = getFileHash(file);
     let database_hash = exists ? db.getData(`^${file}^hash`) : "";
 
@@ -129,7 +129,7 @@ export async function getImageMetatags(file: string, channel: TextBasedChannel |
 }
 
 export async function getImageTag(file: string, arg: string): Promise<string> {
-    
+
     let path = `^${file}^tags^${mapArgToXmp(arg)}`;
 
     return db.exists(path) ? db.getData(path) : "-";
@@ -178,6 +178,29 @@ export function sendImgToChannel(file: string, channel: TextBasedChannel | null)
     }
 }
 
+export function sendToChannel(channel: TextBasedChannel | null, content: string) {
+    if (channel) {
+        const len = content.length;
+        let pos = 0;
+        while (pos < len) {
+            channel.send({
+                content: content.slice(pos, pos + 1999)
+            });
+            pos += 1999;
+        }
+    }
+}
+
+export function safeReply(interaction: CommandInteraction, message: string) {
+    if (interaction.replied) {
+        sendToChannel(interaction.channel, message);
+    } else {
+        interaction.reply({
+            content: message
+        });
+    }
+}
+
 export function walk(dir: string) {
     let results: Array<string> = [];
     let list = fs.readdirSync(dir);
@@ -195,4 +218,12 @@ export function walk(dir: string) {
         }
     });
     return results;
+}
+
+export function clamp(num: number, min: number, max: number) {
+    return Math.min(Math.max(num, min), max)
+}
+
+export function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

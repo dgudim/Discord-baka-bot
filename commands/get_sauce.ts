@@ -9,63 +9,51 @@ const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
 async function findSauce(file: string, channel: TextBasedChannel | null) {
     const results = await sagiri_client(file);
-    let images = 0;
-    for (let i = 0; i < results.length; i++) {
-        if (results[i].similarity >= 80) {
-            images++;
-            const embed = new MessageEmbed();
-            embed.setTitle(`Result №${i + 1} from saucenao`);
-            embed.setColor(perc2color(results[i].similarity));
-            embed.setDescription(`similarity: ${results[i].similarity}`);
-            embed.setURL(results[i].url);
-            embed.setImage(results[i].thumbnail);
-            if (results[i].site == 'Danbooru') {
-                const post = await booru.posts(+getFileName(results[i].url))
-                embed.setFields([{
-                    name: "Author",
-                    value: post.tag_string_artist || '-'
-                },
-                {
-                    name: "Character",
-                    value: post.tag_string_character || '-'
-                },
-                {
-                    name: "Tags",
-                    value: post.tag_string_general || '-'
-                },
-                {
-                    name: "Site",
-                    value: results[i].site || '-'
-                }]);
-                if (!isUrl(file) && getLastTags().file != file) {
-                    setLastTags(new tagContainer(
-                        post.tag_string_character,
-                        post.tag_string_artist,
-                        post.tag_string_general,
-                        file));
-                }
-            } else {
-                embed.setFields([{
-                    name: "Author",
-                    value: results[i].authorName || '-'
-                },
-                {
-                    name: "Author url",
-                    value: results[i].authorUrl || '-'
-                },
-                {
-                    name: "Site",
-                    value: results[i].site
-                }]);
-            }
-            channel?.send({
-                embeds: [embed]
-            });
+
+    let best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Danbooru' }) || results[0];
+
+    const embed = new MessageEmbed();
+    embed.setTitle(`Result from saucenao`);
+    embed.setColor(perc2color(best_post.similarity));
+    embed.setDescription(`similarity: ${best_post.similarity}`);
+    embed.setURL(best_post.url);
+    embed.setImage(best_post.thumbnail);
+    if (best_post.site == 'Danbooru') {
+        const post = await booru.posts(+getFileName(best_post.url))
+        embed.addFields([{
+            name: "Author",
+            value: post.tag_string_artist || '-'
+        },
+        {
+            name: "Character",
+            value: post.tag_string_character || '-'
+        },
+        {
+            name: "Tags",
+            value: post.tag_string_general || '-'
+        }]);
+        if (!isUrl(file)) {
+            setLastTags(new tagContainer(
+                post.tag_string_character,
+                post.tag_string_artist,
+                post.tag_string_general,
+                file));
         }
+    } else {
+        embed.addFields([{
+            name: "Author",
+            value: best_post.authorName || '-'
+        },
+        {
+            name: "Author url",
+            value: best_post.authorUrl || '-'
+        }]);
     }
-    if (!images) {
-        sendToChannel(channel, "No sauce found :(");
-    }
+    embed.addField("Site", best_post.site);
+    channel?.send({
+        embeds: [embed]
+    });
+
 }
 
 export default {

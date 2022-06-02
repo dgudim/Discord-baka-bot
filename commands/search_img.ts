@@ -144,6 +144,10 @@ export default {
             }
         }
 
+        if(!images.length){
+            return;
+        }
+
         let file = images[currImg];
         sendImgToChannel(file, channel);
         setLastFile(file);

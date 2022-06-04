@@ -263,7 +263,7 @@ export class tagContainer {
         this.author = normalizeTags(author);
         this.tags = normalizeTags(tags);
         this.copyright = normalizeTags(copyright);
-        this.post = post;
+        this.post = post.replace("https://", "").replace("http://", "");
         this.file = file;
     }
 }

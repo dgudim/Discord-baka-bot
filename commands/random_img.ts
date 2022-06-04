@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
-import { db, getImgDir } from "..";
-import { changeSavedDirectory, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
+import { getImgDir } from "..";
+import { changeSavedDirectory, sendImgToChannel, walk } from "../utils";
 
 let indexUpToDate = false;
 let index: Array<string> = [];
@@ -43,12 +43,7 @@ export default {
                 indexUpToDate = true;
             }
 
-            let file = index[currImg];
-            setLastFile(file);
-
-            sendImgToChannel(file, channel);
-
-            await getImageMetatags(file, channel);
+            sendImgToChannel(index[currImg], channel, true);
 
             return "Here is your image"
         } catch (err) {

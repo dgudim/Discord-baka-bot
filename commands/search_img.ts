@@ -1,7 +1,7 @@
-import { CommandInteraction, TextBasedChannel } from "discord.js";
+import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { db, getImgDir, image_args_arr } from "..";
-import { changeSavedDirectory, clamp, ensureTagsInDB, getImageMetatags, getImageTag, normalize, safeReply, sendImgToChannel, sendToChannel, setLastFile, sleep, trimStringArray, walk } from "../utils";
+import { changeSavedDirectory, clamp, ensureTagsInDB, getImageTag, normalize, safeReply, sendImgToChannel, sendToChannel, sleep, trimStringArray, walk } from "../utils";
 
 let images: string[] = [];
 let currImg = 0;
@@ -151,10 +151,8 @@ export default {
         }
 
         let file = images[currImg];
-        sendImgToChannel(file, channel);
-        setLastFile(file);
-        await getImageMetatags(file, channel);
-        currImg++;
         await safeReply(interaction, `Here is your image (index: ${currImg - 1})`);
+        await sendImgToChannel(file, channel, true);
+        currImg++;
     }
 } as ICommand

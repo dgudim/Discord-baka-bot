@@ -1,4 +1,4 @@
-import { ColorResolvable, CommandInteraction, MessageEmbed, TextBasedChannel } from "discord.js";
+import { ColorResolvable, CommandInteraction, Message, MessageEmbed, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
@@ -26,13 +26,19 @@ export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type:
 }
 
 let lastFile: string = "";
+let lastFileUrl: string = "";
+
+export function setLastFile(file: string, fileUrl: string) {
+    lastFile = file;
+    lastFileUrl = fileUrl;
+}
+
+export function getLastFileUrl() {
+    return lastFileUrl;
+}
 
 export function getLastFile() {
     return lastFile;
-}
-
-export function setLastFile(file: string) {
-    lastFile = file;
 }
 
 export function getFileName(file: string) {
@@ -107,7 +113,7 @@ export async function ensureTagsInDB(file: string) {
     }
 }
 
-export async function getImageMetatags(file: string, channel: TextBasedChannel | null) {
+export async function getImageMetatags(file: string, channel: TextBasedChannel | null, send_to_channel: boolean) {
 
     const embed = new MessageEmbed();
     embed.setTitle("Image metadata");
@@ -126,9 +132,13 @@ export async function getImageMetatags(file: string, channel: TextBasedChannel |
         }]);
     }
 
-    channel?.send({
-        embeds: [embed]
-    });
+    if (send_to_channel) {
+        channel?.send({
+            embeds: [embed]
+        });
+    }
+
+    return embed;
 
 }
 
@@ -156,7 +166,8 @@ export function perc2color(perc: number) {
 const eight_mb = 1024 * 1024 * 8;
 import sharp from "sharp";
 
-export function sendImgToChannel(file: string, channel: TextBasedChannel | null) {
+export async function sendImgToChannel(file: string, channel: TextBasedChannel | null, attachMetadata: boolean = false) {
+    let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
         channel?.send({
             content: `image too large, compressing, wait...`
@@ -177,7 +188,7 @@ export function sendImgToChannel(file: string, channel: TextBasedChannel | null)
                             content: 'image still too large, bruh'
                         });
                     } else {
-                        channel?.send({
+                        message = channel?.send({
                             files: [{
                                 attachment: data,
                                 name: getFileName(file)
@@ -187,12 +198,26 @@ export function sendImgToChannel(file: string, channel: TextBasedChannel | null)
                 }
             });
     } else {
-        channel?.send({
-            files: [{
-                attachment: file,
-                name: getFileName(file)
-            }]
-        });
+        if (attachMetadata) {
+            message = channel?.send({
+                files: [{
+                    attachment: file,
+                    name: getFileName(file)
+                }],
+                embeds: [await getImageMetatags(file, channel, false)]
+            });
+        } else {
+            message = channel?.send({
+                files: [{
+                    attachment: file,
+                    name: getFileName(file)
+                }]
+            });
+        }
+    }
+    if (message) {
+        const message_res = await message;
+        setLastFile(file, message_res.attachments.at(0)?.url || '');
     }
 }
 
@@ -246,7 +271,7 @@ export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function normalizeTags(tags: string){
+function normalizeTags(tags: string) {
     return tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_');
 }
 

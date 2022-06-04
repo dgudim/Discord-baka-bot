@@ -1,11 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import { ICommand } from "wokcommands";
-import { db, getImgDir, prefix } from "..";
-import { changeSavedDirectory, getImageMetatags, sendImgToChannel, setLastFile, walk } from "../utils";
-
-let indexUpToDate = false;
-let index: Array<string> = [];
-let currImg = 0;
+import { prefix } from "..";
 
 export default {
 
@@ -17,7 +12,7 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    callback: async ({ channel, interaction, message }) => {
+    callback: async ({ interaction, message }) => {
 
         const embed = new MessageEmbed();
         embed.setTitle("Sussy Baka's help page");

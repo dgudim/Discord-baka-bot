@@ -1,21 +1,45 @@
 import { ICommand } from "wokcommands";
-import { getFileName, getLastFile, getLastTags, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
+import { getFileName, getLastFile, getLastFileUrl, getLastTags, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
 import sagiri from "sagiri";
 import { MessageEmbed, TextBasedChannel } from "discord.js";
-const Danbooru = require('danbooru')
-const booru = new Danbooru()
+
+const Danbooru = require('danbooru');
+const booru = new Danbooru();
 
 const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
+import puppeteer, { Browser, Page } from 'puppeteer'
+let browser: Browser;
+let page: Page;
+
+const sourcePrecedence = ['Danbooru', 'Yande.re']
+
+async function getTagsBySelector(selector: string) {
+    return page.evaluate(sel => {
+        return Array.from(document.querySelectorAll(sel))
+            .map(elem => elem.textContent);
+    }, selector);
+}
+
 async function findSauce(file: string, channel: TextBasedChannel | null) {
     try {
-        const results = await sagiri_client(file);
 
-        let best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Danbooru' });
-        if(!best_post) {
-            best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Pixiv' }) || results[0];
+        if (!browser) {
+            browser = await puppeteer.launch();
+            page = await browser.newPage();
         }
         
+        const results = await sagiri_client(file);
+
+        let best_post = results[0];
+        for (let i = 0; i < sourcePrecedence.length; i++) {
+            let res = results.find((value) => { return value.similarity >= 80 && value.site == sourcePrecedence[i] });
+            if(res){
+                best_post = res;
+                break;
+            }
+        }
+
         const embed = new MessageEmbed();
         embed.setTitle(`Result from saucenao`);
         embed.setColor(perc2color(best_post.similarity));
@@ -49,6 +73,42 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                     best_post.url,
                     file));
             }
+        } else if (best_post.site == 'Yande.re') {
+
+            await page.goto(best_post.url);
+
+            const authorTags = await getTagsBySelector('#tag-sidebar > li.tag-type-artist > a:nth-child(2)');
+            const copyrightTags = await getTagsBySelector('#tag-sidebar > li.tag-type-copyright > a:nth-child(2)');
+            const characterTags = await getTagsBySelector('#tag-sidebar > li.tag-type-character > a:nth-child(2)');
+            const generalTags = await getTagsBySelector('#tag-sidebar > li.tag-type-general > a:nth-child(2)');
+
+            embed.addFields([{
+                name: "Author",
+                value: authorTags.join(",") || '-'
+            },
+            {
+                name: "Character",
+                value: characterTags.join(",") || '-'
+            },
+            {
+                name: "Tags",
+                value: generalTags.join(",") || '-'
+            },
+            {
+                name: "Copyright",
+                value: copyrightTags.join(",") || '-'
+            }]);
+
+            if (!isUrl(file)) {
+                setLastTags(new tagContainer(
+                    characterTags.join(","),
+                    authorTags.join(","),
+                    generalTags.join(","),
+                    copyrightTags.join(","),
+                    best_post.url,
+                    file));
+            }
+
         } else {
             embed.addFields([{
                 name: "Author",

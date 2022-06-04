@@ -61,7 +61,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
             if (!isUrl(file)) {
                 setLastTags(new tagContainer(
                     '',
-                    best_post.authorUrl || '-',
+                    best_post.authorName || '-',
                     '',
                     '',
                     best_post.url,

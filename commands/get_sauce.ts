@@ -8,11 +8,13 @@ const booru = new Danbooru();
 
 const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
+import iqdb from '@l2studio/iqdb-api';
+
 import puppeteer, { Browser, Page } from 'puppeteer'
 let browser: Browser;
 let page: Page;
 
-const sourcePrecedence = ['Danbooru', 'Yande.re']
+const sourcePrecedence = ['Danbooru', 'Gelbooru', 'Yande.re']
 
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
@@ -21,119 +23,165 @@ async function getTagsBySelector(selector: string) {
     }, selector);
 }
 
+function setEmbedFields(embed: MessageEmbed, author: string, character: string, tags: string, copyright: string,
+    resultUrl: string, resultThumbnail: string, sourceFile: string) {
+    embed.setURL(resultUrl);
+    embed.setImage(resultThumbnail);
+    embed.addFields([{
+        name: "Author",
+        value: author
+    },
+    {
+        name: "Character",
+        value: character
+    },
+    {
+        name: "Tags",
+        value: tags
+    },
+    {
+        name: "Copyright",
+        value: copyright
+    }]);
+    if (!isUrl(sourceFile)) {
+        setLastTags(new tagContainer(
+            character,
+            author,
+            tags,
+            copyright,
+            resultUrl,
+            sourceFile));
+    }
+}
+
+class Post {
+    source: string;
+    url: string;
+    similarity: number;
+    thumbnail: string;
+    author: string;
+
+    constructor(url: string, similarity: number, thumbnail: string, author: string, source: string) {
+        this.url = url;
+        this.similarity = similarity;
+        this.thumbnail = thumbnail;
+        this.author = author;
+        this.source = source;
+    }
+}
+
+async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: string,
+    authorSelector: string, copyrightSelector: string,
+    characterSelector: string, tagSelector: string) {
+    await page.goto(post.url);
+
+    const authorTags = await getTagsBySelector(authorSelector);
+    const copyrightTags = await getTagsBySelector(copyrightSelector);
+    const characterTags = await getTagsBySelector(characterSelector);
+    const generalTags = await getTagsBySelector(tagSelector);
+
+    setEmbedFields(embed, authorTags.join(",") || '-',
+        characterTags.join(",") || '-',
+        generalTags.join(",") || '-',
+        copyrightTags.join(",") || '-',
+        post.url, post.thumbnail,
+        sourceFile);
+}
+
 async function findSauce(file: string, channel: TextBasedChannel | null) {
+
+    if (!browser) {
+        browser = await puppeteer.launch();
+        page = await browser.newPage();
+    }
+
+    let sagiriResults;
+    let sagiriBest_post;
+
+    let iqDbResults;
+    let best_post_combined;
     try {
+        sagiriResults = await sagiri_client(file);
 
-        if (!browser) {
-            browser = await puppeteer.launch();
-            page = await browser.newPage();
-        }
-        
-        const results = await sagiri_client(file);
-
-        let best_post = results[0];
+        sagiriBest_post = sagiriResults[0];
         for (let i = 0; i < sourcePrecedence.length; i++) {
-            let res = results.find((value) => { return value.similarity >= 80 && value.site == sourcePrecedence[i] });
-            if(res){
-                best_post = res;
+            let res = sagiriResults.find((value) => { return value.similarity >= 80 && value.site == sourcePrecedence[i] });
+            if (res) {
+                sagiriBest_post = res;
                 break;
             }
         }
 
-        const embed = new MessageEmbed();
-        embed.setTitle(`Result from saucenao`);
-        embed.setColor(perc2color(best_post.similarity));
-        embed.setDescription(`similarity: ${best_post.similarity}`);
-        embed.setURL(best_post.url);
-        embed.setImage(best_post.thumbnail);
-        if (best_post.site == 'Danbooru') {
-            const post = await booru.posts(+getFileName(best_post.url))
-            embed.addFields([{
-                name: "Author",
-                value: post.tag_string_artist || '-'
-            },
-            {
-                name: "Character",
-                value: post.tag_string_character || '-'
-            },
-            {
-                name: "Tags",
-                value: post.tag_string_general || '-'
-            },
-            {
-                name: "Copyright",
-                value: post.tag_string_copyright || '-'
-            }]);
-            if (!isUrl(file)) {
-                setLastTags(new tagContainer(
-                    post.tag_string_character,
-                    post.tag_string_artist,
-                    post.tag_string_general,
-                    post.tag_string_copyright,
-                    best_post.url,
-                    file));
-            }
-        } else if (best_post.site == 'Yande.re') {
+        best_post_combined = new Post(
+            sagiriBest_post.url,
+            sagiriBest_post.similarity,
+            sagiriBest_post.thumbnail,
+            sagiriBest_post.authorName || '-',
+            "saucenao");
 
-            await page.goto(best_post.url);
+    } catch (err) {
+        sendToChannel(channel, "Sagiri api call error: " + err);
+    }
 
-            const authorTags = await getTagsBySelector('#tag-sidebar > li.tag-type-artist > a:nth-child(2)');
-            const copyrightTags = await getTagsBySelector('#tag-sidebar > li.tag-type-copyright > a:nth-child(2)');
-            const characterTags = await getTagsBySelector('#tag-sidebar > li.tag-type-character > a:nth-child(2)');
-            const generalTags = await getTagsBySelector('#tag-sidebar > li.tag-type-general > a:nth-child(2)');
-
-            embed.addFields([{
-                name: "Author",
-                value: authorTags.join(",") || '-'
-            },
-            {
-                name: "Character",
-                value: characterTags.join(",") || '-'
-            },
-            {
-                name: "Tags",
-                value: generalTags.join(",") || '-'
-            },
-            {
-                name: "Copyright",
-                value: copyrightTags.join(",") || '-'
-            }]);
-
-            if (!isUrl(file)) {
-                setLastTags(new tagContainer(
-                    characterTags.join(","),
-                    authorTags.join(","),
-                    generalTags.join(","),
-                    copyrightTags.join(","),
-                    best_post.url,
-                    file));
-            }
-
-        } else {
-            embed.addFields([{
-                name: "Author",
-                value: best_post.authorName || '-'
-            },
-            {
-                name: "Author url",
-                value: best_post.authorUrl || '-'
-            }]);
-            if (!isUrl(file)) {
-                setLastTags(new tagContainer(
-                    '',
-                    best_post.authorName || '-',
-                    '',
-                    '',
-                    best_post.url,
-                    file));
+    if (!sagiriResults || (sagiriBest_post && !sagiriBest_post.site.includes('booru'))) {
+        sendToChannel(channel, "calling iqdb, wait...");
+        iqDbResults = await iqdb(file);
+        if (iqDbResults.results) {
+            let iq_best_post = iqDbResults.results[0];
+            if (iq_best_post.sources.some((value) => value.includes('booru')) || !sagiriResults) {
+                best_post_combined = new Post(
+                    iq_best_post.url,
+                    iq_best_post.similarity,
+                    iq_best_post.image,
+                    '-', "iqdb");
             }
         }
-        embed.addField("Site", best_post.site);
+    }
+
+    if (best_post_combined) {
+        const embed = new MessageEmbed();
+        embed.setTitle(`Result from ${best_post_combined.source}`);
+        embed.setColor(perc2color(best_post_combined.similarity));
+        embed.setDescription(`similarity: ${best_post_combined.similarity}`);
+
+        if (best_post_combined.url.includes('danbooru')) {
+            const post = await booru.posts(+getFileName(best_post_combined.url));
+            setEmbedFields(embed, post.tag_string_artist || '-',
+                post.tag_string_character || '-',
+                post.tag_string_general || '-',
+                post.tag_string_copyright || '-',
+                best_post_combined.url, best_post_combined.thumbnail,
+                file);
+        } else if (best_post_combined.url.includes('gelbooru')) {
+
+            grabBySelectors(best_post_combined, embed, file,
+                '#tag-list > li.tag-type-artist > a',
+                '#tag-list > li.tag-type-copyright > a',
+                '#tag-list > li.tag-type-character > a',
+                '#tag-list > li.tag-type-general > a');
+
+        } else if (best_post_combined.url.includes('yande')) {
+
+            grabBySelectors(best_post_combined, embed, file,
+                '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
+                '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
+                '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
+                '#tag-sidebar > li.tag-type-general > a:nth-child(2)');
+                
+        } else {
+
+            setEmbedFields(embed, best_post_combined.author || '-',
+                '-',
+                '-',
+                '-',
+                best_post_combined.url, best_post_combined.thumbnail,
+                file);
+        }
         channel?.send({
             embeds: [embed]
         });
-    } catch (err) {
-        sendToChannel(channel, "Error occured while calling the api: " + err);
+    } else {
+        sendToChannel(channel, "No sauce found :(")
     }
 }
 

@@ -151,7 +151,7 @@ export default {
         }
 
         let file = images[currImg];
-        await safeReply(interaction, `Here is your image (index: ${currImg - 1})`);
+        await safeReply(interaction, `Here is your image (index: ${currImg})`);
         await sendImgToChannel(file, channel, true);
         currImg++;
     }

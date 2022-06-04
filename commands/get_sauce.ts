@@ -91,7 +91,9 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
 async function findSauce(file: string, channel: TextBasedChannel | null) {
 
     if (!browser) {
-        browser = await puppeteer.launch();
+        browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
         page = await browser.newPage();
     }
 
@@ -167,7 +169,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                 '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
                 '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
                 '#tag-sidebar > li.tag-type-general > a:nth-child(2)');
-                
+
         } else {
 
             setEmbedFields(embed, best_post_combined.author || '-',

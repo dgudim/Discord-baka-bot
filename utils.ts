@@ -255,13 +255,15 @@ export class tagContainer {
     author: string;
     tags: string;
     copyright: string;
+    post: string;
     file: string;
 
-    constructor(character: string = '', author: string = '', tags: string = '', copyright: string = '', file: string = '') {
+    constructor(character: string = '', author: string = '', tags: string = '', copyright: string = '', post: string = '', file: string = '') {
         this.character = normalizeTags(character);
         this.author = normalizeTags(author);
         this.tags = normalizeTags(tags);
         this.copyright = normalizeTags(copyright);
+        this.post = post;
         this.file = file;
     }
 }

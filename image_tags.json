@@ -33,5 +33,10 @@
         "xmpName": "copyright",
         "name": "Copyright",
         "type": "string"
+    },
+    {
+        "xmpName": "sourcepost",
+        "name": "Source post",
+        "type": "string"
     }
 ]

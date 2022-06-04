@@ -31,10 +31,11 @@ export default {
         if (interaction.options.data.length == 0) {
             let lastTagsFrom_get_sauce = getLastTags();
             if (lastTagsFrom_get_sauce.file == getLastFile()) {
-                confString += ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'`
-                confString += ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'`
-                confString += ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'`
-                confString += ` -xmp-xmp:tags='${lastTagsFrom_get_sauce.tags}'`
+                confString += ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'`;
+                confString += ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'`;
+                confString += ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'`;
+                confString += ` -xmp-xmp:tags='${lastTagsFrom_get_sauce.tags}'`;
+                confString += ` -xmp-xmp:sourcepost='${lastTagsFrom_get_sauce.post}'`;
             } else {
                 return "No tags provided"
             }

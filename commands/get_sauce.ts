@@ -11,8 +11,11 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     try {
         const results = await sagiri_client(file);
 
-        let best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Danbooru' }) || results[0];
-
+        let best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Danbooru' });
+        if(!best_post) {
+            best_post = results.find((value) => { return value.similarity >= 80 && value.site == 'Pixiv' }) || results[0];
+        }
+        
         const embed = new MessageEmbed();
         embed.setTitle(`Result from saucenao`);
         embed.setColor(perc2color(best_post.similarity));
@@ -43,6 +46,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                     post.tag_string_artist,
                     post.tag_string_general,
                     post.tag_string_copyright,
+                    best_post.url,
                     file));
             }
         } else {
@@ -54,6 +58,15 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                 name: "Author url",
                 value: best_post.authorUrl || '-'
             }]);
+            if (!isUrl(file)) {
+                setLastTags(new tagContainer(
+                    '',
+                    best_post.authorUrl || '-',
+                    '',
+                    '',
+                    best_post.url,
+                    file));
+            }
         }
         embed.addField("Site", best_post.site);
         channel?.send({

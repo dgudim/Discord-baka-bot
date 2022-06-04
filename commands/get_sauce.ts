@@ -156,7 +156,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                 file);
         } else if (best_post_combined.url.includes('gelbooru')) {
 
-            grabBySelectors(best_post_combined, embed, file,
+            await grabBySelectors(best_post_combined, embed, file,
                 '#tag-list > li.tag-type-artist > a',
                 '#tag-list > li.tag-type-copyright > a',
                 '#tag-list > li.tag-type-character > a',
@@ -164,7 +164,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
 
         } else if (best_post_combined.url.includes('yande')) {
 
-            grabBySelectors(best_post_combined, embed, file,
+            await grabBySelectors(best_post_combined, embed, file,
                 '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
                 '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
                 '#tag-sidebar > li.tag-type-character > a:nth-child(2)',

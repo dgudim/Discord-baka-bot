@@ -186,7 +186,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
                     message = channel?.send({
                         files: [{
                             attachment: data,
-                            name: getFileName(file)
+                            name: `${getFileName(file)}.webp`
                         }]
                     });
                 }

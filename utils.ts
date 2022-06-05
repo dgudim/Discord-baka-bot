@@ -172,7 +172,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
         sendToChannel(channel, 'image too large, compressing, wait...');
         await sharp(file)
             .resize({ width: 1920 })
-            .webp({
+            .jpeg({
                 quality: 80
             })
             .toBuffer().then(data => {
@@ -182,7 +182,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
                     message = channel?.send({
                         files: [{
                             attachment: data,
-                            name: `${getFileName(file)}.webp`
+                            name: getFileName(file)
                         }]
                     });
                 }

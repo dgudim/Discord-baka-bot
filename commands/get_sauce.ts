@@ -6,14 +6,7 @@ import { MessageEmbed, TextBasedChannel } from "discord.js";
 const Danbooru = require('danbooru');
 const booru = new Danbooru();
 
-const sagiriApiKeys = [
-    'd78bfeac5505ab0a2af7f19d369029d4f6cd5176',
-    '92f11d4c222de384f6661296c2995d3c7f9a3d7e',
-    '6f12bb76ea49cbcf237cb6805ae8f6e41d145a80',
-    '5789aca93c4742d5e8990c49a1de65969b0735bf'];
-
-let currentApiKey = 0;
-let sagiri_client = sagiri(sagiriApiKeys[0]);
+const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 
 import iqdb from '@l2studio/iqdb-api';
 
@@ -126,18 +119,6 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
     } catch (err) {
         sendToChannel(channel, "Sagiri api call error: " + err);
-        if (`${err}`.toLowerCase().includes("requests")) {
-            sendToChannel(channel, "Rotating keys");
-            currentApiKey ++;
-            if (currentApiKey > sagiriApiKeys.length - 1){
-                currentApiKey = 0;
-            }
-            sagiri_client = sagiri(sagiriApiKeys[currentApiKey]);
-            if(retries < 2){
-                findSauce(file, channel, retries + 1);
-                return;
-            }
-        }
     }
 
     let callIq = !sagiriResults;

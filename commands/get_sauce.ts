@@ -129,7 +129,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     if (callIq) {
         sendToChannel(channel, "calling iqdb, wait...");
         let iqDbResults = await iqdb(file);
-        console.log(`got ${iqDbResults.results?.length} results from sagiri`);
+        console.log(`results from iqdb: ${iqDbResults.results}`);
         if (iqDbResults.results) {
             for (let result of iqDbResults.results) {
                 posts.push(new Post(

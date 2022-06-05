@@ -1,5 +1,5 @@
 import { ICommand } from "wokcommands";
-import { getFileName, getLastFile, getLastFileUrl, getLastTags, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
+import { getFileName, getLastFileUrl, isUrl, perc2color, sendToChannel, setLastTags, tagContainer } from "../utils";
 import sagiri from "sagiri";
 import { MessageEmbed, TextBasedChannel } from "discord.js";
 

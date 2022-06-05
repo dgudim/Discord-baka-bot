@@ -2,7 +2,7 @@ import { MessageEmbed } from 'discord.js';
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
-import { getFileName, getImageMetatags, getLastFile, getLastTags, normalize, sendToChannel } from '../utils';
+import { getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, sendToChannel } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 
@@ -30,7 +30,7 @@ export default {
 
         if (interaction.options.data.length == 0) {
             let lastTagsFrom_get_sauce = getLastTags();
-            if (lastTagsFrom_get_sauce.file == getLastFile()) {
+            if (lastTagsFrom_get_sauce.file == getLastFileUrl()) {
                 confString += ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'`;
                 confString += ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'`;
                 confString += ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'`;

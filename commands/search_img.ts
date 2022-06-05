@@ -125,7 +125,7 @@ export default {
 
         changeSavedDirectory(channel, 'image', options.getString("directory-path"), 'img_dir');
 
-        if (empty && currImg >= images.length - 1) {
+        if (empty && currImg > images.length - 1) {
             return 'No more images in list';
         }
 

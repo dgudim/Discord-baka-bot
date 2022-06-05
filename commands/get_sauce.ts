@@ -117,7 +117,6 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
 
     } catch (err) {
         sendToChannel(channel, "Sagiri api call error: " + err);
-        console.log("Sagiri api call error: " + err);
     }
 
     let callIq = !sagiriResults;
@@ -129,6 +128,9 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     if (callIq) {
         sendToChannel(channel, "calling iqdb, wait...");
         let iqDbResults = await iqdb(file);
+        if(!iqDbResults.success){
+            sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
+        }
         console.log(`results from iqdb: ${iqDbResults.results}`);
         if (iqDbResults.results) {
             for (let result of iqDbResults.results) {

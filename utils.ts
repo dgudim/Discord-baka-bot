@@ -266,7 +266,7 @@ export function sleep(ms: number) {
 }
 
 function normalizeTags(tags: string) {
-    return tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_');
+    return tags.replaceAll(' ', ',').replaceAll('_', ' ').replace(':', '_').replace('\'', '');
 }
 
 export class tagContainer {

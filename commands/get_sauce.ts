@@ -238,7 +238,7 @@ export default {
     callback: async ({ args, channel }) => {
 
         if (!args.length) {
-            const file = getLastFile();
+            const file = getLastFileUrl();
             if (!file) {
                 return "No file provided."
             }

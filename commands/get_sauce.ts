@@ -89,12 +89,13 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
 }
 
 async function findSauce(file: string, channel: TextBasedChannel | null) {
-
+    
     if (!browser) {
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
         page = await browser.newPage();
+        console.log('stating puppeteer');
     }
 
     let sagiriResults
@@ -103,7 +104,9 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     try {
         sagiriResults = await sagiri_client(file);
 
-        for(let result of sagiriResults) {
+        console.log(`got ${sagiriResults.length} results from sagiri`);
+
+        for (let result of sagiriResults) {
             posts.push(new Post(
                 result.url,
                 result.similarity,
@@ -114,11 +117,12 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
 
     } catch (err) {
         sendToChannel(channel, "Sagiri api call error: " + err);
+        console.log("Sagiri api call error: " + err);
     }
 
     let callIq = !sagiriResults;
 
-    if (!posts.some((post) => post.url.includes('booru'))){
+    if (!posts.some((post) => post.url.includes('booru'))) {
         callIq = true;
     }
 
@@ -136,8 +140,11 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
         }
     }
 
-    let best_post_combined;
+    posts.sort((a, b) => { return b.similarity - a.similarity });
 
+    console.log(`sorted posts: ${posts}`);
+
+    let best_post_combined = posts[0];
     for (let i = 0; i < sourcePrecedence.length; i++) {
         let res = posts.find((value) => { return value.similarity >= 80 && value.url.includes(sourcePrecedence[i]) });
         if (res) {

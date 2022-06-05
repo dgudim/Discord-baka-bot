@@ -52,13 +52,11 @@ const modifiers = new Map([
 ]);
 
 async function searchAndSendImage(searchQuery: string, channel: TextBasedChannel | null) {
-    await sleep(500);
 
     images = walk(getImgDir());
 
     if (images.length > 0 && !db.exists(`^${images[0]}`)) {
-        sendToChannel(channel, "refreshing image tag database, might take a while...");
-        await sleep(1000);
+        await sendToChannel(channel, "refreshing image tag database, might take a while...");
         await Promise.all(images.map((value) => {
             ensureTagsInDB(value);
         }));
@@ -130,7 +128,6 @@ export default {
         }
 
         if (searchQuery.length) {
-            interaction.followUp
             await safeReply(interaction, 'searching...');
             await searchAndSendImage(searchQuery, channel);
         }

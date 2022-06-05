@@ -169,9 +169,7 @@ import sharp from "sharp";
 export async function sendImgToChannel(file: string, channel: TextBasedChannel | null, attachMetadata: boolean = false) {
     let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
-        await channel?.send({
-            content: `image too large, compressing, wait...`
-        });
+        sendToChannel(channel, 'image too large, compressing, wait...');
         await sharp(file)
             .resize({ width: 1920 })
             .webp({
@@ -179,9 +177,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
             })
             .toBuffer().then(data => {
                 if (data.byteLength > eight_mb) {
-                    channel?.send({
-                        content: 'image still too large, bruh'
-                    });
+                    sendToChannel(channel, 'image still too large, bruh');
                 } else {
                     message = channel?.send({
                         files: [{
@@ -215,12 +211,13 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
     }
 }
 
-export function sendToChannel(channel: TextBasedChannel | null, content: string) {
+export async function sendToChannel(channel: TextBasedChannel | null, content: string) {
     if (channel) {
         const len = content.length;
         let pos = 0;
         while (pos < len) {
-            channel.send({
+            console.log(content.slice(pos, pos + 1999));
+            await channel.send({
                 content: content.slice(pos, pos + 1999)
             });
             pos += 1999;

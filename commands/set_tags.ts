@@ -2,7 +2,7 @@ import { MessageEmbed } from 'discord.js';
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
-import { getFileName, getImageMetatags, getLastFile, getLastTags, normalize } from '../utils';
+import { getFileName, getImageMetatags, getLastFile, getLastTags, normalize, sendToChannel } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 
@@ -52,12 +52,15 @@ export default {
             if (index != -1) {
                 confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interaction.options.data[i].value?.toString())}'`;
             } else {
-                console.log("No such parameter: " + interaction.options.data[i].name);
+                sendToChannel(channel, `No such parameter: ${interaction.options.data[i].name}`);
             }
         }
 
-        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} -overwrite_original '${getLastFile()}'`), () => {
+        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} -overwrite_original '${getLastFile()}'`), (stderr) => {
             getImageMetatags(getLastFile(), channel, true);
+            if (stderr) {
+                sendToChannel(channel, `exiftool error ${stderr}`);
+            }
         });
 
         return 'new tags';

@@ -129,6 +129,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     if (callIq) {
         sendToChannel(channel, "calling iqdb, wait...");
         let iqDbResults = await iqdb(file);
+        console.log(`got ${iqDbResults.results?.length} results from sagiri`);
         if (iqDbResults.results) {
             for (let result of iqDbResults.results) {
                 posts.push(new Post(
@@ -141,7 +142,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     }
 
     posts.sort((a, b) => { return b.similarity - a.similarity });
-    
+
     let best_post_combined = posts[0];
     for (let i = 0; i < sourcePrecedence.length; i++) {
         let res = posts.find((value) => { return value.similarity >= 80 && value.url.includes(sourcePrecedence[i]) });

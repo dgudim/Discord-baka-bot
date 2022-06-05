@@ -14,7 +14,7 @@ import puppeteer, { Browser, Page } from 'puppeteer'
 let browser: Browser;
 let page: Page;
 
-const sourcePrecedence = ['Danbooru', 'Gelbooru', 'Yande.re']
+const sourcePrecedence = ['danbooru', 'gelbooru', 'yande.re', "konachan"]
 
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
@@ -97,48 +97,55 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
         page = await browser.newPage();
     }
 
-    let sagiriResults;
-    let sagiriBest_post;
+    let sagiriResults
 
-    let iqDbResults;
-    let best_post_combined;
+    let posts = [];
     try {
         sagiriResults = await sagiri_client(file);
 
-        sagiriBest_post = sagiriResults[0];
-        for (let i = 0; i < sourcePrecedence.length; i++) {
-            let res = sagiriResults.find((value) => { return value.similarity >= 80 && value.site == sourcePrecedence[i] });
-            if (res) {
-                sagiriBest_post = res;
-                break;
-            }
+        for(let result of sagiriResults) {
+            posts.push(new Post(
+                result.url,
+                result.similarity,
+                result.thumbnail,
+                result.authorName || '-',
+                "saucenao"));
         }
-
-        best_post_combined = new Post(
-            sagiriBest_post.url,
-            sagiriBest_post.similarity,
-            sagiriBest_post.thumbnail,
-            sagiriBest_post.authorName || '-',
-            "saucenao");
 
     } catch (err) {
         sendToChannel(channel, "Sagiri api call error: " + err);
     }
 
-    if (!sagiriResults || (sagiriBest_post && !sagiriBest_post.site.includes('booru'))) {
+    let callIq = !sagiriResults;
+
+    if (!posts.some((post) => post.url.includes('booru'))){
+        callIq = true;
+    }
+
+    if (callIq) {
         sendToChannel(channel, "calling iqdb, wait...");
-        iqDbResults = await iqdb(file);
+        let iqDbResults = await iqdb(file);
         if (iqDbResults.results) {
-            let iq_best_post = iqDbResults.results[0];
-            if (iq_best_post.sources.some((value) => value.includes('booru')) || !sagiriResults) {
-                best_post_combined = new Post(
-                    iq_best_post.url,
-                    iq_best_post.similarity,
-                    iq_best_post.image,
-                    '-', "iqdb");
+            for (let result of iqDbResults.results) {
+                posts.push(new Post(
+                    result.url,
+                    result.similarity,
+                    result.image,
+                    '-', "iqdb"));
             }
         }
     }
+
+    let best_post_combined;
+
+    for (let i = 0; i < sourcePrecedence.length; i++) {
+        let res = posts.find((value) => { return value.similarity >= 80 && value.url.includes(sourcePrecedence[i]) });
+        if (res) {
+            best_post_combined = res;
+            break;
+        }
+    }
+
 
     if (best_post_combined) {
         const embed = new MessageEmbed();
@@ -162,7 +169,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
                 '#tag-list > li.tag-type-character > a',
                 '#tag-list > li.tag-type-general > a');
 
-        } else if (best_post_combined.url.includes('yande')) {
+        } else if (best_post_combined.url.includes('yande') || best_post_combined.url.includes('konachan')) {
 
             await grabBySelectors(best_post_combined, embed, file,
                 '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',

@@ -89,13 +89,13 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
 }
 
 async function findSauce(file: string, channel: TextBasedChannel | null) {
-    
+
     if (!browser) {
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
         page = await browser.newPage();
-        console.log('stating puppeteer');
+        console.log('starting puppeteer');
     }
 
     let sagiriResults
@@ -141,9 +141,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null) {
     }
 
     posts.sort((a, b) => { return b.similarity - a.similarity });
-
-    console.log(`sorted posts: ${posts}`);
-
+    
     let best_post_combined = posts[0];
     for (let i = 0; i < sourcePrecedence.length; i++) {
         let res = posts.find((value) => { return value.similarity >= 80 && value.url.includes(sourcePrecedence[i]) });

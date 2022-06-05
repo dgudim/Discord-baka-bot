@@ -19,7 +19,7 @@ const sourcePrecedence = ['danbooru', 'gelbooru', 'yande.re', "konachan"]
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
         return Array.from(document.querySelectorAll(sel))
-            .map(elem => elem.textContent);
+            .map(elem => elem.textContent.replaceAll(' ', '_'));
     }, selector);
 }
 
@@ -78,7 +78,8 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
     const characterTags = await getTagsBySelector(characterSelector);
     const generalTags = await getTagsBySelector(tagSelector);
 
-    setEmbedFields(embed, authorTags.join(",") || '-',
+    setEmbedFields(embed,
+        authorTags.join(",") || '-',
         characterTags.join(",") || '-',
         generalTags.join(",") || '-',
         copyrightTags.join(",") || '-',

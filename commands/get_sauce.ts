@@ -125,7 +125,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
     } catch (err) {
         sendToChannel(channel, "Sagiri api call error: " + err);
         if (`${err}`.toLowerCase().includes("requests")) {
-            sendToChannel(channel, "Rotating keys: " + err);
+            sendToChannel(channel, "Rotating keys");
             currentApiKey ++;
             if (currentApiKey > sagiriApiKeys.length - 1){
                 currentApiKey = 0;

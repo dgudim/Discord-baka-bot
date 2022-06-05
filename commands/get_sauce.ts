@@ -97,6 +97,8 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
 
 async function findSauce(file: string, channel: TextBasedChannel | null, retries: number) {
 
+    console.log(`searching sauce for ${file}`);
+
     if (!browser) {
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox'],

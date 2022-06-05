@@ -43,15 +43,13 @@ function setEmbedFields(embed: MessageEmbed, author: string, character: string, 
         name: "Copyright",
         value: copyright
     }]);
-    if (!isUrl(sourceFile)) {
-        setLastTags(new tagContainer(
-            character,
-            author,
-            tags,
-            copyright,
-            resultUrl,
-            sourceFile));
-    }
+    setLastTags(new tagContainer(
+        character,
+        author,
+        tags,
+        copyright,
+        resultUrl,
+        sourceFile));
 }
 
 class Post {

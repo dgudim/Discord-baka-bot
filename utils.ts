@@ -1,6 +1,7 @@
 import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
+import path from "path";
 import { exec } from 'child_process';
 import util from "util";
 const execPromise = util.promisify(exec);
@@ -83,6 +84,18 @@ export function mapArgToXmp(arg: string) {
 
 function getFileHash(file: string) {
     return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64');
+}
+
+export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function) {
+    try {
+    const { stderr } = await execPromise((`exiftool -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
+    callback();
+    if (stderr) {
+        console.log(`exiftool stderr: ${stderr}`);
+    }
+    } catch (err) {
+        sendToChannel(channel, `xmp tag erro`)
+    }
 }
 
 async function writeTagsToDB(file: string, hash: string) {

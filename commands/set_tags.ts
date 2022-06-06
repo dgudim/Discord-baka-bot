@@ -1,10 +1,10 @@
-import { MessageEmbed } from 'discord.js';
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
-import { getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, sendToChannel } from '../utils';
+import { getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
+import { getSauceConfString } from "../config";
 
 export default {
     category: 'Misc',
@@ -28,27 +28,8 @@ export default {
 
         let confString = "";
 
-        if (interaction.options.data.length == 0) {
-            let lastTagsFrom_get_sauce = getLastTags();
-            if (lastTagsFrom_get_sauce.file == getLastFileUrl()) {
-                confString += ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'`;
-                confString += ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'`;
-                confString += ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'`;
-                confString += ` -xmp-xmp:tags='${lastTagsFrom_get_sauce.tags}'`;
-                confString += ` -xmp-xmp:sourcepost='${lastTagsFrom_get_sauce.post}'`;
-            } else {
-                return "No tags provided"
-            }
-        }
-
-        const embed = new MessageEmbed();
-        embed.setTitle("New metatags");
-        embed.setDescription(getFileName(getLastFile()));
-
-        let index;
-
         for (let i = 0; i < interaction.options.data.length; i++) {
-            index = image_args_arr.indexOf(interaction.options.data[i].name);
+            let index = image_args_arr.indexOf(interaction.options.data[i].name);
             if (index != -1) {
                 confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interaction.options.data[i].value?.toString())}'`;
             } else {
@@ -56,13 +37,19 @@ export default {
             }
         }
 
-        exec((`exiftool -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} -overwrite_original '${getLastFile()}'`), (stderr) => {
-            getImageMetatags(getLastFile(), channel, true);
-            if (stderr) {
-                sendToChannel(channel, `exiftool error ${stderr}`);
+        if (interaction.options.data.length == 0) {
+            let lastTagsFrom_get_sauce = getLastTags();
+            if (lastTagsFrom_get_sauce.file == getLastFileUrl()) {
+                confString = getSauceConfString(lastTagsFrom_get_sauce);
+            } else {
+                return "No tags provided"
             }
-        });
+        }
 
+        writeTagsToFile(confString, getLastFile(), channel, () => {
+            getImageMetatags(getLastFile(), channel, true);
+        });
+        
         return 'new tags';
     }
 } as ICommand

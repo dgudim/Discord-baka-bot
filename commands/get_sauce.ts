@@ -87,7 +87,7 @@ async function grabBySelectors(post: Post, embed: MessageEmbed, sourceFile: stri
         sourceFile);
 }
 
-async function findSauce(file: string, channel: TextBasedChannel | null, retries: number) {
+async function findSauce(file: string, channel: TextBasedChannel | null, min_similarity: number) {
 
     console.log(`searching sauce for ${file}`);
 
@@ -108,7 +108,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
         console.log(`got ${sagiriResults.length} results from sagiri`);
 
         for(let res of sagiriResults) {
-            console.log(res);
+            console.log(res.url, res.similarity);
         }
 
         for (let result of sagiriResults) {
@@ -126,7 +126,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
     let callIq = !sagiriResults;
 
-    if (!posts.some((post) => post.url.includes('booru') && post.similarity >= 75)) {
+    if (!posts.some((post) => post.url.includes('booru') && post.similarity >= min_similarity)) {
         callIq = true;
     }
 
@@ -139,7 +139,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
         if (iqDbResults.results) {
             console.log(`got ${iqDbResults.results.length} results from iqdb`);
             for (let res of iqDbResults.results) {
-                console.log(res);
+                console.log(res.url, res.similarity);
             }
             for (let result of iqDbResults.results) {
                 posts.push(new Post(
@@ -155,7 +155,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
     let best_post_combined = posts[0];
     for (let i = 0; i < sourcePrecedence.length; i++) {
-        let res = posts.find((value) => { return value.url.includes(sourcePrecedence[i]) });
+        let res = posts.find((value) => { return value.url.includes(sourcePrecedence[i]) && value.similarity >= min_similarity});
         if (res) {
             best_post_combined = res;
             break;
@@ -214,30 +214,33 @@ export default {
     category: 'Misc',
     description: 'Get sauce of an image',
 
-    slash: 'both',
+    slash: true,
     testOnly: true,
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<url>',
-    expectedArgsTypes: ['STRING'],
+    expectedArgs: '<url> <min-similarity>',
+    expectedArgsTypes: ['STRING', 'INTEGER'],
     minArgs: 0,
-    maxArgs: 1,
+    maxArgs: 2,
 
-    callback: async ({ args, channel }) => {
+    callback: async ({ channel, interaction }) => {
 
-        if (!args.length) {
+        let url = interaction.options.getString('url');
+        let min_similarity = interaction.options.getNumber('min-similarity') || 75;
+
+        if (!url) {
             const file = getLastFileUrl();
             if (!file) {
                 return "No file provided."
             }
-            findSauce(file, channel, 0);
+            findSauce(file, channel, min_similarity);
             return `searching sauce for ${getFileName(file)}`;
         }
 
-        if (isUrl(args[0])) {
-            findSauce(args[0], channel, 0);
-            return `searching sauce for ${getFileName(args[0])}`;
+        if (isUrl(url)) {
+            findSauce(url, channel, min_similarity);
+            return `searching sauce for ${getFileName(url)}`;
         }
 
         return "Invalid url."

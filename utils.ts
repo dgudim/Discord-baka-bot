@@ -1,4 +1,4 @@
-import { ColorResolvable, CommandInteraction, Message, MessageEmbed, TextBasedChannel } from "discord.js";
+import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import { exec } from 'child_process';
@@ -167,6 +167,7 @@ const eight_mb = 1024 * 1024 * 8;
 import sharp from "sharp";
 
 export async function sendImgToChannel(file: string, channel: TextBasedChannel | null, attachMetadata: boolean = false) {
+    let attachment: BufferResolvable = file;
     let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
         sendToChannel(channel, 'image too large, compressing, wait...');
@@ -179,35 +180,30 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
                 if (data.byteLength > eight_mb) {
                     sendToChannel(channel, 'image still too large, bruh');
                 } else {
-                    message = channel?.send({
-                        files: [{
-                            attachment: data,
-                            name: getFileName(file)
-                        }]
-                    });
+                    attachment = data;
                 }
             });
-    } else {
-        if (attachMetadata) {
-            message = channel?.send({
-                files: [{
-                    attachment: file,
-                    name: getFileName(file)
-                }],
-                embeds: [await getImageMetatags(file, channel, false)]
-            });
-        } else {
-            message = channel?.send({
-                files: [{
-                    attachment: file,
-                    name: getFileName(file)
-                }]
-            });
-        }
     }
+
+    if (attachMetadata) {
+        message = channel?.send({
+            files: [{
+                attachment: attachment,
+                name: getFileName(file)
+            }],
+            embeds: [await getImageMetatags(file, channel, false)]
+        });
+    } else {
+        message = channel?.send({
+            files: [{
+                attachment: attachment,
+                name: getFileName(file)
+            }]
+        });
+    }
+
     if (message) {
-        const message_res = await message;
-        setLastFile(file, message_res.attachments.at(0)?.url || '');
+        setLastFile(file, (await message).attachments.at(0)?.url || '');
     }
 }
 

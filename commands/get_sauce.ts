@@ -107,6 +107,10 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
         console.log(`got ${sagiriResults.length} results from sagiri`);
 
+        for(let res of sagiriResults) {
+            console.log(res);
+        }
+
         for (let result of sagiriResults) {
             posts.push(new Post(
                 result.url,
@@ -132,8 +136,11 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
         if (!iqDbResults.success) {
             sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
         }
-        console.log(`results from iqdb: ${iqDbResults.results}`);
         if (iqDbResults.results) {
+            console.log(`got ${iqDbResults.results.length} results from iqdb`);
+            for (let res of iqDbResults.results) {
+                console.log(res);
+            }
             for (let result of iqDbResults.results) {
                 posts.push(new Post(
                     result.url,

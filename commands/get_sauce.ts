@@ -220,7 +220,7 @@ export default {
     hidden: false,
 
     expectedArgs: '<url> <min-similarity>',
-    expectedArgsTypes: ['STRING', 'INTEGER'],
+    expectedArgsTypes: ['STRING', 'NUMBER'],
     minArgs: 0,
     maxArgs: 2,
 

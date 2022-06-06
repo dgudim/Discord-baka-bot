@@ -126,7 +126,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
     let callIq = !sagiriResults;
 
-    if (!posts.some((post) => post.url.includes('booru'))) {
+    if (!posts.some((post) => post.url.includes('booru') && post.similarity >= 75)) {
         callIq = true;
     }
 

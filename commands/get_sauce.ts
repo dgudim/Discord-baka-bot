@@ -155,7 +155,7 @@ async function findSauce(file: string, channel: TextBasedChannel | null, retries
 
     let best_post_combined = posts[0];
     for (let i = 0; i < sourcePrecedence.length; i++) {
-        let res = posts.find((value) => { return value.similarity >= 80 && value.url.includes(sourcePrecedence[i]) });
+        let res = posts.find((value) => { return value.url.includes(sourcePrecedence[i]) });
         if (res) {
             best_post_combined = res;
             break;

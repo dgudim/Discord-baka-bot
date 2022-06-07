@@ -226,7 +226,7 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
         let pos = 0;
         while (pos < len) {
             let slice = content.slice(pos, pos + 1999);
-            console.log(slice);
+            console.log(`channel ${channel}: ${slice}`);
             await channel.send({
                 content: slice
             });
@@ -239,7 +239,7 @@ export async function safeReply(interaction: CommandInteraction, message: string
     if (interaction.replied) {
         await sendToChannel(interaction.channel, message);
     } else {
-        console.log(message);
+        console.log(`channel ${interaction.channel}: ${message}`);
         await interaction.reply({
             content: message
         });

@@ -22,7 +22,7 @@ export default {
         let min_similarity = interaction.options.getNumber('min-similarity') || 75;
 
         if (!url) {
-            const file = getLastFileUrl();
+            const file = getLastFileUrl(channel);
             if (!file) {
                 await safeReply(interaction, "No file provided.");
                 return;

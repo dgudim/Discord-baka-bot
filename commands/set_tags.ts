@@ -22,7 +22,7 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        if (!getLastFile()) {
+        if (!getLastFile(channel)) {
             await safeReply(interaction, "No image selected");
             return;
         }
@@ -40,7 +40,7 @@ export default {
 
         if (interaction.options.data.length == 0) {
             let lastTagsFrom_get_sauce = getLastTags();
-            if (lastTagsFrom_get_sauce.file == getLastFileUrl()) {
+            if (lastTagsFrom_get_sauce.file == getLastFileUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
                 await safeReply(interaction, "No tags provided");
@@ -48,8 +48,8 @@ export default {
             }
         }
 
-        writeTagsToFile(confString, getLastFile(), channel, () => {
-            getImageMetatags(getLastFile(), channel, true);
+        writeTagsToFile(confString, getLastFile(channel), channel, () => {
+            getImageMetatags(getLastFile(channel), channel, true);
         });
         
         await safeReply(interaction, "new tags");

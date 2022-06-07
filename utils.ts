@@ -1,4 +1,4 @@
-import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, TextBasedChannel } from "discord.js";
+import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, Snowflake, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import path from "path";
@@ -22,20 +22,20 @@ export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type:
     }
 }
 
-let lastFile: string = "";
-let lastFileUrl: string = "";
+let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
+let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
 
-export function setLastFile(file: string, fileUrl: string) {
-    lastFile = file;
-    lastFileUrl = fileUrl;
+export function setLastFile(channel: TextBasedChannel, file: string, fileUrl: string) {
+    lastFiles.set(channel.id, file);
+    lastFileUrls.set(channel.id, fileUrl);
 }
 
-export function getLastFileUrl() {
-    return lastFileUrl;
+export function getLastFileUrl(channel: TextBasedChannel) {
+    return lastFileUrls.get(channel.id) || '';
 }
 
-export function getLastFile() {
-    return lastFile;
+export function getLastFile(channel: TextBasedChannel) {
+    return lastFiles.get(channel.id) || '';
 }
 
 export function getFileName(file: string) {
@@ -175,7 +175,7 @@ export function perc2color(perc: number) {
 export const eight_mb = 1024 * 1024 * 8;
 import sharp from "sharp";
 
-export async function sendImgToChannel(file: string, channel: TextBasedChannel | null, attachMetadata: boolean = false) {
+export async function sendImgToChannel(file: string, channel: TextBasedChannel, attachMetadata: boolean = false) {
     let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
@@ -197,7 +197,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
 
     if (attachment) {
         if (attachMetadata) {
-            message = channel?.send({
+            message = channel.send({
                 files: [{
                     attachment: attachment,
                     name: getFileName(file)
@@ -205,7 +205,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
                 embeds: [await getImageMetatags(file, channel, false)]
             });
         } else {
-            message = channel?.send({
+            message = channel.send({
                 files: [{
                     attachment: attachment,
                     name: getFileName(file)
@@ -214,7 +214,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
         }
 
         if (message) {
-            setLastFile(file, (await message).attachments.at(0)?.url || '');
+            setLastFile(channel, file, (await message).attachments.at(0)?.url || '');
         }
     }
 }

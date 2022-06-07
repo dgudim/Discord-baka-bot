@@ -53,4 +53,4 @@ export function getSauceConfString(lastTagsFrom_get_sauce: tagContainer) {
         ` -xmp-xmp:sourcepost='${lastTagsFrom_get_sauce.post}'`;
 }
 
-export const sourcePrecedence = ['danbooru', 'gelbooru', 'yande.re', "konachan"]
+export const sourcePrecedence = ['danbooru', 'gelbooru', 'sankakucomplex', 'yande.re', "konachan"]

@@ -164,7 +164,7 @@ export async function findSauce(file: string, channel: TextBasedChannel | null, 
             break;
         }
     }
-    
+
     if (best_post_combined) {
         const embed = new MessageEmbed();
         embed.setTitle(`Result from ${best_post_combined.source}`);
@@ -186,6 +186,14 @@ export async function findSauce(file: string, channel: TextBasedChannel | null, 
                 '#tag-list > li.tag-type-copyright > a',
                 '#tag-list > li.tag-type-character > a',
                 '#tag-list > li.tag-type-general > a');
+
+        } else if (best_post_combined.url.includes('sankakucomplex')) {
+
+            await grabBySelectors(best_post_combined, embed, file,
+                '#tag-sidebar > li.tag-type-artist > a',
+                '#tag-sidebar > li.tag-type-copyright > a',
+                '#tag-sidebar > li.tag-type-character > a',
+                '#tag-sidebar > li.tag-type-general > a');
 
         } else if (best_post_combined.url.includes('yande') || best_post_combined.url.includes('konachan')) {
 

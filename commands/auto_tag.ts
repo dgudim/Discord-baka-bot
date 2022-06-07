@@ -49,7 +49,7 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        let accept_from = interaction.options.getString('accept-from') || 'booru';
+        let accept_from = interaction.options.getString('accept-from') || 'booru,sankakucomplex';
         let min_similarity = interaction.options.getNumber('min-similarity') || 90;
         let search_query = interaction.options.getString('search-query');
         let startingIndex = interaction.options.getInteger('index') || 0;

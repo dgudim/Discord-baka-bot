@@ -1,5 +1,6 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
+import { eight_mb, safeReply } from "../utils";
 
 export default {
     category: 'Administration',
@@ -15,18 +16,21 @@ export default {
     minArgs: 1,
     maxArgs: 1,
 
-    callback: ({ interaction, args }) => {
+    callback: async ({ interaction, args }) => {
 
         if (!fs.existsSync(args[0])){
-            return "File does not exist"
+            await safeReply(interaction, "File does not exist");
+            return;
         }
 
         if (fs.statSync(args[0]).isDirectory()) {
-            return "Can't send directories"
+            await safeReply(interaction, "Can't send directories");
+            return;
         }
 
-        if (fs.statSync(args[0]).size > 1024 * 1024 * 8){
-            return "File too big ( > 8mb)"
+        if (fs.statSync(args[0]).size > eight_mb){
+            await safeReply(interaction, "File too big ( > 8mb)");
+            return;
         }
 
         try {
@@ -36,9 +40,9 @@ export default {
                     name: args[0].substring(args[0].lastIndexOf('/') + 1)
                 }]
             });
-            return "Here is your file"
+            await safeReply(interaction, "Here is your file");
         } catch (err) {
-            return "Unknown error: " + err;
+            await safeReply(interaction, `Error: ${err}`);
         }
 
     }

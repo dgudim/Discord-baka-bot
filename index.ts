@@ -76,6 +76,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
 };
 
 const client = new Client({
+    restRequestTimeout: 60000,
     intents: [
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_MESSAGES,
@@ -116,7 +117,7 @@ const messageReplies = new Map([ // put your message replies here
         }]
 ]);
 
-export function getImgDir(){
+export function getImgDir() {
     return db.getData('^img_dir');
 }
 
@@ -126,7 +127,7 @@ export function getSendDir() {
 
 client.on('ready', () => {
 
-    if (!db.exists('^img_dir') || !db.exists('^send_file_dir')){
+    if (!db.exists('^img_dir') || !db.exists('^send_file_dir')) {
         db.push('^img_dir', '/home/public_files', true);
         db.push('^send_file_dir', '/home/kloud/Downloads', true);
     }

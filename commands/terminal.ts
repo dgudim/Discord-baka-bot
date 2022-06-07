@@ -1,5 +1,6 @@
 import { ICommand } from "wokcommands";
 import { toggleTerminalChannel } from "../index"
+import { combinedReply } from "../utils";
 
 export default {
     category: 'Administration',
@@ -16,6 +17,6 @@ export default {
 
         const sucessfull = toggleTerminalChannel(channel, user.id);
         
-        return "Turned terminal mode " + (sucessfull ? "ON" : "OFF") + " for user " + user.username;
+        await combinedReply(interaction, message, `Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user.username}`);
     }
 } as ICommand

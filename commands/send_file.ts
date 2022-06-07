@@ -2,7 +2,7 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory } from "../utils";
+import { changeSavedDirectory, sendToChannel } from "../utils";
 import { getSendDir } from "..";
 
 export default {
@@ -19,7 +19,7 @@ export default {
     minArgs: 0,
     maxArgs: 1,
 
-    callback: ({ message, args }) => {
+    callback: async ({ message, args, channel }) => {
 
         changeSavedDirectory(message.channel, 'save', args[0], 'send_file_dir');
         
@@ -31,14 +31,12 @@ export default {
 
                     file.on("finish", () => {
                         file.close();
-                        message.channel?.send({
-                            content: "saved " + message.attachments.at(i)?.name
-                        });
+                        sendToChannel(channel, `saved ${message.attachments.at(i)?.name}`);
                     });
                 });
             }
 
-            return `saving ${message.attachments.size} file(s) to ${getSendDir()}`;
+            await sendToChannel(channel, `saving ${message.attachments.size} file(s) to ${getSendDir()}`)
         }
 
     }

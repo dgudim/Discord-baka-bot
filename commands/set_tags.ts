@@ -1,7 +1,7 @@
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 import path from 'path';
-import { getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, sendToChannel, writeTagsToFile } from '../utils';
+import { getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 import { getSauceConfString } from "../config";
@@ -20,10 +20,11 @@ export default {
     minArgs: 0,
     maxArgs: image_args_types.length,
 
-    callback: ({ channel, interaction }) => {
+    callback: async ({ channel, interaction }) => {
 
         if (!getLastFile()) {
-            return "No image selected"
+            await safeReply(interaction, "No image selected");
+            return;
         }
 
         let confString = "";
@@ -33,7 +34,7 @@ export default {
             if (index != -1) {
                 confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interaction.options.data[i].value?.toString())}'`;
             } else {
-                sendToChannel(channel, `No such parameter: ${interaction.options.data[i].name}`);
+                await sendToChannel(channel, `No such parameter: ${interaction.options.data[i].name}`);
             }
         }
 
@@ -42,7 +43,8 @@ export default {
             if (lastTagsFrom_get_sauce.file == getLastFileUrl()) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
-                return "No tags provided"
+                await safeReply(interaction, "No tags provided");
+                return;
             }
         }
 
@@ -50,6 +52,6 @@ export default {
             getImageMetatags(getLastFile(), channel, true);
         });
         
-        return 'new tags';
+        await safeReply(interaction, "new tags");
     }
 } as ICommand

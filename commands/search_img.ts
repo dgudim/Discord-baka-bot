@@ -31,7 +31,8 @@ export default {
         changeSavedDirectory(channel, 'image', options.getString("directory-path"), 'img_dir');
 
         if (empty && currImg > images.length - 1) {
-            return 'No more images in list';
+            await safeReply(interaction, `No more images in list`);
+            return;
         }
 
         if (searchQuery.length) {

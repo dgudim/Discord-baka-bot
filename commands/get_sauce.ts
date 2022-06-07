@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
 import { findSauce } from "../sauce_utils";
-import { getFileName, getLastFileUrl, isUrl } from "../utils";
+import { getFileName, getLastFileUrl, isUrl, safeReply } from "../utils";
 
 export default {
     category: 'Misc',
@@ -24,17 +24,20 @@ export default {
         if (!url) {
             const file = getLastFileUrl();
             if (!file) {
-                return "No file provided."
+                await safeReply(interaction, "No file provided.");
+                return;
             }
             findSauce(file, channel, min_similarity);
-            return `searching sauce for ${getFileName(file)}`;
+            await safeReply(interaction, `searching sauce for ${getFileName(file)}`);
+            return;
         }
 
         if (isUrl(url)) {
             findSauce(url, channel, min_similarity);
-            return `searching sauce for ${getFileName(url)}`;
+            await safeReply(interaction, `searching sauce for ${getFileName(url)}`);
+            return;
         }
 
-        return "Invalid url."
+        await safeReply(interaction, "Invalid Url");
     }
 } as ICommand

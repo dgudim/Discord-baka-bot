@@ -2,14 +2,14 @@ import { TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { getSauceConfString } from "../config";
 import { findSauce, searchImages } from "../sauce_utils";
-import { ensureTagsInDB, getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, ensureTagsInDB, getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, isUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 
 let images: string[] = [];
 let armed = false;
 let active = false;
 let stop = false;
 
-async function autotag(accept_from: string, min_similarity: number, channel: TextBasedChannel) {
+async function autotag(accept_from: string, min_similarity: number, index: number, channel: TextBasedChannel) {
     let tagged = 0, skipped = 0;
     for (let i = 0; i < images.length; i++) {
         await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
@@ -30,7 +30,7 @@ async function autotag(accept_from: string, min_similarity: number, channel: Tex
             break;
         }
     }
-    sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / images.length * 100.0).toFixed(2)}%)`);
+    await sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / images.length * 100.0).toFixed(2)}%)`);
 }
 
 export default {
@@ -42,47 +42,42 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<min-similarity> <accept-from> <search-query>',
-    expectedArgsTypes: ['NUMBER', 'STRING', 'STRING'],
+    expectedArgs: '<min-similarity> <accept-from> <search-query> <index> <directory-path>',
+    expectedArgsTypes: ['NUMBER', 'STRING', 'STRING', 'INTEGER', 'STRING'],
     minArgs: 0,
-    maxArgs: 3,
+    maxArgs: 5,
 
     callback: async ({ channel, interaction }) => {
 
         let accept_from = interaction.options.getString('accept-from') || 'booru';
         let min_similarity = interaction.options.getNumber('min-similarity') || 90;
         let search_query = interaction.options.getString('search-query') || 'source-post#=-';
+        let startingIndex = interaction.options.getInteger('index') || 0;
+
+        changeSavedDirectory(channel, 'image', interaction.options.getString("directory-path"), 'img_dir');
 
         if (stop) {
-            interaction.reply({
-                content: `autotagger still stopping, wait...`
-            });
+            await safeReply(interaction, 'autotagger still stopping, wait...');
             return;
         }
 
         if (active) {
             stop = true;
-            interaction.reply({
-                content: `stopping autotagger...`
-            });
+            await safeReply(interaction, 'stopping autotagger...');
             return;
         }
 
         if (armed && !interaction.options.data.length) {
-            interaction.reply({
-                content: `autotagging ${images.length} images`
-            });
+            await safeReply(interaction, `autotagging ${images.length} images`);
             active = true;
             armed = false;
-            autotag(accept_from, min_similarity, channel);
+            autotag(accept_from, min_similarity, startingIndex, channel);
             return;
         }
 
-        interaction.reply({
-            content: 'searching...'
-        });
+        await safeReply(interaction, 'searching...');
         images = await searchImages(search_query, channel);
-        sendToChannel(channel, 'use the command again to start tagging, use the command third time to stop tagging');
+        await sendToChannel(channel, 'use the command again to start tagging, use the command third time to stop tagging');
         armed = true;
         return;
     }

@@ -12,15 +12,11 @@ import crypto from 'crypto';
 export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string | null, key: string) {
     if (dir) {
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-            channel?.send({
-                content: `Changed ${dir_type} directory to ${dir}`
-            });
+            sendToChannel(channel, `Changed ${dir_type} directory to ${dir}`);
             db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
         } else {
-            channel?.send({
-                content: `Invalid ${dir_type} directory, will use previous`
-            });
+            sendToChannel(channel, `Invalid ${dir_type} directory, will use previous`);
             return false;
         }
     }
@@ -88,13 +84,13 @@ function getFileHash(file: string) {
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function) {
     try {
-    const { stderr } = await execPromise((`exiftool -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
-    callback();
-    if (stderr) {
-        console.log(`exiftool stderr: ${stderr}`);
-    }
+        const { stderr } = await execPromise((`exiftool -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
+        callback();
+        if (stderr) {
+            console.log(`exiftool stderr: ${stderr}`);
+        }
     } catch (err) {
-        sendToChannel(channel, `xmp tag erro`)
+        await sendToChannel(channel, `xmp tagging error: ${err}`);
     }
 }
 
@@ -176,11 +172,11 @@ export function perc2color(perc: number) {
     return ('#' + ('000000' + h.toString(16)).slice(-6)) as ColorResolvable;
 }
 
-const eight_mb = 1024 * 1024 * 8;
+export const eight_mb = 1024 * 1024 * 8;
 import sharp from "sharp";
 
 export async function sendImgToChannel(file: string, channel: TextBasedChannel | null, attachMetadata: boolean = false) {
-    let attachment: BufferResolvable = file;
+    let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
         sendToChannel(channel, 'image too large, compressing, wait...');
@@ -192,31 +188,34 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel |
             .toBuffer().then(data => {
                 if (data.byteLength > eight_mb) {
                     sendToChannel(channel, 'image still too large, bruh');
+                    attachment = undefined;
                 } else {
                     attachment = data;
                 }
             });
     }
 
-    if (attachMetadata) {
-        message = channel?.send({
-            files: [{
-                attachment: attachment,
-                name: getFileName(file)
-            }],
-            embeds: [await getImageMetatags(file, channel, false)]
-        });
-    } else {
-        message = channel?.send({
-            files: [{
-                attachment: attachment,
-                name: getFileName(file)
-            }]
-        });
-    }
+    if (attachment) {
+        if (attachMetadata) {
+            message = channel?.send({
+                files: [{
+                    attachment: attachment,
+                    name: getFileName(file)
+                }],
+                embeds: [await getImageMetatags(file, channel, false)]
+            });
+        } else {
+            message = channel?.send({
+                files: [{
+                    attachment: attachment,
+                    name: getFileName(file)
+                }]
+            });
+        }
 
-    if (message) {
-        setLastFile(file, (await message).attachments.at(0)?.url || '');
+        if (message) {
+            setLastFile(file, (await message).attachments.at(0)?.url || '');
+        }
     }
 }
 
@@ -225,9 +224,10 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
         const len = content.length;
         let pos = 0;
         while (pos < len) {
-            console.log(content.slice(pos, pos + 1999));
+            let slice = content.slice(pos, pos + 1999);
+            console.log(slice);
             await channel.send({
-                content: content.slice(pos, pos + 1999)
+                content: slice
             });
             pos += 1999;
         }
@@ -236,11 +236,20 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
 
 export async function safeReply(interaction: CommandInteraction, message: string) {
     if (interaction.replied) {
-        sendToChannel(interaction.channel, message);
+        await sendToChannel(interaction.channel, message);
     } else {
+        console.log(message);
         await interaction.reply({
             content: message
         });
+    }
+}
+
+export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string) {
+    if (interaction) {
+        await safeReply(interaction, content);
+    } else if (message) {
+        await sendToChannel(message.channel, content);
     }
 }
 

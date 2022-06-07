@@ -302,12 +302,14 @@ export class tagContainer {
     }
 }
 
-let last_tags: tagContainer = new tagContainer();
 
-export function setLastTags(tags: tagContainer) {
-    last_tags = tags;
+
+let last_tags: Map<Snowflake, tagContainer> = new Map<Snowflake, tagContainer>();
+
+export function setLastTags(channel: TextBasedChannel, tags: tagContainer) {
+    last_tags.set(channel.id, tags);
 }
 
-export function getLastTags() {
-    return last_tags;
+export function getLastTags(channel: TextBasedChannel) {
+    return last_tags.get(channel.id) || new tagContainer();
 }

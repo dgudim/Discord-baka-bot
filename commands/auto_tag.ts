@@ -87,6 +87,7 @@ export default {
 
         await safeReply(interaction, 'searching...');
         images = await searchImages(search_query || 'source-post#=-', channel);
+        imagesPerChannel.set(channel.id, images);
         await sendToChannel(channel, 'use the command again without the search query to start tagging, use the command third time to stop tagging');
         armedPerChannel.set(channel.id, true);
         return;

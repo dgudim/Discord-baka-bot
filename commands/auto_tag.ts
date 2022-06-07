@@ -30,7 +30,7 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
             break;
         }
     }
-    await sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / images.length * 100.0).toFixed(2)}%)`);
+    await sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / (images.length - index) * 100.0).toFixed(2)}%)`);
 }
 
 export default {

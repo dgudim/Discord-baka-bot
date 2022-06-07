@@ -133,10 +133,21 @@ export async function findSauce(file: string, channel: TextBasedChannel | null, 
 
     if (callIq) {
         sendToChannel(channel, "calling iqdb, wait...");
-        let iqDbResults = await iqdb(file);
-        if (!iqDbResults.success) {
-            sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
+        let iqDbResults;
+        
+        while (true) {
+            iqDbResults = await iqdb(file);
+
+            if (!iqDbResults.success) {
+                sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
+                if (iqDbResults.error?.includes('try again')) {
+                    sendToChannel(channel, 'retrying call to iqdb');
+                    continue;
+                }
+            }
+            break;
         }
+
         if (iqDbResults.results) {
             console.log(`got ${iqDbResults.results.length} results from iqdb`);
             for (let res of iqDbResults.results) {

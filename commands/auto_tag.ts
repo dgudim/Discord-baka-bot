@@ -11,7 +11,7 @@ let stop = false;
 
 async function autotag(accept_from: string, min_similarity: number, index: number, channel: TextBasedChannel) {
     let tagged = 0, skipped = 0;
-    for (let i = 0; i < images.length; i++) {
+    for (let i = index; i < images.length; i++) {
         await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
         await sendImgToChannel(images[i], channel, true);
         let sauce = await findSauce(getLastFileUrl(), channel, min_similarity, accept_from);
@@ -51,7 +51,7 @@ export default {
 
         let accept_from = interaction.options.getString('accept-from') || 'booru';
         let min_similarity = interaction.options.getNumber('min-similarity') || 90;
-        let search_query = interaction.options.getString('search-query') || 'source-post#=-';
+        let search_query = interaction.options.getString('search-query');
         let startingIndex = interaction.options.getInteger('index') || 0;
 
         changeSavedDirectory(channel, 'image', interaction.options.getString("directory-path"), 'img_dir');
@@ -67,8 +67,8 @@ export default {
             return;
         }
 
-        if (armed && !interaction.options.data.length) {
-            await safeReply(interaction, `autotagging ${images.length} images`);
+        if (armed && !search_query) {
+            await safeReply(interaction, `autotagging ${images.length} images starting at index ${startingIndex}`);
             active = true;
             armed = false;
             autotag(accept_from, min_similarity, startingIndex, channel);
@@ -76,8 +76,8 @@ export default {
         }
 
         await safeReply(interaction, 'searching...');
-        images = await searchImages(search_query, channel);
-        await sendToChannel(channel, 'use the command again to start tagging, use the command third time to stop tagging');
+        images = await searchImages(search_query || 'source-post#=-', channel);
+        await sendToChannel(channel, 'use the command again without the search query to start tagging, use the command third time to stop tagging');
         armed = true;
         return;
     }

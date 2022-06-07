@@ -15,7 +15,13 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
 
     for (let i = index; i < images.length; i++) {
         await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
-        await sendImgToChannel(images[i], channel, true);
+        try {
+            await sendImgToChannel(images[i], channel, true);
+        } catch (err) {
+            await sendToChannel(channel, `error: ${err}`);
+            i--;
+            continue;
+        }
         let sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from);
         if (sauce && sauce.similarity >= min_similarity) {
             await writeTagsToFile(getSauceConfString(getLastTags(channel)), images[i], channel, () => { });

@@ -1,6 +1,4 @@
 import { ICommand } from "wokcommands";
-import { exec } from 'child_process';
-import path from 'path';
 import { getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
@@ -39,7 +37,7 @@ export default {
         }
 
         if (interaction.options.data.length == 0) {
-            let lastTagsFrom_get_sauce = getLastTags();
+            let lastTagsFrom_get_sauce = getLastTags(channel);
             if (lastTagsFrom_get_sauce.file == getLastFileUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {

@@ -9,7 +9,9 @@ import img_tags from './image_tags.json';
 
 import crypto from 'crypto';
 
-export function changeSavedDirectory(channel: TextBasedChannel | null, dir_type: string, dir: string | null, key: string) {
+import sharp from "sharp";
+
+export function changeSavedDirectory(channel: TextBasedChannel, dir_type: string, dir: string | null, key: string) {
     if (dir) {
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
             sendToChannel(channel, `Changed ${dir_type} directory to ${dir}`);
@@ -173,7 +175,6 @@ export function perc2color(perc: number) {
 }
 
 export const eight_mb = 1024 * 1024 * 8;
-import sharp from "sharp";
 
 export async function sendImgToChannel(file: string, channel: TextBasedChannel, attachMetadata: boolean = false) {
     let attachment: BufferResolvable | undefined = file;

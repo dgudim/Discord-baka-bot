@@ -1,16 +1,18 @@
-import { TextBasedChannel } from "discord.js";
+import { Snowflake, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { getSauceConfString } from "../config";
 import { findSauce, searchImages } from "../sauce_utils";
 import { changeSavedDirectory, ensureTagsInDB, getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, isUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 
-let images: string[] = [];
-let armed = false;
-let active = false;
-let stop = false;
+let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
+let armedPerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();
+let activePerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();
+let stopPerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();
 
 async function autotag(accept_from: string, min_similarity: number, index: number, channel: TextBasedChannel) {
     let tagged = 0, skipped = 0;
+    let images = imagesPerChannel.get(channel.id) || [];
+
     for (let i = index; i < images.length; i++) {
         await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
         await sendImgToChannel(images[i], channel, true);
@@ -24,9 +26,9 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
             await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
             skipped++;
         }
-        if (stop) {
-            stop = false;
-            active = false;
+        if (stopPerChannel.get(channel.id)) {
+            stopPerChannel.set(channel.id, false);
+            activePerChannel.set(channel.id, false);
             break;
         }
     }
@@ -56,21 +58,23 @@ export default {
 
         changeSavedDirectory(channel, 'image', interaction.options.getString("directory-path"), 'img_dir');
 
-        if (stop) {
+        let images = imagesPerChannel.get(channel.id) || [];
+
+        if (stopPerChannel.get(channel.id)) {
             await safeReply(interaction, 'autotagger still stopping, wait...');
             return;
         }
 
-        if (active) {
-            stop = true;
+        if (activePerChannel.get(channel.id)) {
+            stopPerChannel.set(channel.id, true);
             await safeReply(interaction, 'stopping autotagger...');
             return;
         }
 
-        if (armed && !search_query) {
+        if (armedPerChannel.get(channel.id) && !search_query) {
             await safeReply(interaction, `autotagging ${images.length} images starting at index ${startingIndex}`);
-            active = true;
-            armed = false;
+            activePerChannel.set(channel.id, true);
+            armedPerChannel.set(channel.id, false);
             autotag(accept_from, min_similarity, startingIndex, channel);
             return;
         }
@@ -78,7 +82,7 @@ export default {
         await safeReply(interaction, 'searching...');
         images = await searchImages(search_query || 'source-post#=-', channel);
         await sendToChannel(channel, 'use the command again without the search query to start tagging, use the command third time to stop tagging');
-        armed = true;
+        armedPerChannel.set(channel.id, true);
         return;
     }
 } as ICommand

@@ -1,9 +1,10 @@
+import { Snowflake } from "discord.js";
 import { ICommand } from "wokcommands";
 import { searchImages } from "../sauce_utils";
 import { changeSavedDirectory, clamp, normalize, safeReply, sendImgToChannel, } from "../utils";
 
-let currImg = 0;
-let images:string[] = [];
+let currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();
+let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 
 export default {
 
@@ -22,6 +23,9 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
+        let currImg = currImgs.get(channel.id) || 0;
+        let images = imagesPerChannel.get(channel.id) || [];
+
         let options = interaction.options;
 
         let searchQuery = normalize(options.getString("search-query"));
@@ -38,7 +42,9 @@ export default {
         if (searchQuery.length) {
             await safeReply(interaction, 'searching...');
             images = await searchImages(searchQuery, channel);
+            imagesPerChannel.set(channel.id, images);
             currImg = 0;
+            currImgs.set(channel.id, 0);
         }
 
         if (index != null) {
@@ -48,6 +54,7 @@ export default {
                 return;
             } else {
                 currImg = index;
+                currImgs.set(channel.id, index);
                 await safeReply(interaction, `Set current image index to ${index}`);
             }
         }
@@ -59,6 +66,6 @@ export default {
         let file = images[currImg];
         await safeReply(interaction, `Here is your image (index: ${currImg})`);
         await sendImgToChannel(file, channel, true);
-        currImg++;
+        currImgs.set(channel.id, currImg + 1);
     }
 } as ICommand

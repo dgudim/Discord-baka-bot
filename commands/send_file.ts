@@ -2,8 +2,7 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, sendToChannel } from "../utils";
-import { getSendDir } from "..";
+import { changeSavedDirectory, sendToChannel, getSendDir } from "../utils";
 
 export default {
     category: 'Administration',

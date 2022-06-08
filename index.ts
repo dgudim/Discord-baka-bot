@@ -8,7 +8,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { sendToChannel } from './utils';
+import { getKeyByDirType, messageReply, sendToChannel } from './utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -30,11 +30,11 @@ const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
 
 export const prefix = '>';
 
-function isBuiltin(str: string) {
+function isBuiltin(str: string): boolean {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
 }
 
-export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string) {
+export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string): boolean {
     let added = false;
     const channel_id = channel?.id || '';
     if (!terminalShellsByChannel.has(channel_id)) {
@@ -85,60 +85,14 @@ const client = new Client({
 });
 
 const messageReplies = new Map([ // put your message replies here
-    ["ping",
-        (message: Message) => {
-            message.reply({
-                content: 'pong'
-            });
-        }],
-    ["windows",
-        (message: Message) => {
-            message.reply({
-                content: '🐧 Linux 🐧'
-            });
-        }],
-    ["pain and suffering",
-        (message: Message) => {
-            message.reply({
-                content: 'main() and buffering'
-            });
-        }],
-    ["понял",
-        (message: Message) => {
-            message.reply({
-                content: 'не поняла'
-            });
-        }],
-    ["amogus",
-        (message: Message) => {
-            message.reply({
-                content: 'sus'
-            });
-        }]
+    ["ping", (message: Message) => { messageReply(message, 'pong'); }],
+    ["windows", (message: Message) => { messageReply(message, '🐧 Linux 🐧'); }],
+    ["pain and suffering", (message: Message) => { messageReply(message, 'main() and buffering'); }],
+    ["понял", (message: Message) => { messageReply(message, 'не поняла'); }],
+    ["amogus", (message: Message) => { messageReply(message, 'sus'); }]
 ]);
 
-export function getImgDir() {
-    return db.getData('^img_dir');
-}
-
-export function getSendDir() {
-    return db.getData('^send_file_dir');
-}
-
-client.on('ready', () => {
-
-    if (!db.exists('^img_dir') || !db.exists('^send_file_dir')) {
-        db.push('^img_dir', '/home/public_files', true);
-        db.push('^send_file_dir', '/home/kloud/Downloads', true);
-    }
-
-    client.user?.setPresence({
-        status: 'online',
-        activities: [{
-            name: 'prefix is ' + prefix
-        }]
-    });
-
+function writeExifToolConfig(): void {
     let exifToolConfig = `
     %Image::ExifTool::UserDefined = (
     'Image::ExifTool::XMP::xmp' => {
@@ -165,6 +119,24 @@ client.on('ready', () => {
 
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
     console.log('exiftool config written');
+}
+
+client.on('ready', () => {
+
+    if (!db.exists(`^${getKeyByDirType('IMAGE')}`)
+        || !db.exists(`^${getKeyByDirType('SAVE')}`)) {
+        db.push(`^${getKeyByDirType('IMAGE')}`, '/home/public_files', true);
+        db.push(`^${getKeyByDirType('SAVE')}`, '/home/kloud/Downloads', true);
+    }
+
+    client.user?.setPresence({
+        status: 'online',
+        activities: [{
+            name: 'prefix is ' + prefix
+        }]
+    });
+
+    writeExifToolConfig();
 
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
@@ -190,6 +162,5 @@ client.on('messageCreate', (message) => {
         messageReplies.get(msg_content)!(message);
     }
 });
-
 
 client.login(process.env.TOKEN);

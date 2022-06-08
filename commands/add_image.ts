@@ -2,9 +2,8 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getLastTags, isUrl, sendToChannel, writeTagsToFile } from "../utils";
-import { getImgDir, getSendDir } from "..";
-import { findSauce, grabImageUrl } from "../sauce_utils";
+import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, isUrl, sendToChannel, writeTagsToFile } from "../utils";
+import { findSauce, getPostInfoFromUrl, grabImageUrl } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
 
@@ -28,21 +27,22 @@ export default {
 
         if (isUrl(args[0])) {
             let input_url = args[0];
-            let fileName = getFileName(input_url);
-            await combinedReply(interaction, message, `saving as ${fileName}`);
-            if (fs.existsSync(fileName)) {
-                await combinedReply(interaction, message, 'file exists');
-                return;
-            }
 
             const res = await fetch(input_url);
 
             if (res.ok) {
                 const buff = await res.blob();
 
-                const img_url = buff.type.startsWith('image/') ? input_url : await grabImageUrl(input_url);
+                const is_plain_image = buff.type.startsWith('image/');
+                const img_url = is_plain_image ? input_url : await grabImageUrl(input_url);
 
                 if (img_url) {
+                    let fileName = getFileName(img_url);
+                    await combinedReply(interaction, message, `saving as ${fileName}`);
+                    if (fs.existsSync(fileName)) {
+                        await combinedReply(interaction, message, 'file exists');
+                        return;
+                    }
                     const file_path = path.join(getImgDir(), fileName);
                     const file = fs.createWriteStream(file_path);
 
@@ -58,12 +58,18 @@ export default {
                         file.on('finish', async () => {
                             file.close();
                             sendToChannel(channel, `saved ${fileName}, `);
-                            const sauce = await findSauce(img_url, channel, 85);
-                            if (sauce && sauce.similarity >= 85) {
-                                writeTagsToFile(getSauceConfString(getLastTags(channel)), file_path, channel, () => {
-                                    sendToChannel(channel, `wrote tags`);
-                                    ensureTagsInDB(file_path);
-                                });
+                            let postInfo;
+                            if (!is_plain_image) {
+                                postInfo = getPostInfoFromUrl(img_url);
+                            }
+                            if (!postInfo) {
+                                const sauce = await findSauce(img_url, channel, 85);
+                                if (sauce && sauce.post.similarity >= 85) {
+                                    writeTagsToFile(getSauceConfString(sauce.postInfo), file_path, channel, () => {
+                                        sendToChannel(channel, `wrote tags`);
+                                        ensureTagsInDB(file_path);
+                                    });
+                                }
                             }
                         });
                     });

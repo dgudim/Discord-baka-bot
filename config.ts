@@ -1,4 +1,5 @@
-import { tagContainer } from "./utils";
+import { PostInfo, TagContainer } from "./sauce_utils";
+import { normalizeTags, stripUrlScheme } from "./utils";
 
 export const search_modifiers = new Map([
     ["@*=",
@@ -45,12 +46,15 @@ export const search_modifiers = new Map([
         }]
 ]);
 
-export function getSauceConfString(lastTagsFrom_get_sauce: tagContainer) {
-    return ` -xmp-xmp:character='${lastTagsFrom_get_sauce.character}'` +
-        ` -xmp-xmp:author='${lastTagsFrom_get_sauce.author}'` +
-        ` -xmp-xmp:copyright='${lastTagsFrom_get_sauce.copyright}'` +
-        ` -xmp-xmp:tags='${lastTagsFrom_get_sauce.tags}'` +
-        ` -xmp-xmp:sourcepost='${lastTagsFrom_get_sauce.post}'`;
+export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
+    if ('postInfo' in lastTagsFrom_get_sauce) {
+        lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
+    }
+    return ` -xmp-xmp:character='${normalizeTags(lastTagsFrom_get_sauce.character)}'` +
+        ` -xmp-xmp:author='${normalizeTags(lastTagsFrom_get_sauce.author)}'` +
+        ` -xmp-xmp:copyright='${normalizeTags(lastTagsFrom_get_sauce.copyright)}'` +
+        ` -xmp-xmp:tags='${normalizeTags(lastTagsFrom_get_sauce.tags)}'` +
+        ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
 }
 
 export const sourcePrecedence = ['danbooru', 'gelbooru', 'sankakucomplex', 'konachan', 'yande.re']

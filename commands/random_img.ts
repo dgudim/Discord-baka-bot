@@ -1,6 +1,5 @@
 import { ICommand } from "wokcommands";
-import { getImgDir } from "..";
-import { changeSavedDirectory, combinedReply, sendImgToChannel, sendToChannel, walk } from "../utils";
+import { changeSavedDirectory, combinedReply, sendImgToChannel, sendToChannel, walk, getImgDir } from "../utils";
 
 let indexUpToDate = false;
 let index: string[] = [];
@@ -28,7 +27,7 @@ export default {
         }
 
         try {
-            currImg ++;
+            currImg++;
 
             if (!indexUpToDate || currImg == index.length) {
                 index = walk(getImgDir());
@@ -37,13 +36,13 @@ export default {
                     .sort((a, b) => a.sort - b.sort)
                     .map(({ value }) => value);
                 currImg = 0;
-                await sendToChannel(channel, `loaded ${index.length} images`);
+                await combinedReply(interaction, message, `loaded ${index.length} images`);
                 indexUpToDate = true;
             }
-
-            sendImgToChannel(index[currImg], channel, true);
-
             await combinedReply(interaction, message, "Here is your image");
+            
+            await sendImgToChannel(index[currImg], channel, true);
+
         } catch (err) {
             await combinedReply(interaction, message, `Error: ${err}`);
         }

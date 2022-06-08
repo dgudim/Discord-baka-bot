@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
 import fs from "fs";
-import { eight_mb, safeReply } from "../utils";
+import { eight_mb, safeReply, sendToChannel } from "../utils";
 
 export default {
     category: 'Administration',
@@ -16,7 +16,7 @@ export default {
     minArgs: 1,
     maxArgs: 1,
 
-    callback: async ({ interaction, args }) => {
+    callback: async ({ interaction, args, channel }) => {
 
         if (!fs.existsSync(args[0])){
             await safeReply(interaction, "File does not exist");
@@ -34,13 +34,13 @@ export default {
         }
 
         try {
-            interaction.channel?.send({
+            await safeReply(interaction, "Here is your file");
+            await sendToChannel(channel, {
                 files: [{
                     attachment: args[0],
                     name: args[0].substring(args[0].lastIndexOf('/') + 1)
                 }]
-            });
-            await safeReply(interaction, "Here is your file");
+            })
         } catch (err) {
             await safeReply(interaction, `Error: ${err}`);
         }

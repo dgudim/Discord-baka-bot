@@ -1,7 +1,7 @@
 import { ICommand } from "wokcommands";
-import { db, getImgDir } from "..";
+import { db } from "..";
 import fs from "fs";
-import { changeSavedDirectory, safeReply, sendToChannel, walk } from "../utils";
+import { changeSavedDirectory, safeReply, sendToChannel, walk, getImgDir } from "../utils";
 
 export default {
     category: 'Misc',

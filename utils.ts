@@ -1,4 +1,4 @@
-import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, Snowflake, TextBasedChannel } from "discord.js";
+import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, MessageOptions, MessagePayload, Snowflake, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import path from "path";
@@ -15,17 +15,22 @@ export type saveDirType =
     | 'IMAGE'
     | 'SAVE'
 
-export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null) {
+export function getKeyByDirType(dir_type: saveDirType): string {
+    let key;
+    switch (dir_type) {
+        case 'SAVE':
+            key = 'send_file_dir'
+            break;
+        case 'IMAGE':
+            key = 'img_dir'
+            break;
+    }
+    return key;
+}
+
+export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
     if (dir) {
-        let key;
-        switch (dir_type) {
-            case 'SAVE':
-                key = 'send_file_dir'
-                break;
-            case 'IMAGE':
-                key = 'img_dir'
-                break;
-        }
+        let key = getKeyByDirType(dir_type);
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
             sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
             db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
@@ -37,31 +42,39 @@ export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDi
     }
 }
 
+export function getImgDir() {
+    return db.getData(`^${getKeyByDirType('IMAGE')}`);
+}
+
+export function getSendDir() {
+    return db.getData(`^${getKeyByDirType('SAVE')}`);
+}
+
 let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
 let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
 
-export function setLastFile(channel: TextBasedChannel, file: string, fileUrl: string) {
+export function setLastFile(channel: TextBasedChannel, file: string, fileUrl: string): void {
     lastFiles.set(channel.id, file);
     lastFileUrls.set(channel.id, fileUrl);
 }
 
-export function getLastFileUrl(channel: TextBasedChannel) {
+export function getLastFileUrl(channel: TextBasedChannel): string {
     return lastFileUrls.get(channel.id) || '';
 }
 
-export function getLastFile(channel: TextBasedChannel) {
+export function getLastFile(channel: TextBasedChannel): string {
     return lastFiles.get(channel.id) || '';
 }
 
-export function getFileName(file: string) {
+export function getFileName(file: string): string {
     return file.substring(file.lastIndexOf('/') + 1);
 }
 
-export function normalize(str: string | undefined | null) {
+export function normalize(str: string | undefined | null): string {
     return str ? str.toLowerCase().trim() : '';
 }
 
-export function trimStringArray(arr: string[]) {
+export function trimStringArray(arr: string[]): string[] {
     return arr.map(element => {
         return normalize(element);
     }).filter(element => {
@@ -69,11 +82,11 @@ export function trimStringArray(arr: string[]) {
     });
 }
 
-export function isUrl(str: string) {
+export function isUrl(str: string): boolean {
     return str.startsWith('http://') || str.startsWith('https://');
 }
 
-export function mapXmpToName(xmp_tag: string) {
+export function mapXmpToName(xmp_tag: string): string {
     let index = img_tags.findIndex((element) => {
         return element.xmpName == normalize(xmp_tag);
     });
@@ -84,7 +97,7 @@ export function mapXmpToName(xmp_tag: string) {
     return xmp_tag;
 }
 
-export function mapArgToXmp(arg: string) {
+export function mapArgToXmp(arg: string): string {
     let index = image_args_arr.indexOf(arg);
     if (index != -1) {
         return img_tags[index].xmpName;
@@ -93,11 +106,11 @@ export function mapArgToXmp(arg: string) {
     return arg;
 }
 
-function getFileHash(file: string) {
+function getFileHash(file: string): string {
     return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64');
 }
 
-export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function) {
+export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
     try {
         const { stderr } = await execPromise((`exiftool -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
         callback();
@@ -109,7 +122,7 @@ export async function writeTagsToFile(confString: string, file: string, channel:
     }
 }
 
-async function writeTagsToDB(file: string, hash: string) {
+async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
     db.push(`^${file}^hash`, hash, true);
 
@@ -122,10 +135,12 @@ async function writeTagsToDB(file: string, hash: string) {
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
-    } catch (err) { }
+    } catch (err) {
+        console.error(`error writing tags to db: ${err}`);
+    }
 }
 
-export async function ensureTagsInDB(file: string) {
+export async function ensureTagsInDB(file: string): Promise<void> {
 
     let exists = db.exists(`^${file}`);
 
@@ -137,14 +152,14 @@ export async function ensureTagsInDB(file: string) {
     }
 }
 
-export function limitLength(str: string, max_length: number) {
+export function limitLength(str: string, max_length: number): string {
     if (str.length > max_length) {
         str = str.slice(0, max_length - 3) + '...';
     }
     return str;
 }
 
-export async function getImageMetatags(file: string, channel: TextBasedChannel | null, send_to_channel: boolean) {
+export async function getImageMetatags(file: string): Promise<MessageEmbed> {
 
     const embed = new MessageEmbed();
     embed.setTitle("Image metadata");
@@ -163,24 +178,15 @@ export async function getImageMetatags(file: string, channel: TextBasedChannel |
         }]);
     }
 
-    if (send_to_channel) {
-        channel?.send({
-            embeds: [embed]
-        });
-    }
-
     return embed;
-
 }
 
 export async function getImageTag(file: string, arg: string): Promise<string> {
-
     let path = `^${file}^tags^${mapArgToXmp(arg)}`;
-
     return db.exists(path) ? db.getData(path) : "-";
 }
 
-export function perc2color(perc: number) {
+export function perc2color(perc: number): ColorResolvable {
     var r, g, b = 0;
     if (perc < 50) {
         r = 255;
@@ -196,7 +202,7 @@ export function perc2color(perc: number) {
 
 export const eight_mb = 1024 * 1024 * 8;
 
-export async function sendImgToChannel(file: string, channel: TextBasedChannel, attachMetadata: boolean = false) {
+export async function sendImgToChannel(file: string, channel: TextBasedChannel, attachMetadata: boolean = false): Promise<void> {
     let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
     if (fs.statSync(file).size > eight_mb) {
@@ -223,7 +229,7 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel, 
                     attachment: attachment,
                     name: getFileName(file)
                 }],
-                embeds: [await getImageMetatags(file, channel, false)]
+                embeds: [await getImageMetatags(file)]
             });
         } else {
             message = channel.send({
@@ -240,22 +246,42 @@ export async function sendImgToChannel(file: string, channel: TextBasedChannel, 
     }
 }
 
-export async function sendToChannel(channel: TextBasedChannel | null, content: string) {
+export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions): Promise<void> {
     if (channel) {
-        const len = content.length;
-        let pos = 0;
-        while (pos < len) {
-            let slice = content.slice(pos, pos + 1999);
-            console.log(`channel ${channel}: ${slice}`);
+        if (content instanceof MessageEmbed) {
+            console.log(`channel ${channel}: ${content.fields}`);
             await channel.send({
-                content: slice
+                embeds: [content]
             });
-            pos += 1999;
+        } else if (content instanceof MessagePayload) {
+            console.log(`channel ${channel}: ${content.data}`);
+            await channel.send(content);
+        } else if (typeof content === 'string') {
+            const len = content.length;
+            let pos = 0;
+            while (pos < len) {
+                let slice = content.slice(pos, pos + 1999);
+                console.log(`channel ${channel}: ${slice}`);
+                await channel.send({
+                    content: slice
+                });
+                pos += 1999;
+            }
+        } else {
+            console.log(`channel ${channel}: ${content}`);
+            await channel.send(content);
         }
     }
 }
 
-export async function safeReply(interaction: CommandInteraction, message: string) {
+export async function messageReply(message: Message, content: string): Promise<void> {
+    console.log(`channel ${message.channel}: ${content}`);
+    await message.reply({
+        content: content
+    });
+}
+
+export async function safeReply(interaction: CommandInteraction, message: string): Promise<void> {
     if (interaction.replied) {
         await sendToChannel(interaction.channel, message);
     } else {
@@ -266,7 +292,7 @@ export async function safeReply(interaction: CommandInteraction, message: string
     }
 }
 
-export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string) {
+export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string): Promise<void> {
     if (interaction) {
         await safeReply(interaction, content);
     } else if (message) {
@@ -274,7 +300,7 @@ export async function combinedReply(interaction: CommandInteraction | undefined,
     }
 }
 
-export function walk(dir: string) {
+export function walk(dir: string): string[] {
     let results: Array<string> = [];
     let list = fs.readdirSync(dir);
     list.forEach(function (file) {
@@ -293,44 +319,18 @@ export function walk(dir: string) {
     return results;
 }
 
-export function clamp(num: number, min: number, max: number) {
+export function clamp(num: number, min: number, max: number): number {
     return Math.min(Math.max(num, min), max)
 }
 
-export function sleep(ms: number) {
+export function sleep(ms: number): Promise<unknown> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function normalizeTags(tags: string) {
+export function normalizeTags(tags: string): string {
     return tags.replaceAll(' ', ',').replaceAll('_', ' ').replaceAll(':', '_').replaceAll('\'', '');
 }
 
-export class tagContainer {
-    character: string;
-    author: string;
-    tags: string;
-    copyright: string;
-    post: string;
-    file: string;
-
-    constructor(character: string = '', author: string = '', tags: string = '', copyright: string = '', post: string = '', file: string = '') {
-        this.character = normalizeTags(character);
-        this.author = normalizeTags(author);
-        this.tags = normalizeTags(tags);
-        this.copyright = normalizeTags(copyright);
-        this.post = post.replace("https://", "").replace("http://", "");
-        this.file = file;
-    }
-}
-
-
-
-let last_tags: Map<Snowflake, tagContainer> = new Map<Snowflake, tagContainer>();
-
-export function setLastTags(channel: TextBasedChannel, tags: tagContainer) {
-    last_tags.set(channel.id, tags);
-}
-
-export function getLastTags(channel: TextBasedChannel) {
-    return last_tags.get(channel.id) || new tagContainer();
+export function stripUrlScheme(url: string) {
+    return url.replace("https://", "").replace("http://", "");
 }

@@ -1,8 +1,9 @@
 import { ICommand } from "wokcommands";
-import { getImageMetatags, getLastFile, getLastFileUrl, getLastTags, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
+import { getImageMetatags, getLastFile, getLastFileUrl, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 import { getSauceConfString } from "../config";
+import { getLastTags } from "../sauce_utils";
 
 export default {
     category: 'Misc',
@@ -46,8 +47,8 @@ export default {
             }
         }
 
-        writeTagsToFile(confString, getLastFile(channel), channel, () => {
-            getImageMetatags(getLastFile(channel), channel, true);
+        writeTagsToFile(confString, getLastFile(channel), channel, async () => {
+            await sendToChannel(channel, await getImageMetatags(getLastFile(channel)));
         });
         
         await safeReply(interaction, "new tags");

@@ -6,11 +6,11 @@ import sagiri from "sagiri";
 const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 
 import iqdb from '@l2studio/iqdb-api';
-import { MessageEmbed, TextBasedChannel } from 'discord.js';
+import { MessageEmbed, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, setLastTags, sleep, tagContainer, trimStringArray, walk } from './utils';
-import { db, getImgDir, image_args_arr } from ".";
+import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags } from './utils';
+import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 let browser: Browser;
 let page: Page;
@@ -22,71 +22,44 @@ async function getTagsBySelector(selector: string) {
     }, selector);
 }
 
-function setEmbedFields(channel: TextBasedChannel,
-    embed: MessageEmbed, author: string, character: string, tags: string, copyright: string,
-    resultUrl: string, resultThumbnail: string, sourceFile: string) {
-
-    embed.setURL(resultUrl);
-    embed.setImage(resultThumbnail);
-    embed.addFields([{
-        name: "Author",
-        value: author
-    },
-    {
-        name: "Character",
-        value: character
-    },
-    {
-        name: "Tags",
-        value: limitLength(tags, 1024)
-    },
-    {
-        name: "Copyright",
-        value: copyright
-    }]);
-    setLastTags(channel,
-        new tagContainer(
-            character,
-            author,
-            tags,
-            copyright,
-            resultUrl,
-            sourceFile));
-}
-
-export class Post {
-    source: string;
+interface Post {
+    source_db: string;
     url: string;
     similarity: number;
     thumbnail: string;
     author: string;
-
-    constructor(url: string, similarity: number, thumbnail: string, author: string, source: string) {
-        this.url = url;
-        this.similarity = similarity;
-        this.thumbnail = thumbnail;
-        this.author = author;
-        this.source = source;
-    }
 }
 
-async function grabBySelectors(channel: TextBasedChannel, post: Post, embed: MessageEmbed, sourceFile: string,
+export interface PostInfo {
+    author: string;
+    character: string;
+    tags: string;
+    copyright: string;
+    url: string;
+}
+
+export interface TagContainer {
+    postInfo: PostInfo;
+    file: string;
+}
+
+async function grabBySelectors(url: string,
     authorSelector: string, copyrightSelector: string,
     characterSelector: string, tagSelector: string) {
-    await page.goto(post.url);
+    await page.goto(url);
 
     const authorTags = await getTagsBySelector(authorSelector);
     const copyrightTags = await getTagsBySelector(copyrightSelector);
     const characterTags = await getTagsBySelector(characterSelector);
     const generalTags = await getTagsBySelector(tagSelector);
 
-    setEmbedFields(channel, embed,
-        authorTags.join(",") || '-',
-        characterTags.join(",") || '-',
-        generalTags.join(",") || '-',
-        copyrightTags.join(",") || '-',
-        post.url, post.thumbnail,
-        sourceFile);
+    return {
+        author: authorTags.join(",") || '-',
+        character: characterTags.join(",") || '-',
+        tags: generalTags.join(",") || '-',
+        copyright: copyrightTags.join(",") || '-',
+        url: url
+    }
 }
 
 async function ensurePuppeteerStarted() {
@@ -99,7 +72,7 @@ async function ensurePuppeteerStarted() {
     }
 }
 
-export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '') {
+export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '', set_last_tags: boolean = true) {
 
     console.log(`searching sauce for ${file}`);
 
@@ -107,7 +80,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     let sagiriResults;
 
-    let posts = [];
+    let posts: Post[] = [];
     try {
         sagiriResults = await sagiri_client(file);
 
@@ -119,12 +92,13 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
         for (let result of sagiriResults) {
             if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
-                posts.push(new Post(
-                    result.url,
-                    result.similarity,
-                    result.thumbnail,
-                    result.authorName || '-',
-                    "saucenao"));
+                posts.push({
+                    source_db: 'saucenao',
+                    url: result.url,
+                    similarity: result.similarity,
+                    thumbnail: result.thumbnail,
+                    author: result.authorName || '-'
+                });
             }
         }
 
@@ -167,11 +141,13 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
             }
             for (let result of iqDbResults.results) {
                 if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
-                    posts.push(new Post(
-                        result.url,
-                        result.similarity,
-                        result.image,
-                        '-', "iqdb"));
+                    posts.push({
+                        source_db: 'iqdb',
+                        url: result.url,
+                        similarity: result.similarity,
+                        thumbnail: result.image,
+                        author: '-'
+                    });
                 }
             }
         }
@@ -190,59 +166,93 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     if (best_post_combined) {
         const embed = new MessageEmbed();
-        embed.setTitle(`Result from ${best_post_combined.source}`);
+        embed.setTitle(`Result from ${best_post_combined.source_db}`);
         embed.setColor(perc2color(best_post_combined.similarity));
         embed.setDescription(`similarity: ${best_post_combined.similarity}`);
 
-        if (best_post_combined.url.includes('danbooru')) {
-            const post = await booru.posts(+getFileName(best_post_combined.url));
-            setEmbedFields(channel, embed, post.tag_string_artist || '-',
-                post.tag_string_character || '-',
-                post.tag_string_general || '-',
-                post.tag_string_copyright || '-',
-                best_post_combined.url, best_post_combined.thumbnail,
-                file);
-        } else if (best_post_combined.url.includes('gelbooru')) {
-
-            await grabBySelectors(channel, best_post_combined, embed, file,
-                '#tag-list > li.tag-type-artist > a',
-                '#tag-list > li.tag-type-copyright > a',
-                '#tag-list > li.tag-type-character > a',
-                '#tag-list > li.tag-type-general > a');
-
-        } else if (best_post_combined.url.includes('sankakucomplex')) {
-
-            await grabBySelectors(channel, best_post_combined, embed, file,
-                '#tag-sidebar > li.tag-type-artist > a',
-                '#tag-sidebar > li.tag-type-copyright > a',
-                '#tag-sidebar > li.tag-type-character > a',
-                '#tag-sidebar > li.tag-type-general > a');
-
-        } else if (best_post_combined.url.includes('yande') || best_post_combined.url.includes('konachan')) {
-
-            await grabBySelectors(channel, best_post_combined, embed, file,
-                '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
-                '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
-                '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
-                '#tag-sidebar > li.tag-type-general > a:nth-child(2)');
-
-        } else {
-
-            setEmbedFields(channel, embed, best_post_combined.author.replaceAll(' ', '_') || '-',
-                '-',
-                '-',
-                '-',
-                best_post_combined.url, best_post_combined.thumbnail,
-                file);
+        let postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.url) || {
+            author: best_post_combined.author.replaceAll(' ', '_') || '-',
+            character: '-',
+            tags: '-',
+            copyright: '-',
+            url: best_post_combined.url
         }
-        channel.send({
-            embeds: [embed]
-        });
+
+        embed.setURL(best_post_combined.url);
+        embed.setImage(best_post_combined.thumbnail);
+        embed.addFields([{
+            name: "Author",
+            value: normalizeTags(postInfo.author)
+        },
+        {
+            name: "Character",
+            value: normalizeTags(postInfo.character)
+        },
+        {
+            name: "Tags",
+            value: limitLength(normalizeTags(postInfo.tags), 1024)
+        },
+        {
+            name: "Copyright",
+            value: normalizeTags(postInfo.copyright)
+        }]);
+
+        if (set_last_tags) {
+            setLastTags(channel, { postInfo: postInfo, file: file });
+        }
+
+        return { 'post': best_post_combined, 'postInfo': postInfo, 'embed': embed };
     } else {
-        sendToChannel(channel, "No sauce found :(")
+        sendToChannel(channel, "No sauce found :(");
+        return null;
+    }
+}
+
+export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
+
+    if (url.includes('danbooru')) {
+        const post = await booru.posts(+getFileName(url));
+
+        return {
+            author: post.tag_string_artist || '-',
+            character: post.tag_string_character || '-',
+            tags: post.tag_string_general || '-',
+            copyright: post.tag_string_copyright || '-',
+            url: url
+        }
     }
 
-    return best_post_combined;
+    if (url.includes('gelbooru')) {
+
+        return await grabBySelectors(url,
+            '#tag-list > li.tag-type-artist > a',
+            '#tag-list > li.tag-type-copyright > a',
+            '#tag-list > li.tag-type-character > a',
+            '#tag-list > li.tag-type-general > a');
+
+    }
+
+    if (url.includes('sankakucomplex')) {
+
+        return await grabBySelectors(url,
+            '#tag-sidebar > li.tag-type-artist > a',
+            '#tag-sidebar > li.tag-type-copyright > a',
+            '#tag-sidebar > li.tag-type-character > a',
+            '#tag-sidebar > li.tag-type-general > a');
+
+    }
+
+    if (url.includes('yande') || url.includes('konachan')) {
+
+        return await grabBySelectors(url,
+            '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
+            '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
+            '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
+            '#tag-sidebar > li.tag-type-general > a:nth-child(2)');
+
+    }
+
+    return undefined;
 }
 
 export async function grabImageUrl(url: string) {
@@ -254,6 +264,16 @@ export async function grabImageUrl(url: string) {
         let img = document.querySelector('#image');
         return img ? img.getAttribute('src') : '';
     });
+}
+
+let last_tags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
+
+export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void {
+    last_tags.set(channel.id, tags);
+}
+
+export function getLastTags(channel: TextBasedChannel): TagContainer {
+    return last_tags.get(channel.id) || { postInfo: { author: '-', character: '-', copyright: '-', tags: '-', url: '-' }, file: '-' };
 }
 
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {

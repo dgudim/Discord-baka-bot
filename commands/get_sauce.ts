@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
 import { findSauce } from "../sauce_utils";
-import { getFileName, getLastFileUrl, isUrl, safeReply } from "../utils";
+import { getFileName, getLastFileUrl, isUrl, safeReply, sendToChannel } from "../utils";
 
 export default {
     category: 'Misc',
@@ -27,14 +27,20 @@ export default {
                 await safeReply(interaction, "No file provided.");
                 return;
             }
-            findSauce(file, channel, min_similarity);
             await safeReply(interaction, `searching sauce for ${getFileName(file)}`);
+            let sauce = await findSauce(file, channel, min_similarity);
+            if(sauce) {
+                await sendToChannel(channel, sauce.embed);
+            }
             return;
         }
 
         if (isUrl(url)) {
-            findSauce(url, channel, min_similarity);
             await safeReply(interaction, `searching sauce for ${getFileName(url)}`);
+            let sauce = await findSauce(url, channel, min_similarity);
+            if (sauce) {
+                await sendToChannel(channel, sauce.embed);
+            }
             return;
         }
 

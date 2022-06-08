@@ -61,7 +61,7 @@ export default {
         let search_query = interaction.options.getString('search-query');
         let startingIndex = interaction.options.getInteger('index') || 0;
 
-        changeSavedDirectory(channel, 'image', interaction.options.getString("directory-path"), 'img_dir');
+        changeSavedDirectory(channel, 'IMAGE', interaction.options.getString("directory-path"));
 
         let images = imagesPerChannel.get(channel.id) || [];
 

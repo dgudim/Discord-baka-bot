@@ -21,7 +21,7 @@ export default {
 
     callback: async ({ message, args, channel }) => {
 
-        changeSavedDirectory(message.channel, 'save', args[0], 'send_file_dir');
+        changeSavedDirectory(message.channel, 'SAVE', args[0]);
         
         if (message.attachments) {
             for (let i = 0; i < message.attachments.size; i++) {

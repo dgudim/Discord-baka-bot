@@ -23,7 +23,7 @@ export default {
 
     callback: async ({ channel, args, interaction, message }) => {
 
-        if (changeSavedDirectory(channel, 'image', args[0], 'img_dir')) {
+        if (changeSavedDirectory(channel, 'IMAGE', args[0])) {
             indexUpToDate = false;
         }
 

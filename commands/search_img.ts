@@ -32,7 +32,7 @@ export default {
         let index = options.getInteger("index");
         let empty = !searchQuery.length && index == null;
 
-        changeSavedDirectory(channel, 'image', options.getString("directory-path"), 'img_dir');
+        changeSavedDirectory(channel, 'IMAGE', options.getString("directory-path"));
 
         if (empty && currImg > images.length - 1) {
             await safeReply(interaction, `No more images in list`);

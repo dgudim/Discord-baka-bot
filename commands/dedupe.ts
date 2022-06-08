@@ -12,7 +12,7 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<directory path>',
+    expectedArgs: '<directory-path>',
     expectedArgsTypes: ['STRING'],
     minArgs: 0,
     maxArgs: 1,
@@ -20,7 +20,7 @@ export default {
     callback: async ({ channel, interaction, args }) => {
         await safeReply(interaction, "Deduping databse...");
 
-        changeSavedDirectory(channel, 'save', args[0], 'send_file_dir');
+        changeSavedDirectory(channel, 'IMAGE', args[0]);
 
         let images = walk(getImgDir());
         let hashMap = new Map<string, string>();

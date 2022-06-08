@@ -11,10 +11,23 @@ import crypto from 'crypto';
 
 import sharp from "sharp";
 
-export function changeSavedDirectory(channel: TextBasedChannel, dir_type: string, dir: string | null, key: string) {
+export type saveDirType =
+    | 'IMAGE'
+    | 'SAVE'
+
+export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null) {
     if (dir) {
+        let key;
+        switch (dir_type) {
+            case 'SAVE':
+                key = 'send_file_dir'
+                break;
+            case 'IMAGE':
+                key = 'img_dir'
+                break;
+        }
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-            sendToChannel(channel, `Changed ${dir_type} directory to ${dir}`);
+            sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
             db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
         } else {

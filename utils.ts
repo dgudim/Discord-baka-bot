@@ -124,6 +124,13 @@ export async function ensureTagsInDB(file: string) {
     }
 }
 
+export function limitLength(str: string, max_length: number) {
+    if (str.length > max_length) {
+        str = str.slice(0, max_length - 3) + '...';
+    }
+    return str;
+}
+
 export async function getImageMetatags(file: string, channel: TextBasedChannel | null, send_to_channel: boolean) {
 
     const embed = new MessageEmbed();
@@ -138,7 +145,7 @@ export async function getImageMetatags(file: string, channel: TextBasedChannel |
 
         embed.addFields([{
             name: mapXmpToName(img_tags[i].xmpName),
-            value: db.exists(path) ? db.getData(path) : "-",
+            value: limitLength(db.exists(path) ? db.getData(path) : "-", 1024),
             inline: true
         }]);
     }

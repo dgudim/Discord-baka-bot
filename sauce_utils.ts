@@ -9,7 +9,7 @@ import iqdb from '@l2studio/iqdb-api';
 import { MessageEmbed, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { ensureTagsInDB, getFileName, getImageTag, perc2color, sendToChannel, setLastTags, sleep, tagContainer, trimStringArray, walk } from './utils';
+import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, setLastTags, sleep, tagContainer, trimStringArray, walk } from './utils';
 import { db, getImgDir, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 let browser: Browser;
@@ -38,7 +38,7 @@ function setEmbedFields(channel: TextBasedChannel,
     },
     {
         name: "Tags",
-        value: tags
+        value: limitLength(tags, 1024)
     },
     {
         name: "Copyright",

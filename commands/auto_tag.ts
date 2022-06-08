@@ -2,7 +2,7 @@ import { Snowflake, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { getSauceConfString } from "../config";
 import { findSauce, searchImages } from "../sauce_utils";
-import { changeSavedDirectory, ensureTagsInDB, getFileName, getImageMetatags, getLastFile, getLastFileUrl, getLastTags, isUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastFileUrl, getLastTags, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 
 let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 let armedPerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();
@@ -14,28 +14,27 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
     let images = imagesPerChannel.get(channel.id) || [];
 
     for (let i = index; i < images.length; i++) {
-        await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
         try {
+            await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
             await sendImgToChannel(images[i], channel, true);
+            let sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from);
+            if (sauce && sauce.similarity >= min_similarity) {
+                await writeTagsToFile(getSauceConfString(getLastTags(channel)), images[i], channel, () => { });
+                await sendToChannel(channel, `tagged image at index ${i}, name: ${getFileName(images[i])}`);
+                await ensureTagsInDB(images[i]);
+                tagged++;
+            } else {
+                await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
+                skipped++;
+            }
+            if (stopPerChannel.get(channel.id)) {
+                stopPerChannel.set(channel.id, false);
+                activePerChannel.set(channel.id, false);
+                break;
+            }
         } catch (err) {
             await sendToChannel(channel, `error: ${err}`);
             i--;
-            continue;
-        }
-        let sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from);
-        if (sauce && sauce.similarity >= min_similarity) {
-            await writeTagsToFile(getSauceConfString(getLastTags(channel)), images[i], channel, () => { });
-            await sendToChannel(channel, `tagged image at index ${i}, name: ${getFileName(images[i])}`);
-            await ensureTagsInDB(images[i]);
-            tagged++;
-        } else {
-            await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
-            skipped++;
-        }
-        if (stopPerChannel.get(channel.id)) {
-            stopPerChannel.set(channel.id, false);
-            activePerChannel.set(channel.id, false);
-            break;
         }
     }
     await sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / (images.length - index) * 100.0).toFixed(2)}%)`);

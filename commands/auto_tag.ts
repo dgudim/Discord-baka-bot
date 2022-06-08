@@ -15,9 +15,14 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
 
     for (let i = index; i < images.length; i++) {
         try {
+            if (stopPerChannel.get(channel.id)) {
+                stopPerChannel.set(channel.id, false);
+                activePerChannel.set(channel.id, false);
+                break;
+            }
             await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
             await sendImgToChannel(images[i], channel, true);
-            let sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from);
+            const sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from);
             if (sauce && sauce.similarity >= min_similarity) {
                 await writeTagsToFile(getSauceConfString(getLastTags(channel)), images[i], channel, () => { });
                 await sendToChannel(channel, `tagged image at index ${i}, name: ${getFileName(images[i])}`);
@@ -27,17 +32,14 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
                 await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
                 skipped++;
             }
-            if (stopPerChannel.get(channel.id)) {
-                stopPerChannel.set(channel.id, false);
-                activePerChannel.set(channel.id, false);
-                break;
-            }
         } catch (err) {
             await sendToChannel(channel, `error: ${err}`);
             i--;
         }
     }
     await sendToChannel(channel, `tagging finished: ${tagged} tagged, ${skipped} skipped (${tagged + skipped} total, ${((tagged + skipped) / (images.length - index) * 100.0).toFixed(2)}%)`);
+    stopPerChannel.set(channel.id, false);
+    activePerChannel.set(channel.id, false);
 }
 
 export default {

@@ -22,7 +22,7 @@ async function getTagsBySelector(selector: string) {
     }, selector);
 }
 
-function setEmbedFields(channel: TextBasedChannel, 
+function setEmbedFields(channel: TextBasedChannel,
     embed: MessageEmbed, author: string, character: string, tags: string, copyright: string,
     resultUrl: string, resultThumbnail: string, sourceFile: string) {
 
@@ -44,14 +44,14 @@ function setEmbedFields(channel: TextBasedChannel,
         name: "Copyright",
         value: copyright
     }]);
-    setLastTags(channel, 
+    setLastTags(channel,
         new tagContainer(
-        character,
-        author,
-        tags,
-        copyright,
-        resultUrl,
-        sourceFile));
+            character,
+            author,
+            tags,
+            copyright,
+            resultUrl,
+            sourceFile));
 }
 
 export class Post {
@@ -89,10 +89,7 @@ async function grabBySelectors(channel: TextBasedChannel, post: Post, embed: Mes
         sourceFile);
 }
 
-export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '') {
-
-    console.log(`searching sauce for ${file}`);
-
+async function ensurePuppeteerStarted() {
     if (!browser) {
         browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -100,8 +97,15 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         page = await browser.newPage();
         console.log('starting puppeteer');
     }
+}
 
-    let sagiriResults
+export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '') {
+
+    console.log(`searching sauce for ${file}`);
+
+    await ensurePuppeteerStarted();
+
+    let sagiriResults;
 
     let posts = [];
     try {
@@ -139,7 +143,12 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         let iqDbResults;
 
         while (true) {
-            iqDbResults = await iqdb(file);
+            try {
+                iqDbResults = await iqdb(file);
+            } catch (err) {
+                console.log(err);
+                break;
+            }
 
             if (!iqDbResults.success) {
                 sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
@@ -151,7 +160,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
             break;
         }
 
-        if (iqDbResults.results) {
+        if (iqDbResults?.results) {
             console.log(`got ${iqDbResults.results.length} results from iqdb`);
             for (let res of iqDbResults.results) {
                 console.log(res.url, res.similarity);
@@ -234,6 +243,17 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     }
 
     return best_post_combined;
+}
+
+export async function grabImageUrl(url: string) {
+    await ensurePuppeteerStarted();
+
+    await page.goto(url);
+
+    return page.evaluate(() => {
+        let img = document.querySelector('#image');
+        return img ? img.getAttribute('src') : '';
+    });
 }
 
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {

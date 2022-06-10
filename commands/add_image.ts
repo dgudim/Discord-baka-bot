@@ -41,7 +41,7 @@ export default {
                 if (img_url) {
 
                     if (interaction) {
-                        await sendImgToChannel(channel, img_url);
+                        await sendToChannel(channel, img_url);
                     }
 
                     let fileName = getFileName(img_url);

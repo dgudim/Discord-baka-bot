@@ -22,6 +22,21 @@ async function getTagsBySelector(selector: string) {
     }, selector);
 }
 
+async function getAttributeBySelector(selector: string, attribute: string) {
+    return page.evaluate((sel, attr) => {
+        let img = document.querySelector(sel);
+        return img ? img.getAttribute(attr) : '';
+    }, selector, attribute);
+}
+
+async function callFunction(func: string) {
+    try {
+        await page.evaluate(func);
+    } catch (e) {
+        console.log(`error calling function: ${func}: ${e}`);
+    }
+}
+
 interface Post {
     source_db: string;
     url: string;
@@ -232,7 +247,7 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     }
 
-    if (url.includes('sankakucomplex')) {
+    if (url.includes('sankakucomplex') || url.includes('rule34')) {
 
         return await grabBySelectors(url,
             '#tag-sidebar > li.tag-type-artist > a',
@@ -260,10 +275,21 @@ export async function grabImageUrl(url: string) {
 
     await page.goto(url);
 
-    return page.evaluate(() => {
-        let img = document.querySelector('#image');
-        return img ? img.getAttribute('src') : '';
-    });
+    let res;
+
+    if (url.includes('danbooru')) {
+        res = await getAttributeBySelector('.image-view-original-link', 'href');
+    } else if (url.includes('yande.re')) {
+        res = await getAttributeBySelector('#highres-show', 'href');
+    } else if (url.includes('gelbooru')) {
+        await callFunction('resizeTransition();');
+    } else if (url.includes('rule34')) {
+        await callFunction('Post.highres();');
+    } else if (url.includes('sankakucomplex')) {
+        await page.click('#image');
+    }
+
+    return res || await getAttributeBySelector('#image', 'src');
 }
 
 let last_tags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();

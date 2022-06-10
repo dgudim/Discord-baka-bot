@@ -25,6 +25,8 @@ export default {
 
         changeSavedDirectory(channel, 'IMAGE', args[1]);
 
+        await combinedReply(interaction, message, 'adding image to db');
+
         if (isUrl(args[0])) {
             let input_url = args[0];
 
@@ -38,9 +40,9 @@ export default {
 
                 if (img_url) {
                     let fileName = getFileName(img_url);
-                    await combinedReply(interaction, message, `saving as ${fileName}`);
+                    await sendToChannel(channel, `saving as ${fileName}`);
                     if (fs.existsSync(fileName)) {
-                        await combinedReply(interaction, message, 'file exists');
+                        await sendToChannel(channel, 'file exists');
                         return;
                     }
                     const file_path = path.join(getImgDir(), fileName);
@@ -60,28 +62,30 @@ export default {
                             sendToChannel(channel, `saved ${fileName}, `);
                             let postInfo;
                             if (!is_plain_image) {
-                                postInfo = getPostInfoFromUrl(img_url);
-                            }
-                            if (!postInfo) {
+                                postInfo = await getPostInfoFromUrl(img_url);
+                            } else {
                                 const sauce = await findSauce(img_url, channel, 85);
                                 if (sauce && sauce.post.similarity >= 85) {
-                                    writeTagsToFile(getSauceConfString(sauce.postInfo), file_path, channel, () => {
-                                        sendToChannel(channel, `wrote tags`);
-                                        ensureTagsInDB(file_path);
-                                    });
+                                    postInfo = sauce.postInfo;
                                 }
+                            }
+                            if (postInfo) {
+                                writeTagsToFile(getSauceConfString(postInfo), file_path, channel, () => {
+                                    sendToChannel(channel, `wrote tags`);
+                                    ensureTagsInDB(file_path);
+                                });
                             }
                         });
                     });
                 } else {
-                    await combinedReply(interaction, message, 'could not get image url from page');
+                    await sendToChannel(channel, 'could not get image url from page');
                 }
 
             } else {
-                await combinedReply(interaction, message, 'url does not exist');
+                await sendToChannel(channel, 'url does not exist');
             }
         } else {
-            await combinedReply(interaction, message, 'invalid url');
+            await sendToChannel(channel, 'invalid url');
         }
     }
 } as ICommand

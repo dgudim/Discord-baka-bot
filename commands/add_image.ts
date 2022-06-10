@@ -45,12 +45,15 @@ export default {
                     }
 
                     let fileName = getFileName(img_url);
-                    await sendToChannel(channel, `saving as ${fileName}`);
-                    if (fs.existsSync(fileName)) {
-                        await sendToChannel(channel, 'file exists');
+                    const file_path = path.join(getImgDir(), fileName);
+
+                    if (fs.existsSync(file_path)) {
+                        await sendToChannel(channel, 'file aleady exists');
                         return;
                     }
-                    const file_path = path.join(getImgDir(), fileName);
+                    
+                    await sendToChannel(channel, `saving as ${fileName}`);
+
                     const file = fs.createWriteStream(file_path);
 
                     https.get(img_url, (response) => {

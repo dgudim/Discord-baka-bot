@@ -65,7 +65,7 @@ export default {
 
         let file = images[currImg];
         await safeReply(interaction, `Here is your image (index: ${currImg})`);
-        await sendImgToChannel(file, channel, true);
+        await sendImgToChannel(channel, file, true);
         currImgs.set(channel.id, currImg + 1);
     }
 } as ICommand

@@ -41,7 +41,7 @@ export default {
             }
             await combinedReply(interaction, message, "Here is your image");
             
-            await sendImgToChannel(index[currImg], channel, true);
+            await sendImgToChannel(channel, index[currImg], true);
 
         } catch (err) {
             await combinedReply(interaction, message, `Error: ${err}`);

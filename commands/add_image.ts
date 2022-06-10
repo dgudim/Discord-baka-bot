@@ -2,7 +2,7 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, isUrl, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 import { findSauce, getPostInfoFromUrl, grabImageUrl } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
@@ -39,6 +39,11 @@ export default {
                 const img_url = is_plain_image ? input_url : await grabImageUrl(input_url);
 
                 if (img_url) {
+
+                    if (interaction) {
+                        await sendImgToChannel(channel, img_url);
+                    }
+
                     let fileName = getFileName(img_url);
                     await sendToChannel(channel, `saving as ${fileName}`);
                     if (fs.existsSync(fileName)) {

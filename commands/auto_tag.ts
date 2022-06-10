@@ -21,7 +21,7 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
                 break;
             }
             await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
-            await sendImgToChannel(images[i], channel, true);
+            await sendImgToChannel(channel, images[i], true);
             const sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from, false);
             if (!sauce) {
                 await sendToChannel(channel, `skipped ${getFileName(images[i])}`);

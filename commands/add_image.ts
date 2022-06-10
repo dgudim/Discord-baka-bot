@@ -2,7 +2,7 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, getLastImgUrl as getLastImgUrl, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 import { findSauce, getPostInfoFromUrl, grabImageUrl } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
@@ -40,10 +40,6 @@ export default {
 
                 if (img_url) {
 
-                    if (interaction) {
-                        await sendToChannel(channel, img_url);
-                    }
-
                     let fileName = getFileName(img_url);
                     const file_path = path.join(getImgDir(), fileName);
 
@@ -51,7 +47,7 @@ export default {
                         await sendToChannel(channel, 'file aleady exists');
                         return;
                     }
-                    
+
                     await sendToChannel(channel, `saving as ${fileName}`);
 
                     const file = fs.createWriteStream(file_path);
@@ -70,18 +66,24 @@ export default {
                             sendToChannel(channel, `saved ${fileName}, `);
                             let postInfo;
                             if (!is_plain_image) {
-                                postInfo = await getPostInfoFromUrl(img_url);
-                            } else {
-                                const sauce = await findSauce(img_url, channel, 85);
+                                postInfo = await getPostInfoFromUrl(input_url);
+                            }
+                            if (!postInfo) {
+                                await sendImgToChannel(channel, file_path);
+                                const sauce = await findSauce(getLastImgUrl(channel), channel, 85);
                                 if (sauce && sauce.post.similarity >= 85) {
                                     postInfo = sauce.postInfo;
                                 }
+                            } else if (interaction) {
+                                await sendToChannel(channel, img_url);
                             }
                             if (postInfo) {
                                 writeTagsToFile(getSauceConfString(postInfo), file_path, channel, () => {
                                     sendToChannel(channel, `wrote tags`);
                                     ensureTagsInDB(file_path);
                                 });
+                            } else {
+                                await sendToChannel(channel, `could not get tags`);
                             }
                         });
                     });

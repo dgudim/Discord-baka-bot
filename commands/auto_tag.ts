@@ -2,7 +2,7 @@ import { Snowflake, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { getSauceConfString } from "../config";
 import { findSauce, getLastTags, searchImages } from "../sauce_utils";
-import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastFileUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastImgUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 
 let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 let armedPerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();
@@ -22,7 +22,7 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
             }
             await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
             await sendImgToChannel(channel, images[i], true);
-            const sauce = await findSauce(getLastFileUrl(channel), channel, min_similarity, accept_from, false);
+            const sauce = await findSauce(getLastImgUrl(channel), channel, min_similarity, accept_from, false);
             if (!sauce) {
                 await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
                 skipped++;

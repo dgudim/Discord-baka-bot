@@ -1,5 +1,5 @@
 import { ICommand } from "wokcommands";
-import { getImageMetatags, getLastFile, getLastFileUrl, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
+import { getImageMetatags, getLastImgPath, getLastImgUrl, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 import { getSauceConfString } from "../config";
@@ -21,7 +21,7 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        if (!getLastFile(channel)) {
+        if (!getLastImgPath(channel)) {
             await safeReply(interaction, "No image selected");
             return;
         }
@@ -39,7 +39,7 @@ export default {
 
         if (interaction.options.data.length == 0) {
             let lastTagsFrom_get_sauce = getLastTags(channel);
-            if (lastTagsFrom_get_sauce.file == getLastFileUrl(channel)) {
+            if (lastTagsFrom_get_sauce.file == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
                 await safeReply(interaction, "No tags provided");
@@ -47,8 +47,8 @@ export default {
             }
         }
 
-        writeTagsToFile(confString, getLastFile(channel), channel, async () => {
-            await sendToChannel(channel, await getImageMetatags(getLastFile(channel)));
+        writeTagsToFile(confString, getLastImgPath(channel), channel, async () => {
+            await sendToChannel(channel, await getImageMetatags(getLastImgPath(channel)));
         });
         
         await safeReply(interaction, "new tags");

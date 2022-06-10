@@ -1,6 +1,6 @@
 import { ICommand } from "wokcommands";
 import { findSauce } from "../sauce_utils";
-import { getFileName, getLastFileUrl, isUrl, safeReply, sendToChannel } from "../utils";
+import { getFileName, getLastImgUrl, isUrl, safeReply, sendToChannel } from "../utils";
 
 export default {
     category: 'Misc',
@@ -22,7 +22,7 @@ export default {
         let min_similarity = interaction.options.getNumber('min-similarity') || 75;
 
         if (!url) {
-            const file = getLastFileUrl(channel);
+            const file = getLastImgUrl(channel);
             if (!file) {
                 await safeReply(interaction, "No file provided.");
                 return;

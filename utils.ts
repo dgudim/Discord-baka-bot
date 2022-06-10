@@ -53,16 +53,16 @@ export function getSendDir() {
 let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
 let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
 
-export function setLastFile(channel: TextBasedChannel, file: string, fileUrl: string): void {
+export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): void {
     lastFiles.set(channel.id, file);
     lastFileUrls.set(channel.id, fileUrl);
 }
 
-export function getLastFileUrl(channel: TextBasedChannel): string {
+export function getLastImgUrl(channel: TextBasedChannel): string {
     return lastFileUrls.get(channel.id) || '';
 }
 
-export function getLastFile(channel: TextBasedChannel): string {
+export function getLastImgPath(channel: TextBasedChannel): string {
     return lastFiles.get(channel.id) || '';
 }
 
@@ -241,7 +241,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
         }
 
         if (message) {
-            setLastFile(channel, file, (await message).attachments.at(0)?.url || '');
+            setLastImg(channel, file, (await message).attachments.at(0)?.url || '');
         }
     }
 }

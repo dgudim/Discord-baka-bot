@@ -225,9 +225,13 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
 export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
 
-    if (url.includes('danbooru')) {
-        const post = await booru.posts(+getFileName(url));
+    console.log(url);
 
+    if (url.includes('danbooru')) {
+        const fileName = getFileName(url);
+        const lastIndex = fileName.indexOf('?');
+        const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
+        
         return {
             author: post.tag_string_artist || '-',
             character: post.tag_string_character || '-',

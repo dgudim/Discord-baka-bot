@@ -46,14 +46,18 @@ export const search_modifiers = new Map([
         }]
 ]);
 
+function checkTag(tag_name: string, tag_content: string): string {
+    return tag_content != '-' ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : '';
+}
+
 export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
     if ('postInfo' in lastTagsFrom_get_sauce) {
         lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
     }
-    return ` -xmp-xmp:character='${normalizeTags(lastTagsFrom_get_sauce.character)}'` +
-        ` -xmp-xmp:author='${normalizeTags(lastTagsFrom_get_sauce.author)}'` +
-        ` -xmp-xmp:copyright='${normalizeTags(lastTagsFrom_get_sauce.copyright)}'` +
-        ` -xmp-xmp:tags='${normalizeTags(lastTagsFrom_get_sauce.tags)}'` +
+    return checkTag('character', lastTagsFrom_get_sauce.character) +
+        checkTag('author', lastTagsFrom_get_sauce.author) +
+        checkTag('copyright', lastTagsFrom_get_sauce.copyright) +
+        checkTag('tags', lastTagsFrom_get_sauce.tags) +
         ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
 }
 

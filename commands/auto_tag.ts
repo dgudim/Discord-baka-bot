@@ -23,20 +23,17 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
             await sendToChannel(channel, `tagging image at index ${i}, name: ${getFileName(images[i])}`);
             await sendImgToChannel(channel, images[i], true);
             const sauce = await findSauce(getLastImgUrl(channel), channel, min_similarity, accept_from, false);
-            if (!sauce) {
+            if (!sauce || (sauce && sauce.post.similarity < min_similarity)) {
                 await sendToChannel(channel, `skipped ${getFileName(images[i])}`);
                 skipped++;
                 continue;
             }
             await sendToChannel(channel, sauce.embed);
-            if (sauce.post.similarity >= min_similarity) {
-                await writeTagsToFile(getSauceConfString(sauce.postInfo), images[i], channel, () => { });
-                await sendToChannel(channel, `tagged image at index ${i}, name: ${getFileName(images[i])}`);
-                await ensureTagsInDB(images[i]);
-                tagged++;
-            } else {
+            await writeTagsToFile(getSauceConfString(sauce.postInfo), images[i], channel, () => { });
+            await ensureTagsInDB(images[i]);
+            await sendToChannel(channel, `tagged image at index ${i}, name: ${getFileName(images[i])}`);
+            tagged++;
 
-            }
         } catch (err) {
             await sendToChannel(channel, `error: ${err}`);
             i--;

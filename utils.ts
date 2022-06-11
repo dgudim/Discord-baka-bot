@@ -205,7 +205,8 @@ export const eight_mb = 1024 * 1024 * 8;
 export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata: boolean = false): Promise<void> {
     let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
-    if (fs.statSync(file).size > eight_mb) {
+    let width = (await sharp(file).metadata()).width || 0;
+    if (fs.statSync(file).size > eight_mb || width > 3000) {
         sendToChannel(channel, 'image too large, compressing, wait...');
         await sharp(file)
             .resize({ width: 1920 })

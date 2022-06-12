@@ -4,7 +4,7 @@ import fs from "fs";
 import { changeSavedDirectory, safeReply, sendToChannel, walk, getImgDir } from "../utils";
 
 export default {
-    category: 'Misc',
+    category: 'Image management',
     description: 'Dedupe image database',
 
     slash: true,

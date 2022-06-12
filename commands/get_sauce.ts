@@ -3,7 +3,7 @@ import { findSauce } from "../sauce_utils";
 import { getFileName, getLastImgUrl, isUrl, safeReply, sendToChannel } from "../utils";
 
 export default {
-    category: 'Misc',
+    category: 'Image management',
     description: 'Get sauce of an image',
 
     slash: true,

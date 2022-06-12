@@ -8,7 +8,7 @@ let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 
 export default {
 
-    category: 'Misc',
+    category: 'Image management',
     description: 'Search image by tags',
 
     slash: true,

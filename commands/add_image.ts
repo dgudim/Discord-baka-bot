@@ -8,7 +8,7 @@ import sharp from "sharp";
 import { getSauceConfString } from "../config";
 
 export default {
-    category: 'Misc',
+    category: 'Admin image management',
     description: 'Download an image, tag it and save it to the database',
 
     slash: 'both',

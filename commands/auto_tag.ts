@@ -1,7 +1,7 @@
 import { Snowflake, TextBasedChannel } from "discord.js";
 import { ICommand } from "wokcommands";
 import { getSauceConfString } from "../config";
-import { findSauce, getLastTags, searchImages } from "../sauce_utils";
+import { findSauce, searchImages } from "../sauce_utils";
 import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastImgUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 
 let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
@@ -45,7 +45,7 @@ async function autotag(accept_from: string, min_similarity: number, index: numbe
 }
 
 export default {
-    category: 'Misc',
+    category: 'Admin image management',
     description: 'Autotag images matching search query',
 
     slash: true,

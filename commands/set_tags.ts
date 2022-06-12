@@ -6,9 +6,9 @@ import { getSauceConfString } from "../config";
 import { getLastTags } from "../sauce_utils";
 
 export default {
-    category: 'Misc',
+    category: 'Admin image management',
     description: 'Set last image (random_img) metatags',
-
+    
     slash: true,
     testOnly: true,
     ownerOnly: true,

@@ -7,7 +7,7 @@ let currImg = 0;
 
 export default {
 
-    category: 'Misc',
+    category: 'Image management',
     description: 'Get random image from the directory',
 
     slash: 'both',

@@ -142,8 +142,11 @@ client.on('ready', () => {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
-        testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '']
-    }).setDefaultPrefix(prefix).setColor(0x005555);
+        testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || ''],
+        disabledDefaultCommands: ['language', 'prefix', 'help']
+    })
+        .setDefaultPrefix(prefix)
+        .setColor(0x005555);
 });
 
 client.on('messageCreate', (message) => {

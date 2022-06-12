@@ -7,7 +7,7 @@ import util from "util";
 const execPromise = util.promisify(exec);
 import img_tags from './image_tags.json';
 
-import crypto from 'crypto';
+import { hash } from 'blake3';
 
 import sharp from "sharp";
 
@@ -28,10 +28,14 @@ export function getKeyByDirType(dir_type: saveDirType): string {
     return key;
 }
 
+export function isDirectory(path: string): boolean {
+    return fs.existsSync(path) && fs.statSync(path).isDirectory()
+}
+
 export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
     if (dir) {
         let key = getKeyByDirType(dir_type);
-        if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+        if (isDirectory(dir)) {
             sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
             db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
@@ -107,7 +111,7 @@ export function mapArgToXmp(arg: string): string {
 }
 
 function getFileHash(file: string): string {
-    return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('base64');
+    return hash(file).toString('hex');
 }
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {

@@ -9,7 +9,7 @@ import iqdb from '@l2studio/iqdb-api';
 import { MessageEmbed, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags } from './utils';
+import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 let browser: Browser;
@@ -308,8 +308,13 @@ export function getLastTags(channel: TextBasedChannel): TagContainer {
 
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {
 
-    let images: string[];
-    images = walk(getImgDir());
+    let images: string[] = [];
+    const img_dir = getImgDir();
+    if (!isDirectory(img_dir)){
+        await sendToChannel(channel, `Image directory ${img_dir} does not exist or not a directory`);
+        return images;
+    }
+    images = walk(img_dir);
 
     if (images.length > 0 && !db.exists(`^${images[0]}`)) {
         await sendToChannel(channel, "refreshing image tag database, might take a while...");

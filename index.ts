@@ -151,15 +151,16 @@ client.on('ready', async () => {
         .setColor(0x005555);
 
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
-        if (!fs.existsSync(process.env.TEMP_DIR)) {
-            const channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
-            if (channel?.isText()) {
-                fs.mkdirSync(process.env.TEMP_DIR);
-                status_channel = channel;
-                await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
-            } else {
-                console.log("STATUS_CHANNEL_ID doesn't refer to a text channel");
-            }
+        let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
+        if (channel?.isText()) {
+            status_channel = channel;
+        } else {
+            console.log("STATUS_CHANNEL_ID doesn't refer to a text channel");
+            channel = null;
+        }
+        if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
+            fs.mkdirSync(process.env.TEMP_DIR);
+            await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
         }
     } else {
         console.log("please specify TEMP_DIR and STATUS_CHANNEL_ID")

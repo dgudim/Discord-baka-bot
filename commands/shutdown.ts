@@ -43,7 +43,7 @@ export default {
         }
         await sleep(15000);
 
-        await sendToChannel(channel, getSimpleEmbed("🔴 Server is offline", getDateTime(), 'RED'));
+        await sendToChannel(msg_channel, getSimpleEmbed("🔴 Server is offline", getDateTime(), 'RED'));
 
         exec(`${args[1] ? 'reboot' : 'shutdown'} now`);
 

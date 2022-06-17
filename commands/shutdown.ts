@@ -46,7 +46,7 @@ export default {
             console.log(err);
         }
         await sleep(15000);
-        //exec("shutdown now");
+        exec("shutdown now");
 
     }
 } as ICommand

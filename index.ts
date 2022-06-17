@@ -8,7 +8,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getKeyByDirType, messageReply, sendToChannel } from './utils';
+import { getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -33,6 +33,8 @@ export const prefix = '>';
 function isBuiltin(str: string): boolean {
     return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
 }
+
+export let status_channel: TextBasedChannel;
 
 export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string): boolean {
     let added = false;
@@ -153,14 +155,8 @@ client.on('ready', async () => {
             const channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
             if (channel?.isText()) {
                 fs.mkdirSync(process.env.TEMP_DIR);
-                const embed = new MessageEmbed();
-                const now = new Date();
-                const date = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
-                const time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-                embed.setTitle("🟢 Server is online");
-                embed.setDescription(date + ' ' + time);
-                embed.setColor('GREEN');
-                await sendToChannel(channel, embed);
+                status_channel = channel;
+                await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
             } else {
                 console.log("STATUS_CHANNEL_ID doesn't refer to a text channel");
             }

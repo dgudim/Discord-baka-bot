@@ -329,6 +329,21 @@ export function walk(dir: string): string[] {
     return results;
 }
 
+export function getSimpleEmbed(title: string, description: string, color: ColorResolvable) {
+    const embed = new MessageEmbed();
+    embed.setTitle(title);
+    embed.setDescription(description || '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
+    embed.setColor(color);
+    return embed;
+}
+
+export function getDateTime() {
+    const now = new Date();
+    const date = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+    const time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+    return date + ' ' + time;
+}
+
 export function clamp(num: number, min: number, max: number): number {
     return Math.min(Math.max(num, min), max)
 }

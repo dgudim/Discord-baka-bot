@@ -254,7 +254,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
 export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions): Promise<void> {
     if (channel) {
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${channel}: ${content.fields}`);
+            console.log(`channel ${channel}: ${content.title}`);
             await channel.send({
                 embeds: [content]
             });
@@ -267,9 +267,7 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
             while (pos < len) {
                 let slice = content.slice(pos, pos + 1999);
                 console.log(`channel ${channel}: ${slice}`);
-                await channel.send({
-                    content: slice
-                });
+                await channel.send(slice);
                 pos += 1999;
             }
         } else {
@@ -281,23 +279,30 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
 
 export async function messageReply(message: Message, content: string): Promise<void> {
     console.log(`channel ${message.channel}: ${content}`);
-    await message.reply({
-        content: content
-    });
+    await message.reply(content);
 }
 
-export async function safeReply(interaction: CommandInteraction, message: string): Promise<void> {
+export async function safeReply(interaction: CommandInteraction, content: string | MessageEmbed | MessagePayload): Promise<void> {
     if (interaction.replied) {
-        await sendToChannel(interaction.channel, message);
+        await sendToChannel(interaction.channel, content);
     } else {
-        console.log(`channel ${interaction.channel}: ${message}`);
-        await interaction.reply({
-            content: message
-        });
+        const channel = interaction.channel;
+        if (content instanceof MessageEmbed) {
+            console.log(`channel ${channel}: ${content.title}`);
+            await interaction.reply({
+                embeds: [content]
+            });
+        } else if (content instanceof MessagePayload) {
+            console.log(`channel ${channel}: ${content.data}`);
+            await interaction.reply(content);
+        } else {
+            console.log(`channel ${channel}: ${content}`);
+            await interaction.reply(content);
+        }
     }
 }
 
-export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string): Promise<void> {
+export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string | MessageEmbed | MessagePayload): Promise<void> {
     if (interaction) {
         await safeReply(interaction, content);
     } else if (message) {

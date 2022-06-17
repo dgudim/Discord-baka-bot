@@ -1,4 +1,4 @@
-import { Intents, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
+import { Intents, TextBasedChannel, Message, MessageEmbed, Client } from 'discord.js'; // discord api
 import WOKCommands from 'wokcommands';
 import img_tags from './image_tags.json';
 import path from 'path';
@@ -80,7 +80,7 @@ const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        Intents.FLAGS.GUILD_MESSAGE_REACTIONS
     ]
 });
 
@@ -121,7 +121,7 @@ function writeExifToolConfig(): void {
     console.log('exiftool config written');
 }
 
-client.on('ready', () => {
+client.on('ready', async () => {
 
     if (!db.exists(`^${getKeyByDirType('IMAGE')}`)
         || !db.exists(`^${getKeyByDirType('SAVE')}`)) {
@@ -147,6 +147,27 @@ client.on('ready', () => {
     })
         .setDefaultPrefix(prefix)
         .setColor(0x005555);
+
+    if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
+        if (!fs.existsSync(process.env.TEMP_DIR)) {
+            const channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
+            if (channel?.isText()) {
+                fs.mkdirSync(process.env.TEMP_DIR);
+                const embed = new MessageEmbed();
+                const now = new Date();
+                const date = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+                const time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                embed.setTitle("🟢 Server is online");
+                embed.setDescription(date + ' ' + time);
+                embed.setColor('GREEN');
+                await sendToChannel(channel, embed);
+            } else {
+                console.log("STATUS_CHANNEL_ID doesn't refer to a text channel");
+            }
+        }
+    } else {
+        console.log("please specify TEMP_DIR and STATUS_CHANNEL_ID")
+    }
 });
 
 client.on('messageCreate', (message) => {

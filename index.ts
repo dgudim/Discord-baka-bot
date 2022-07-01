@@ -145,13 +145,13 @@ client.on('ready', async () => {
 
     writeExifToolConfig();
 
-    if (!process.env.EXITOOL_PATH) {
-        console.log(`${colors.YELLOW}EXITOOL_PATH${colors.DEFAULT} not specified, will try to search the ${colors.YELLOW}PATH${colors.DEFAULT}`);
-        process.env.EXITOOL_PATH = 'exiftool'
+    if (!process.env.EXIFTOOL_PATH) {
+        console.log(`${colors.YELLOW}EXIFTOOL_PATH${colors.DEFAULT} not specified, will try to search the ${colors.YELLOW}PATH${colors.DEFAULT}`);
+        process.env.EXIFTOOL_PATH = 'exiftool'
     }
 
     try {
-        await execPromise(process.env.EXITOOL_PATH);
+        await execPromise(process.env.EXIFTOOL_PATH);
     } catch (err) {
         console.log(`${err} \n exiting`)
         process.exit(1);

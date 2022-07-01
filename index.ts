@@ -3,12 +3,16 @@ import WOKCommands from 'wokcommands';
 import img_tags from './image_tags.json';
 import path from 'path';
 import fs from 'fs';
+import { exec } from 'child_process';
+import util from "util";
+const execPromise = util.promisify(exec);
 import dotenv from 'dotenv'; // evironment vars
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 import { getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
+import { colors } from './colors';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -26,12 +30,13 @@ const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
     'cd', 'command', 'compgen', 'complete', 'declare', 'dirs', 'disown', 'echo', 'enable', 'eval',
     'exec', 'exit', 'export', 'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let', 'local',
     'logout', 'popd', 'printf', 'pushd', 'pwd', 'read', 'readonly', 'set', 'shift', 'shopt', 'source',
-    'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait'];
+    'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait', 'y', 'n'];
 
 export const prefix = '>';
 
 function isBuiltin(str: string): boolean {
-    return bultInCommands.some(bultInCommands => str.startsWith(bultInCommands));
+    let command = str.split(' ')[0];
+    return bultInCommands.some(bultInCommands => command == bultInCommands);
 }
 
 export let status_channel: TextBasedChannel;
@@ -140,6 +145,18 @@ client.on('ready', async () => {
 
     writeExifToolConfig();
 
+    if (!process.env.EXITOOL_PATH) {
+        console.log(`${colors.YELLOW}EXITOOL_PATH${colors.DEFAULT} not specified, will try to search the ${colors.YELLOW}PATH${colors.DEFAULT}`);
+        process.env.EXITOOL_PATH = 'exiftool'
+    }
+
+    try {
+        await execPromise(process.env.EXITOOL_PATH);
+    } catch (err) {
+        console.log(`${err} \n exiting`)
+        process.exit(1);
+    }
+
     new WOKCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
@@ -155,7 +172,7 @@ client.on('ready', async () => {
         if (channel?.isText()) {
             status_channel = channel;
         } else {
-            console.log("STATUS_CHANNEL_ID doesn't refer to a text channel");
+            console.log(`${colors.RED}STATUS_CHANNEL_ID doesn't refer to a text channel${colors.DEFAULT}`);
             channel = null;
         }
         if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
@@ -163,7 +180,7 @@ client.on('ready', async () => {
             await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
         }
     } else {
-        console.log("please specify TEMP_DIR and STATUS_CHANNEL_ID")
+        console.log(`${colors.YELLOW}please specify TEMP_DIR and STATUS_CHANNEL_ID${colors.DEFAULT}`);
     }
 });
 

@@ -2,7 +2,7 @@ import { ICommand } from "wokcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, combinedReply, ensureTagsInDB, getFileName, getImgDir, getLastImgUrl as getLastImgUrl, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, combinedReply, ensureTagsInDB, fetchUrl, getFileName, getImgDir, getLastImgUrl as getLastImgUrl, isImageUrlType, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
 import { findSauce, getPostInfoFromUrl, grabImageUrl } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
@@ -30,12 +30,11 @@ export default {
         if (isUrl(args[0])) {
             let input_url = args[0];
 
-            const res = await fetch(input_url);
-
+            const res = await fetchUrl(input_url);
+            
             if (res.ok) {
-                const buff = await res.blob();
-
-                const is_plain_image = buff.type.startsWith('image/');
+                
+                const is_plain_image = isImageUrlType(res.type);
                 const img_url = is_plain_image ? input_url : await grabImageUrl(input_url);
 
                 if (img_url) {
@@ -90,9 +89,8 @@ export default {
                 } else {
                     await sendToChannel(channel, 'could not get image url from page');
                 }
-
             } else {
-                await sendToChannel(channel, 'url does not exist');
+                await sendToChannel(channel, `return code: ${res.status}, ${res.statusText}`);
             }
         } else {
             await sendToChannel(channel, 'invalid url');

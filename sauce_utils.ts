@@ -12,6 +12,7 @@ import puppeteer, { Browser, Page } from 'puppeteer'
 import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
+import { colors } from "./colors";
 let browser: Browser;
 let page: Page;
 
@@ -99,8 +100,8 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     try {
         sagiriResults = await sagiri_client(file);
 
-        console.log(`got ${sagiriResults.length} results from sagiri`);
-
+        console.log(`${colors.LIGHT_PURPLE}got ${colors.LIGHT_YELLOW}${sagiriResults.length} ${colors.LIGHT_PURPLE}results from saucenao${colors.DEFAULT}`);
+        
         for (let res of sagiriResults) {
             console.log(res.url, res.similarity);
         }
@@ -150,7 +151,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         }
 
         if (iqDbResults?.results) {
-            console.log(`got ${iqDbResults.results.length} results from iqdb`);
+            console.log(`${colors.LIGHT_PURPLE}got ${colors.LIGHT_YELLOW}${iqDbResults.results.length} ${colors.LIGHT_PURPLE}results from iqdb${colors.DEFAULT}`);
             for (let res of iqDbResults.results) {
                 console.log(res.url, res.similarity);
             }
@@ -231,7 +232,7 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
         const fileName = getFileName(url);
         const lastIndex = fileName.indexOf('?');
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
-        
+
         return {
             author: post.tag_string_artist || '-',
             character: post.tag_string_character || '-',
@@ -310,7 +311,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
 
     let images: string[] = [];
     const img_dir = getImgDir();
-    if (!isDirectory(img_dir)){
+    if (!isDirectory(img_dir)) {
         await sendToChannel(channel, `Image directory ${img_dir} does not exist or not a directory`);
         return images;
     }

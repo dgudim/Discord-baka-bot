@@ -10,6 +10,7 @@ import img_tags from './image_tags.json';
 import { hash } from 'blake3';
 
 import sharp from "sharp";
+import { colors } from "./colors";
 
 export type saveDirType =
     | 'IMAGE'
@@ -254,31 +255,31 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
 export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions): Promise<void> {
     if (channel) {
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${channel}: ${content.title}`);
+            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${content.title}`);
             await channel.send({
                 embeds: [content]
             });
         } else if (content instanceof MessagePayload) {
-            console.log(`channel ${channel}: ${content.data}`);
+            console.log(`channel ${colors.LIGHT_BLUE}${channel}${colors.DEFAULT}: ${content.data}`);
             await channel.send(content);
         } else if (typeof content === 'string') {
             const len = content.length;
             let pos = 0;
             while (pos < len) {
                 let slice = content.slice(pos, pos + 1999);
-                console.log(`channel ${channel}: ${slice}`);
+                console.log(`channel ${colors.CYAN}${channel}${colors.DEFAULT}: ${slice}`);
                 await channel.send(slice);
                 pos += 1999;
             }
         } else {
-            console.log(`channel ${channel}: ${content}`);
+            console.log(`channel ${colors.LIGHTER_BLUE}${channel}${colors.DEFAULT}: ${content}`);
             await channel.send(content);
         }
     }
 }
 
 export async function messageReply(message: Message, content: string): Promise<void> {
-    console.log(`channel ${message.channel}: ${content}`);
+    console.log(`channel ${colors.PURPLE}${message.channel}${colors.DEFAULT}: ${content}`);
     await message.reply(content);
 }
 
@@ -288,15 +289,15 @@ export async function safeReply(interaction: CommandInteraction, content: string
     } else {
         const channel = interaction.channel;
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${channel}: ${content.title}`);
+            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${content.title}`);
             await interaction.reply({
                 embeds: [content]
             });
         } else if (content instanceof MessagePayload) {
-            console.log(`channel ${channel}: ${content.data}`);
+            console.log(`channel ${colors.LIGHT_BLUE}${channel}${colors.DEFAULT}: ${content.data}`);
             await interaction.reply(content);
         } else {
-            console.log(`channel ${channel}: ${content}`);
+            console.log(`channel ${colors.LIGHTER_BLUE}${channel}${colors.DEFAULT}: ${content}`);
             await interaction.reply(content);
         }
     }
@@ -319,9 +320,7 @@ export function walk(dir: string): string[] {
         if (stat && stat.isDirectory()) {
             results = results.concat(walk(file));
         } else {
-            if (file.toLowerCase().endsWith(".jpg")
-                || file.toLowerCase().endsWith(".jpeg")
-                || file.toLowerCase().endsWith(".png")) {
+            if (isPngOrJpg(file.toLowerCase())) {
                 results.push(file);
             }
         }
@@ -358,4 +357,23 @@ export function normalizeTags(tags: string): string {
 
 export function stripUrlScheme(url: string) {
     return url.replace("https://", "").replace("http://", "");
+}
+
+export async function fetchUrl(url: string) {
+    const res = await fetch(url);
+    if (!res.ok) { return { ok: res.ok, type: '', status: res.status, statusText: res.statusText } };
+    const buff = await res.blob();
+    return { ok: res.ok, type: buff.type, status: res.status, statusText: res.statusText };
+}
+
+export function isPngOrJpg(name: string | null | undefined) {
+    return name ? (name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.jpg')) : false;
+}
+
+export function isImageUrlType(type: string) {
+    return type.startsWith('image/');
+}
+
+export function isPngOrJpgUrlType(type: string) {
+    return type == 'image/apng' || type == 'image/png' || type == 'image/jpeg' || type == 'image/jpg';
 }

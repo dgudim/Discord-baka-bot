@@ -21,8 +21,8 @@ export default {
     callback: async ({ message, args, channel }) => {
 
         changeSavedDirectory(message.channel, 'SAVE', args[0]);
-        
-        if (message.attachments) {
+
+        if (message.attachments.size) {
             for (let i = 0; i < message.attachments.size; i++) {
                 const file = fs.createWriteStream(path.join(getSendDir(), message.attachments.at(i)?.name || "undefined"));
                 https.get(message.attachments.at(i)?.url + "", (response) => {
@@ -36,6 +36,8 @@ export default {
             }
 
             await sendToChannel(channel, `saving ${message.attachments.size} file(s) to ${getSendDir()}`)
+        } else {
+            await sendToChannel(channel, 'please provide at least one attachment');
         }
 
     }

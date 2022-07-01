@@ -84,7 +84,7 @@ async function ensurePuppeteerStarted() {
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
         page = await browser.newPage();
-        console.log('starting puppeteer');
+        console.log(`${colors.CYAN}starting puppeteer${colors.DEFAULT}`);
     }
 }
 

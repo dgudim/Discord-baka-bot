@@ -125,7 +125,7 @@ function writeExifToolConfig(): void {
     `;
 
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
-    console.log('exiftool config written');
+    console.log(`${colors.GREEN}exiftool config written${colors.DEFAULT}`);
 }
 
 client.on('ready', async () => {

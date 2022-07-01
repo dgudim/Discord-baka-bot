@@ -87,8 +87,8 @@ export function trimStringArray(arr: string[]): string[] {
     });
 }
 
-export function isUrl(str: string): boolean {
-    return str.startsWith('http://') || str.startsWith('https://');
+export async function isUrl(url: string): Promise<boolean> {
+    return (await fetch(url)).ok;
 }
 
 export function mapXmpToName(xmp_tag: string): string {

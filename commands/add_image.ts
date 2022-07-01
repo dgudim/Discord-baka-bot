@@ -27,7 +27,7 @@ export default {
 
         await combinedReply(interaction, message, 'adding image to db');
 
-        if (isUrl(args[0])) {
+        if (await isUrl(args[0])) {
             let input_url = args[0];
 
             const res = await fetchUrl(input_url);

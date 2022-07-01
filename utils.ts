@@ -117,7 +117,7 @@ function getFileHash(file: string): string {
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
     try {
-        const { stderr } = await execPromise((`exiftool -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
+        const { stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
         callback();
         if (stderr) {
             console.log(`exiftool stderr: ${stderr}`);
@@ -132,7 +132,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
     db.push(`^${file}^hash`, hash, true);
 
     try {
-        const { stdout } = await execPromise((`exiftool -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
+        const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
         if (stdout) {
             const fields = stdout.toLowerCase().split("\n");
             for (let i = 0; i < fields.length - 1; i++) {

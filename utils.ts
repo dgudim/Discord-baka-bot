@@ -116,9 +116,13 @@ function getFileHash(file: string): string {
 }
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
+
+    console.log(`${colors.GRAY} Debug: Writing tags to file: ${file}`);
+
     try {
-        const { stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
+        const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
         callback();
+        console.log(`${colors.GRAY} Debug: ${stdout}`);
         if (stderr) {
             console.log(`exiftool stderr: ${stderr}`);
         }
@@ -129,7 +133,7 @@ export async function writeTagsToFile(confString: string, file: string, channel:
 
 async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
-    console.log(`${colors.GREEN} Writing tags of ${file} to database${colors.DEFAULT}`);
+    console.log(`${colors.GRAY} Debug: Writing tags of ${file} to database${colors.DEFAULT}`);
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
@@ -151,11 +155,11 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     let exists = db.exists(`^${file}`);
 
     let real_hash = getFileHash(file);
-    let database_hash = exists ? db.getData(`^${file}^hash`) : "";
+    let database_hash = exists ? db.getData(`^${file}^hash`) : "-";
 
-    console.log(`${colors.GRAY} Debug: calling ensureTagsInDB on ${file}, real_hash: ${real_hash}, database_hash: ${database_hash}${colors.DEFAULT}`);
+    console.log(`${colors.GRAY} Debug: calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}${colors.DEFAULT}`);
 
-    if (!exists || real_hash != database_hash) {
+    if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);
     }
 }

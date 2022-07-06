@@ -117,14 +117,14 @@ function getFileHash(file: string): string {
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
 
-    console.log(`${colors.GRAY} Debug: Writing tags to file: ${file}`);
+    console.log(`${colors.GRAY} Debug: Writing tags to file: ${file}${colors.DEFAULT}`);
 
     try {
         const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
-        callback();
-        console.log(`${colors.GRAY} Debug: ${stdout}`);
+        await callback();
+        console.log(`${colors.GRAY} Debug: ${stdout}${colors.DEFAULT}`);
         if (stderr) {
-            console.log(`exiftool stderr: ${stderr}`);
+            console.log(`${colors.LIGHT_RED}exiftool stderr: ${stderr}${colors.DEFAULT}`);
         }
     } catch (err) {
         await sendToChannel(channel, `xmp tagging error: ${err}`);

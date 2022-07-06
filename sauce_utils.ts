@@ -12,7 +12,8 @@ import puppeteer, { Browser, Page } from 'puppeteer'
 import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
-import { colors } from "./colors";
+import { colors, wrap } from "./colors";
+import { debug, error, info } from "./logger";
 let browser: Browser;
 let page: Page;
 
@@ -34,7 +35,7 @@ async function callFunction(func: string) {
     try {
         await page.evaluate(func);
     } catch (e) {
-        console.log(`error calling function: ${func}: ${e}`);
+        error(`error calling function: ${func}: ${e}`);
     }
 }
 
@@ -84,13 +85,13 @@ async function ensurePuppeteerStarted() {
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
         page = await browser.newPage();
-        console.log(`${colors.CYAN}starting puppeteer${colors.DEFAULT}`);
+        debug('starting puppeteer');
     }
 }
 
 export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '', set_last_tags: boolean = true) {
 
-    console.log(`searching sauce for ${file}`);
+    info(`searching sauce for ${file}`);
 
     await ensurePuppeteerStarted();
 
@@ -100,10 +101,10 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     try {
         sagiriResults = await sagiri_client(file);
 
-        console.log(`${colors.LIGHT_PURPLE}got ${colors.LIGHT_YELLOW}${sagiriResults.length} ${colors.LIGHT_PURPLE}results from saucenao${colors.DEFAULT}`);
-        
+        info(`got ${wrap(sagiriResults.length, colors.LIGHT_YELLOW)} results from saucenao`);
+
         for (let res of sagiriResults) {
-            console.log(res.url, res.similarity);
+            info(res.url + ' ' + wrap(res.similarity, colors.LIGHT_YELLOW));
         }
 
         for (let result of sagiriResults) {
@@ -136,7 +137,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
             try {
                 iqDbResults = await iqdb(file);
             } catch (err) {
-                console.log(err);
+                error(err);
                 break;
             }
 
@@ -151,9 +152,9 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         }
 
         if (iqDbResults?.results) {
-            console.log(`${colors.LIGHT_PURPLE}got ${colors.LIGHT_YELLOW}${iqDbResults.results.length} ${colors.LIGHT_PURPLE}results from iqdb${colors.DEFAULT}`);
+            info(`got ${wrap(iqDbResults.results.length, colors.LIGHT_YELLOW)} results from iqdb`);
             for (let res of iqDbResults.results) {
-                console.log(res.url, res.similarity);
+                info(res.url + ' ' + wrap(res.similarity, colors.LIGHT_YELLOW));
             }
             for (let result of iqDbResults.results) {
                 if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
@@ -225,8 +226,6 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 }
 
 export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
-
-    console.log(url);
 
     if (url.includes('danbooru')) {
         const fileName = getFileName(url);

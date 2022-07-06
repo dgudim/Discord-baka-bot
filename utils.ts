@@ -10,7 +10,8 @@ import img_tags from './image_tags.json';
 import { blake3 } from 'hash-wasm';
 
 import sharp from "sharp";
-import { colors } from "./colors";
+import { colors, wrap } from "./colors";
+import { debug, error, info, log, logLevel, warn } from "./logger";
 
 export type saveDirType =
     | 'IMAGE'
@@ -98,7 +99,7 @@ export function mapXmpToName(xmp_tag: string): string {
     if (index != -1) {
         return img_tags[index].name;
     }
-    console.log(`Can't map xmp tag: ${xmp_tag} to name`);
+    warn(`Can't map xmp tag: ${xmp_tag} to name`);
     return xmp_tag;
 }
 
@@ -107,7 +108,7 @@ export function mapArgToXmp(arg: string): string {
     if (index != -1) {
         return img_tags[index].xmpName;
     }
-    console.log(`Can't map arg: ${arg} to xmp tag`);
+    warn(`Can't map arg: ${arg} to xmp tag`);
     return arg;
 }
 
@@ -117,23 +118,23 @@ async function getFileHash(file: string): Promise<string> {
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
 
-    console.log(`${colors.GRAY} Debug: Writing tags to file: ${file}${colors.DEFAULT}`);
+    debug(`Writing tags to file: ${file}`);
 
     try {
         const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
-        console.log(`${colors.GRAY} Debug: ${stdout}${colors.DEFAULT}`);
+        debug(stdout);
         if (stderr) {
-            console.log(`${colors.LIGHT_RED}exiftool stderr: ${stderr}${colors.DEFAULT}`);
+            error(`exiftool stderr: ${stderr}`);
         }
         callback();
     } catch (err) {
-        await sendToChannel(channel, `xmp tagging error: ${err}`);
+        await sendToChannel(channel, `xmp tagging error: ${err}`, true);
     }
 }
 
 async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
-    console.log(`${colors.GRAY} Debug: Writing tags of ${file} to database${colors.DEFAULT}`);
+    debug(`Writing tags of ${file} to database`);
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
@@ -144,12 +145,12 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
-        console.log(`${colors.GRAY}real_hash: ${hash}, 
-        \ndatabase_hash: ${db.exists('^' + file) ? db.getData('^' + file + '^hash') : "-"}${colors.DEFAULT}`);
+        debug(`real_hash: ${hash}, 
+        \ndatabase_hash: ${db.exists('^' + file) ? db.getData('^' + file + '^hash') : "-"}`);
 
         db.push(`^${file}^hash`, hash, true);
     } catch (err) {
-        console.error(`error writing tags to db: ${err}`);
+        error(`error writing tags to db: ${err}`);
     }
 }
 
@@ -160,7 +161,7 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     let real_hash = await getFileHash(file);
     let database_hash = exists ? db.getData(`^${file}^hash`) : "-";
 
-    console.log(`${colors.GRAY} Debug: calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}${colors.DEFAULT}`);
+    debug(`calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
 
     if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);
@@ -270,34 +271,34 @@ function embedToString(embed: MessageEmbed) {
     return str;
 }
 
-export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions): Promise<void> {
+export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions, log_asError?: boolean): Promise<void> {
     if (channel) {
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${embedToString(content)}`);
+            info(`channel ${wrap(channel, colors.GREEN)}: ${embedToString(content)}`);
             await channel.send({
                 embeds: [content]
             });
         } else if (content instanceof MessagePayload) {
-            console.log(`channel ${colors.LIGHT_BLUE}${channel}${colors.DEFAULT}: ${content.data}`);
+            info(`channel ${wrap(channel, colors.LIGHT_BLUE)}: ${content.data}`);
             await channel.send(content);
         } else if (typeof content === 'string') {
             const len = content.length;
             let pos = 0;
             while (pos < len) {
                 let slice = content.slice(pos, pos + 1999);
-                console.log(`channel ${colors.CYAN}${channel}${colors.DEFAULT}: ${slice}`);
+                log(`channel ${wrap(channel, colors.CYAN)}: ${content}`, log_asError ? logLevel.ERROR : logLevel.INFO);
                 await channel.send(slice);
                 pos += 1999;
             }
         } else {
-            console.log(`channel ${colors.LIGHTER_BLUE}${channel}${colors.DEFAULT}: ${content}`);
+            info(`channel ${wrap(channel, colors.LIGHTER_BLUE)}: ${content}`);
             await channel.send(content);
         }
     }
 }
 
 export async function messageReply(message: Message, content: string): Promise<void> {
-    console.log(`channel ${colors.PURPLE}${message.channel}${colors.DEFAULT}: ${content}`);
+    info(`channel ${wrap(message.channel, colors.PURPLE)}: ${content}`);
     await message.reply(content);
 }
 
@@ -306,17 +307,19 @@ export async function safeReply(interaction: CommandInteraction, content: string
         await sendToChannel(interaction.channel, content);
     } else {
         const channel = interaction.channel;
-        if (content instanceof MessageEmbed) {
-            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${embedToString(content)}`);
-            await interaction.reply({
-                embeds: [content]
-            });
-        } else if (content instanceof MessagePayload) {
-            console.log(`channel ${colors.LIGHT_BLUE}${channel}${colors.DEFAULT}: ${content.data}`);
-            await interaction.reply(content);
-        } else {
-            console.log(`channel ${colors.LIGHTER_BLUE}${channel}${colors.DEFAULT}: ${content}`);
-            await interaction.reply(content);
+        if (channel) {
+            if (content instanceof MessageEmbed) {
+                info(`channel ${wrap(channel, colors.GREEN)}: ${embedToString(content)}`);
+                await interaction.reply({
+                    embeds: [content]
+                });
+            } else if (content instanceof MessagePayload) {
+                info(`channel ${wrap(channel, colors.LIGHT_BLUE)}: ${content.data}`);
+                await interaction.reply(content);
+            } else {
+                info(`channel ${wrap(channel, colors.LIGHTER_BLUE)}: ${content}`);
+                await interaction.reply(content);
+            }
         }
     }
 }

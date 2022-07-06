@@ -12,7 +12,8 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 import { getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
-import { colors } from './colors';
+import { colors, wrap } from './colors';
+import { debug, error, info, warn } from './logger';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -125,7 +126,7 @@ function writeExifToolConfig(): void {
     `;
 
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
-    console.log(`${colors.GREEN}exiftool config written${colors.DEFAULT}`);
+    debug('exiftool config written');
 }
 
 client.on('ready', async () => {
@@ -146,14 +147,14 @@ client.on('ready', async () => {
     writeExifToolConfig();
 
     if (!process.env.EXIFTOOL_PATH) {
-        console.log(`${colors.YELLOW}EXIFTOOL_PATH${colors.DEFAULT} not specified, will try to search the ${colors.YELLOW}PATH${colors.DEFAULT}`);
+        warn(`${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
         process.env.EXIFTOOL_PATH = 'exiftool'
     }
 
     try {
         await execPromise(process.env.EXIFTOOL_PATH);
     } catch (err) {
-        console.log(`${err} \n exiting`)
+        error(`${err} \n exiting`)
         process.exit(1);
     }
 
@@ -172,7 +173,7 @@ client.on('ready', async () => {
         if (channel?.isText()) {
             status_channel = channel;
         } else {
-            console.log(`${colors.RED}STATUS_CHANNEL_ID doesn't refer to a text channel${colors.DEFAULT}`);
+            error(`${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
             channel = null;
         }
         if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
@@ -180,7 +181,7 @@ client.on('ready', async () => {
             await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
         }
     } else {
-        console.log(`${colors.YELLOW}please specify TEMP_DIR and STATUS_CHANNEL_ID${colors.DEFAULT}`);
+        warn(`please specify ${wrap('TEMP_DIR', colors.LIGHTER_BLUE)} and ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)}`);
     }
 });
 

@@ -3,6 +3,7 @@ import { ICommand } from "wokcommands";
 import { combinedReply, getDateTime, getSimpleEmbed, sendToChannel, sleep } from "../utils";
 import { exec } from 'child_process';
 import { status_channel } from "..";
+import { error } from "../logger";
 
 export default {
 
@@ -39,7 +40,7 @@ export default {
         try {
             exec('minecraftd stop');
         } catch (err) {
-            console.log(err);
+            error(err);
         }
         await sleep(15000);
 

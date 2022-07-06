@@ -112,7 +112,7 @@ export function mapArgToXmp(arg: string): string {
 }
 
 async function getFileHash(file: string): Promise<string> {
-    return await blake3(file);
+    return await blake3(fs.readFileSync(file));
 }
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {

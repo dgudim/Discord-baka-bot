@@ -129,7 +129,7 @@ export async function writeTagsToFile(confString: string, file: string, channel:
 
 async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
-    db.push(`^${file}^hash`, hash, true);
+    console.log(`${colors.GREEN} Writing tags of ${file} to database`);
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
@@ -140,6 +140,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
+        db.push(`^${file}^hash`, hash, true);
     } catch (err) {
         console.error(`error writing tags to db: ${err}`);
     }
@@ -252,10 +253,18 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
     }
 }
 
+function embedToString(embed: MessageEmbed) {
+    let str = embed.title;
+    for (let field of embed.fields) {
+        str += `\n${field.name}: ${field.value}`;
+    }
+    return str;
+}
+
 export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions): Promise<void> {
     if (channel) {
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${content.title}`);
+            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${embedToString(content)}`);
             await channel.send({
                 embeds: [content]
             });
@@ -289,7 +298,7 @@ export async function safeReply(interaction: CommandInteraction, content: string
     } else {
         const channel = interaction.channel;
         if (content instanceof MessageEmbed) {
-            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${content.title}`);
+            console.log(`channel ${colors.GREEN}${channel}${colors.DEFAULT}: ${embedToString(content)}`);
             await interaction.reply({
                 embeds: [content]
             });

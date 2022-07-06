@@ -7,7 +7,7 @@ import util from "util";
 const execPromise = util.promisify(exec);
 import img_tags from './image_tags.json';
 
-import { hash } from 'blake3';
+import { blake3 } from 'hash-wasm';
 
 import sharp from "sharp";
 import { colors } from "./colors";
@@ -111,8 +111,8 @@ export function mapArgToXmp(arg: string): string {
     return arg;
 }
 
-function getFileHash(file: string): string {
-    return hash(file).toString('hex');
+async function getFileHash(file: string): Promise<string> {
+    return await blake3(file);
 }
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
@@ -121,11 +121,11 @@ export async function writeTagsToFile(confString: string, file: string, channel:
 
     try {
         const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
-        await callback();
         console.log(`${colors.GRAY} Debug: ${stdout}${colors.DEFAULT}`);
         if (stderr) {
             console.log(`${colors.LIGHT_RED}exiftool stderr: ${stderr}${colors.DEFAULT}`);
         }
+        callback();
     } catch (err) {
         await sendToChannel(channel, `xmp tagging error: ${err}`);
     }
@@ -144,6 +144,9 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
                 db.push(`^${file}^tags^${split[0]}`, split[1], true);
             }
         }
+        console.log(`${colors.GRAY}real_hash: ${hash}, 
+        \ndatabase_hash: ${db.exists('^' + file) ? db.getData('^' + file + '^hash') : "-"}${colors.DEFAULT}`);
+
         db.push(`^${file}^hash`, hash, true);
     } catch (err) {
         console.error(`error writing tags to db: ${err}`);
@@ -154,7 +157,7 @@ export async function ensureTagsInDB(file: string): Promise<void> {
 
     let exists = db.exists(`^${file}`);
 
-    let real_hash = getFileHash(file);
+    let real_hash = await getFileHash(file);
     let database_hash = exists ? db.getData(`^${file}^hash`) : "-";
 
     console.log(`${colors.GRAY} Debug: calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}${colors.DEFAULT}`);

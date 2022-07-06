@@ -129,7 +129,7 @@ export async function writeTagsToFile(confString: string, file: string, channel:
 
 async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
-    console.log(`${colors.GREEN} Writing tags of ${file} to database`);
+    console.log(`${colors.GREEN} Writing tags of ${file} to database${colors.DEFAULT}`);
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
@@ -152,6 +152,8 @@ export async function ensureTagsInDB(file: string): Promise<void> {
 
     let real_hash = getFileHash(file);
     let database_hash = exists ? db.getData(`^${file}^hash`) : "";
+
+    console.log(`${colors.GRAY} Debug: calling ensureTagsInDB on ${file}, real_hash: ${real_hash}, database_hash: ${database_hash}${colors.DEFAULT}`);
 
     if (!exists || real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);

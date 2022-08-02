@@ -198,6 +198,7 @@ client.on('messageCreate', (message) => {
 
     const msg_content = message.content.toLocaleLowerCase();
     if (messageReplies.has(msg_content)) {
+        info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.PURPLE)}: ${message}`);
         messageReplies.get(msg_content)!(message);
     }
 });

@@ -1,4 +1,4 @@
-import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageEmbed, MessageOptions, MessagePayload, Snowflake, TextBasedChannel } from "discord.js";
+import { BufferResolvable, Channel, ColorResolvable, CommandInteraction, Message, MessageEmbed, MessageOptions, MessagePayload, Snowflake, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import path from "path";
@@ -273,15 +273,19 @@ function embedToString(embed: MessageEmbed) {
     return str;
 }
 
+export function getChannelName(channel: TextBasedChannel){
+    return channel.lastMessage?.guild?.channels.cache.get(channel.id)?.name;
+}
+
 export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions, log_asError?: boolean): Promise<void> {
     if (channel) {
         if (content instanceof MessageEmbed) {
-            info(`channel ${wrap(channel, colors.GREEN)}: ${embedToString(content)}`);
+            info(`channel ${wrap(getChannelName(channel), colors.GREEN)}: ${embedToString(content)}`);
             await channel.send({
                 embeds: [content]
             });
         } else if (content instanceof MessagePayload) {
-            info(`channel ${wrap(channel, colors.LIGHT_BLUE)}: ${content.data}`);
+            info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: ${content.data}`);
             await channel.send(content);
         } else if (typeof content === 'string') {
             const len = content.length;
@@ -293,14 +297,14 @@ export async function sendToChannel(channel: TextBasedChannel | null, content: s
                 pos += 1999;
             }
         } else {
-            info(`channel ${wrap(channel, colors.LIGHTER_BLUE)}: ${content}`);
+            info(`channel ${wrap(getChannelName(channel), colors.LIGHTER_BLUE)}: ${content}`);
             await channel.send(content);
         }
     }
 }
 
 export async function messageReply(message: Message, content: string): Promise<void> {
-    info(`channel ${wrap(message.channel, colors.PURPLE)}: ${content}`);
+    info(`channel ${wrap(getChannelName(message.channel), colors.PURPLE)}: (reply to ${message.content}) -> ${content}`);
     await message.reply(content);
 }
 
@@ -311,15 +315,15 @@ export async function safeReply(interaction: CommandInteraction, content: string
         const channel = interaction.channel;
         if (channel) {
             if (content instanceof MessageEmbed) {
-                info(`channel ${wrap(channel, colors.GREEN)}: ${embedToString(content)}`);
+                info(`channel ${wrap(getChannelName(channel), colors.GREEN)}: (reply to /${interaction.command?.name}) -> ${embedToString(content)}`);
                 await interaction.reply({
                     embeds: [content]
                 });
             } else if (content instanceof MessagePayload) {
-                info(`channel ${wrap(channel, colors.LIGHT_BLUE)}: ${content.data}`);
+                info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: (reply to /${interaction.command?.name}) -> ${content.data}`);
                 await interaction.reply(content);
             } else {
-                info(`channel ${wrap(channel, colors.LIGHTER_BLUE)}: ${content}`);
+                info(`channel ${wrap(getChannelName(channel), colors.LIGHTER_BLUE)}: (reply to /${interaction.command?.name}) -> ${content}`);
                 await interaction.reply(content);
             }
         }

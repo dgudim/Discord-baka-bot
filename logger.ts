@@ -39,7 +39,7 @@ export function warn(message: any) {
 
 export function error(message: any, channel?: TextBasedChannel) {
     if (channel) {
-        sendToChannel(channel || null, message, true);
+        sendToChannel(channel, message, true);
     } else {
         log(message, logLevel.ERROR);
     }

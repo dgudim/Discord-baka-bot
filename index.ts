@@ -11,7 +11,7 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
+import { getChannelName, getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
 import { colors, wrap } from './colors';
 import { debug, error, info, warn } from './logger';
 
@@ -187,8 +187,17 @@ client.on('ready', async () => {
 
 client.on('messageCreate', (message) => {
 
-    if (message.author != client.user){
-        info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.LIGHT_RED)}: ${message}`);
+    if (message.author.id != client.user?.id) {
+        let msg = "";
+        if (message.content) {
+            msg += message.content;
+        }
+        if (message.attachments) {
+            for (let attachement of message.attachments) {
+                msg += "\n" + attachement[1].name + ": " + attachement[1].proxyURL;
+            }
+        }
+        info(`channel ${wrap(getChannelName(message.channel), colors.YELLOW)}, user ${wrap(message.author.tag, colors.LIGHT_RED)}: ${msg}`);
     }
 
     if (!message.content.startsWith(prefix) &&

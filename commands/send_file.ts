@@ -23,8 +23,11 @@ export default {
         changeSavedDirectory(message.channel, 'SAVE', args[0]);
 
         if (message.attachments.size) {
+
+            const send_dir = await getSendDir();
+
             for (let i = 0; i < message.attachments.size; i++) {
-                const file = fs.createWriteStream(path.join(getSendDir(), message.attachments.at(i)?.name || "undefined"));
+                const file = fs.createWriteStream(path.join(send_dir, message.attachments.at(i)?.name || "undefined"));
                 https.get(message.attachments.at(i)?.url + "", (response) => {
                     response.pipe(file);
 
@@ -35,7 +38,7 @@ export default {
                 });
             }
 
-            await sendToChannel(channel, `saving ${message.attachments.size} file(s) to ${getSendDir()}`)
+            await sendToChannel(channel, `saving ${message.attachments.size} file(s) to ${send_dir}`)
         } else {
             await sendToChannel(channel, 'please provide at least one attachment');
         }

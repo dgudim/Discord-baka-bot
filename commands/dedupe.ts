@@ -22,13 +22,13 @@ export default {
 
         changeSavedDirectory(channel, 'IMAGE', args[0]);
 
-        let images = walk(getImgDir());
+        let images = walk(await getImgDir());
         let hashMap = new Map<string, string>();
         let deleted = 0;
         for (let i = 0; i < images.length; i++) {
             let sourcePost;
-            if (db.exists(`^${images[i]}^tags^sourcepost`)) {
-                sourcePost = db.getData(`^${images[i]}^tags^sourcepost`);
+            if (await db.exists(`^${images[i]}^tags^sourcepost`)) {
+                sourcePost = await db.getData(`^${images[i]}^tags^sourcepost`);
                 if (sourcePost != '-' && hashMap.has(sourcePost)) {
                     try {
                         fs.unlinkSync(images[i]);

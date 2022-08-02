@@ -48,12 +48,12 @@ export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDi
     }
 }
 
-export function getImgDir() {
-    return db.getData(`^${getKeyByDirType('IMAGE')}`);
+export async function getImgDir() {
+    return await db.getData(`^${getKeyByDirType('IMAGE')}`);
 }
 
-export function getSendDir() {
-    return db.getData(`^${getKeyByDirType('SAVE')}`);
+export async function getSendDir() {
+    return await db.getData(`^${getKeyByDirType('SAVE')}`);
 }
 
 let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
@@ -116,6 +116,10 @@ async function getFileHash(file: string): Promise<string> {
     return await blake3(fs.readFileSync(file));
 }
 
+export async function getValueIfExists(search_path: string, get_path: string = search_path){
+    return await db.exists(search_path) ? db.getData(get_path) : "-";
+}
+
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
 
     debug(`Writing tags to file: ${file}`);
@@ -138,17 +142,22 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
+
+        const pushCallsAsync = [];
+
         if (stdout) {
             const fields = stdout.toLowerCase().split("\n");
             for (let i = 0; i < fields.length - 1; i++) {
                 const split = trimStringArray(fields.at(i)!.split(':'));
-                db.push(`^${file}^tags^${split[0]}`, split[1], true);
+                pushCallsAsync.push(db.push(`^${file}^tags^${split[0]}`, split[1], true));
             }
         }
-        debug(`real_hash: ${hash}, 
-        \ndatabase_hash: ${db.exists('^' + file) ? db.getData('^' + file + '^hash') : "-"}`);
 
-        db.push(`^${file}^hash`, hash, true);
+        pushCallsAsync.push(db.push(`^${file}^hash`, hash, true));
+
+        await Promise.all(pushCallsAsync);
+
+        info('wrote tags to db');
     } catch (err) {
         error(`error writing tags to db: ${err}`);
     }
@@ -156,10 +165,8 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
 export async function ensureTagsInDB(file: string): Promise<void> {
 
-    let exists = db.exists(`^${file}`);
-
     let real_hash = await getFileHash(file);
-    let database_hash = exists ? db.getData(`^${file}^hash`) : "-";
+    let database_hash = await getValueIfExists(`^${file}`, `^${file}^hash`);
 
     debug(`calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
 
@@ -189,17 +196,12 @@ export async function getImageMetatags(file: string): Promise<MessageEmbed> {
 
         embed.addFields([{
             name: mapXmpToName(img_tags[i].xmpName),
-            value: limitLength(db.exists(path) ? db.getData(path) : "-", 1024),
+            value: limitLength(await getValueIfExists(path), 1024),
             inline: true
         }]);
     }
 
     return embed;
-}
-
-export async function getImageTag(file: string, arg: string): Promise<string> {
-    let path = `^${file}^tags^${mapArgToXmp(arg)}`;
-    return db.exists(path) ? db.getData(path) : "-";
 }
 
 export function perc2color(perc: number): ColorResolvable {

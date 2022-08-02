@@ -1,4 +1,3 @@
-import { TextBasedChannel } from "discord.js";
 import { logLevel } from "./logger";
 
 const colorEscapeStr = '\x1b[';

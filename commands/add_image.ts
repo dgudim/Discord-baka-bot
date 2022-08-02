@@ -40,7 +40,7 @@ export default {
                 if (img_url) {
 
                     let fileName = getFileName(img_url) + '.jpeg';
-                    const file_path = path.join(getImgDir(), fileName);
+                    const file_path = path.join(await getImgDir(), fileName);
 
                     if (fs.existsSync(file_path)) {
                         await sendToChannel(channel, 'file aleady exists');

@@ -131,10 +131,10 @@ function writeExifToolConfig(): void {
 
 client.on('ready', async () => {
 
-    if (!db.exists(`^${getKeyByDirType('IMAGE')}`)
-        || !db.exists(`^${getKeyByDirType('SAVE')}`)) {
-        db.push(`^${getKeyByDirType('IMAGE')}`, '/home/public_files', true);
-        db.push(`^${getKeyByDirType('SAVE')}`, '/home/kloud/Downloads', true);
+    if (!await db.exists(`^${getKeyByDirType('IMAGE')}`)
+        || !await db.exists(`^${getKeyByDirType('SAVE')}`)) {
+        await db.push(`^${getKeyByDirType('IMAGE')}`, '/home/public_files', true);
+        await db.push(`^${getKeyByDirType('SAVE')}`, '/home/kloud/Downloads', true);
     }
 
     client.user?.setPresence({

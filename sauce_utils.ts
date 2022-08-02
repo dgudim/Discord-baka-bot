@@ -9,7 +9,7 @@ import iqdb from '@l2studio/iqdb-api';
 import { MessageEmbed, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { ensureTagsInDB, getFileName, getImageTag, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory } from './utils';
+import { ensureTagsInDB, getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory, getValueIfExists, mapArgToXmp } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 import { colors, wrap } from "./colors";
@@ -20,7 +20,7 @@ let page: Page;
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
         return Array.from(document.querySelectorAll(sel))
-            .map(elem => elem.textContent.replaceAll(' ', '_'));
+            .map(elem => elem.textContent?.replaceAll(' ', '_'));
     }, selector);
 }
 
@@ -306,17 +306,21 @@ export function getLastTags(channel: TextBasedChannel): TagContainer {
     return last_tags.get(channel.id) || { postInfo: { author: '-', character: '-', copyright: '-', tags: '-', url: '-' }, file: '-' };
 }
 
+function getImageTag(file: string, arg: string): Promise<string> {
+    return getValueIfExists(`^${file}^tags^${mapArgToXmp(arg)}`);
+}
+
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {
 
     let images: string[] = [];
-    const img_dir = getImgDir();
+    const img_dir = await getImgDir();
     if (!isDirectory(img_dir)) {
         await sendToChannel(channel, `Image directory ${img_dir} does not exist or not a directory`);
         return images;
     }
     images = walk(img_dir);
 
-    if (images.length > 0 && !db.exists(`^${images[0]}`)) {
+    if (images.length > 0 && !await db.exists(`^${images[0]}`)) {
         await sendToChannel(channel, "refreshing image tag database, might take a while...");
         await Promise.all(images.map((value) => {
             ensureTagsInDB(value);

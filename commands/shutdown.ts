@@ -28,22 +28,11 @@ export default {
         const msg_channel = status_channel ? status_channel : channel;
 
         await combinedReply(interaction, message, 'YES SIR! Shutting down');
-
         await sendToChannel(msg_channel, guild?.roles.everyone.toString() || '');
-
         await sendToChannel(msg_channel, getSimpleEmbed(`🟡 Shutting down server in ${timeout} minute(s)`, getDateTime(), 'YELLOW'));
-
         await sleep(timeout * 1000 * 60 - 15000);
-
         await sendToChannel(msg_channel, getSimpleEmbed('🔴 Shutting down in 15 seconds', getDateTime(), 'RED'));
-
-        try {
-            exec('minecraftd stop');
-        } catch (err) {
-            error(err);
-        }
         await sleep(15000);
-
         await sendToChannel(msg_channel, getSimpleEmbed("🔴 Server is offline", getDateTime(), 'RED'));
 
         exec(`${args[1] ? 'reboot' : 'shutdown'} now`);

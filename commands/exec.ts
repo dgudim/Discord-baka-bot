@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { EmbedFieldData, MessageEmbed } from 'discord.js';
 import { ICommand } from "wokcommands";
 import { exec } from 'child_process';
 
@@ -6,10 +6,15 @@ function addFields(embed: MessageEmbed, content: string, message: string) {
     content = content.substring(0, 5500);
     const len = content.length;
     let pos = 0;
+    let fields: EmbedFieldData | EmbedFieldData[] = [];
     while (pos < len) {
-        embed.addField(pos == 0 ? message : '___', content.slice(pos, pos + 1023));
+        fields.push({
+            name: pos == 0 ? message : '___',
+            value: content.slice(pos, pos + 1023)
+        });
         pos += 1023;
     }
+    embed.addFields(fields);
 }
 
 export default {
@@ -55,7 +60,7 @@ export default {
 
                 if (!stderr && !stdout && !error) {
                     embed.setColor('YELLOW');
-                    embed.addField('Command didn\'t return anything', 'check your syntax');
+                    addFields(embed, 'Command didn\'t return anything', 'check your syntax');
                 }
 
                 embed.setDescription("result of executing " + args[0]);

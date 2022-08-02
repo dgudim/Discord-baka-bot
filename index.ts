@@ -187,6 +187,8 @@ client.on('ready', async () => {
 
 client.on('messageCreate', (message) => {
 
+    info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.LIGHT_RED)}: ${message}`);
+
     if (!message.content.startsWith(prefix) &&
         terminalShellsByChannel.has(message.channelId) &&
         channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
@@ -198,7 +200,6 @@ client.on('messageCreate', (message) => {
 
     const msg_content = message.content.toLocaleLowerCase();
     if (messageReplies.has(msg_content)) {
-        info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.PURPLE)}: ${message}`);
         messageReplies.get(msg_content)!(message);
     }
 });

@@ -274,7 +274,7 @@ function embedToString(embed: MessageEmbed) {
 }
 
 export function getChannelName(channel: TextBasedChannel){
-    return channel.lastMessage?.guild?.channels.cache.get(channel.id)?.name;
+    return channel.lastMessage?.guild?.channels.cache.get(channel.id)?.name || "private " + channel;
 }
 
 export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions, log_asError?: boolean): Promise<void> {

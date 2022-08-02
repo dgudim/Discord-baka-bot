@@ -187,7 +187,9 @@ client.on('ready', async () => {
 
 client.on('messageCreate', (message) => {
 
-    info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.LIGHT_RED)}: ${message}`);
+    if (message.author != client.user){
+        info(`channel ${wrap(message.channel, colors.YELLOW)}, user ${wrap(message.author, colors.LIGHT_RED)}: ${message}`);
+    }
 
     if (!message.content.startsWith(prefix) &&
         terminalShellsByChannel.has(message.channelId) &&

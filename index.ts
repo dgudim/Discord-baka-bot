@@ -162,7 +162,7 @@ client.on('ready', async () => {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
-        testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || ''],
+        testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '', process.env.MINEICE_SERV_ID || ''],
         disabledDefaultCommands: ['language', 'prefix', 'help']
     })
         .setDefaultPrefix(prefix)

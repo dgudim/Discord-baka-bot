@@ -116,7 +116,9 @@ export default {
             default:
                 title = "Sussy Baka's";
                 embed.setDescription('(get more info by doing /help <command>)');
-                embed.setDescription(`${embed.description} / unknown command: ${title}`);
+                if (args[0]) {
+                    embed.setDescription(`${embed.description} / unknown command: ${args[0]}`);
+                }
                 embed.addFields([
                     {
                         name: "Current prefix is",

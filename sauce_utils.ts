@@ -329,22 +329,22 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
     }
 
     let search_terms = trimStringArray(searchQuery.split(';'));
-    for (let i = 0; i < search_terms.length; i++) {
+    for (const search_term of search_terms) {
 
         let activeModifier_key = "";
         let activeModifier = (_content: string[], _search_term: string[]) => true;
         for (let [key, func] of search_modifiers.entries()) {
-            if (search_terms[i].indexOf(key) != -1) {
+            if (search_term.indexOf(key) != -1) {
                 activeModifier_key = key;
                 activeModifier = func;
                 break;
             }
         }
 
-        let search_term_split = trimStringArray(search_terms[i].split(activeModifier_key));
+        let search_term_split = trimStringArray(search_term.split(activeModifier_key));
 
         if (search_term_split.length != 2) {
-            sendToChannel(channel, `Invalid search term ${search_terms[i]}`);
+            sendToChannel(channel, `Invalid search term ${search_term}`);
         } else {
             if (image_args_arr.indexOf(search_term_split[0]) == -1) {
                 sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);

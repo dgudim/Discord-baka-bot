@@ -6,7 +6,7 @@ export const search_modifiers = new Map([
         (content: string[], search_term: string[]) => {
             return content.some((content_value) =>
                 search_term.some((search_value) => content_value.startsWith(search_value)));
-            // any content value must start with one of the search value
+            // any content value must start with one of the search values
         }],
     ["@&=",
         (content: string[], search_term: string[]) => {
@@ -17,16 +17,18 @@ export const search_modifiers = new Map([
     ["!=",
         (content: string[], search_term: string[]) => {
             return search_term.every((value) => !content.includes(value));
+            // no content value can include any one of the search values
         }],
     ["#=",
         (content: string[], search_term: string[]) => {
             return content.join() == search_term.join();
+            // strict equals
         }],
     ["*=",
         (content: string[], search_term: string[]) => {
             return content.every((content_value) =>
                 search_term.some((search_value) => content_value.startsWith(search_value)));
-            // every content value must start with one of the search value
+            // every content value must start with one of the search values
         }],
     ["&=",
         (content: string[], search_term: string[]) => {
@@ -38,11 +40,13 @@ export const search_modifiers = new Map([
         (content: string[], search_term: string[]) => {
             return search_term.some((value) =>
                 content.some((content_value) => content_value.includes(value)));
+            // any content value must include any search value
         }],
     ["=",
         (content: string[], search_term: string[]) => {
             return search_term.every((value) =>
                 content.some((content_value) => content_value.includes(value)));
+            // content must include every search value
         }]
 ]);
 

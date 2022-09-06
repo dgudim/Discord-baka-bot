@@ -1,13 +1,12 @@
-import { Intents, TextBasedChannel, Message, MessageEmbed, Client } from 'discord.js'; // discord api
-import WOKCommands from 'wokcommands';
+import { GatewayIntentBits, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
+const DKRCommands = require("dkrcommands");
 import img_tags from './image_tags.json';
 import path from 'path';
 import fs from 'fs';
-import { exec } from 'child_process';
+import { exec, spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import util from "util";
 const execPromise = util.promisify(exec);
 import dotenv from 'dotenv'; // evironment vars
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
@@ -37,7 +36,7 @@ export const prefix = '>';
 
 function isBuiltin(str: string): boolean {
     let command = str.split(' ')[0];
-    return bultInCommands.some(bultInCommands => command == bultInCommands);
+    return bultInCommands.some(bultInCommand => command == bultInCommand);
 }
 
 export let status_channel: TextBasedChannel;
@@ -81,14 +80,17 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
     }
 
     return added;
-};
+}
 
 const client = new Client({
-    restRequestTimeout: 60000,
+    rest: {
+        timeout: 60000,
+        retries: 3
+    },
     intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions
     ]
 });
 
@@ -158,7 +160,7 @@ client.on('ready', async () => {
         process.exit(1);
     }
 
-    new WOKCommands(client, {
+    new DKRCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
@@ -170,7 +172,7 @@ client.on('ready', async () => {
 
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
         let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
-        if (channel?.isText()) {
+        if (channel?.isTextBased()) {
             status_channel = channel;
         } else {
             error(`${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
@@ -178,7 +180,7 @@ client.on('ready', async () => {
         }
         if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
             fs.mkdirSync(process.env.TEMP_DIR);
-            await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), 'GREEN'));
+            await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
         }
     } else {
         warn(`please specify ${wrap('TEMP_DIR', colors.LIGHTER_BLUE)} and ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)}`);

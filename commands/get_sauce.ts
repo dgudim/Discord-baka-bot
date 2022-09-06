@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import { findSauce } from "../sauce_utils";
 import fs from "fs";
 import https from 'https';

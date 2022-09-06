@@ -6,7 +6,7 @@ import sagiri from "sagiri";
 const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 
 import iqdb from '@l2studio/iqdb-api';
-import { MessageEmbed, Snowflake, TextBasedChannel } from 'discord.js';
+import { EmbedBuilder, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { ensureTagsInDB, getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory, getValueIfExists, mapArgToXmp } from './utils';
@@ -173,8 +173,8 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     posts.sort((a, b) => { return b.similarity - a.similarity });
 
     let best_post_combined = posts[0];
-    for (let i = 0; i < sourcePrecedence.length; i++) {
-        let res = posts.find((value) => { return value.url.includes(sourcePrecedence[i]) && value.similarity >= min_similarity });
+    for (const source of sourcePrecedence) {
+        let res = posts.find((value) => { return value.url.includes(source) && value.similarity >= min_similarity });
         if (res) {
             best_post_combined = res;
             break;
@@ -182,7 +182,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     }
 
     if (best_post_combined) {
-        const embed = new MessageEmbed();
+        const embed = new EmbedBuilder();
         embed.setTitle(`Result from ${best_post_combined.source_db}`);
         embed.setColor(perc2color(best_post_combined.similarity));
         embed.setDescription(`similarity: ${best_post_combined.similarity}`);
@@ -243,7 +243,7 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     if (url.includes('gelbooru')) {
 
-        return await grabBySelectors(url,
+        return grabBySelectors(url,
             '#tag-list > li.tag-type-artist > a',
             '#tag-list > li.tag-type-copyright > a',
             '#tag-list > li.tag-type-character > a',
@@ -253,7 +253,7 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     if (url.includes('sankakucomplex') || url.includes('rule34')) {
 
-        return await grabBySelectors(url,
+        return grabBySelectors(url,
             '#tag-sidebar > li.tag-type-artist > a',
             '#tag-sidebar > li.tag-type-copyright > a',
             '#tag-sidebar > li.tag-type-character > a',
@@ -263,7 +263,7 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     if (url.includes('yande') || url.includes('konachan')) {
 
-        return await grabBySelectors(url,
+        return grabBySelectors(url,
             '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
             '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
             '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
@@ -293,7 +293,7 @@ export async function grabImageUrl(url: string) {
         await page.click('#image');
     }
 
-    return res || await getAttributeBySelector('#image', 'src');
+    return res || getAttributeBySelector('#image', 'src');
 }
 
 let last_tags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();

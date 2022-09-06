@@ -1,4 +1,4 @@
-import { BufferResolvable, Channel, ColorResolvable, CommandInteraction, Message, MessageEmbed, MessageOptions, MessagePayload, Snowflake, TextBasedChannel } from "discord.js";
+import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageOptions, MessagePayload, EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { image_args_arr, xpm_image_args_grep, db } from "./index"
 import fs from "fs";
 import path from "path";
@@ -49,11 +49,11 @@ export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDi
 }
 
 export async function getImgDir() {
-    return await db.getData(`^${getKeyByDirType('IMAGE')}`);
+    return db.getData(`^${getKeyByDirType('IMAGE')}`);
 }
 
 export async function getSendDir() {
-    return await db.getData(`^${getKeyByDirType('SAVE')}`);
+    return db.getData(`^${getKeyByDirType('SAVE')}`);
 }
 
 let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
@@ -113,7 +113,7 @@ export function mapArgToXmp(arg: string): string {
 }
 
 async function getFileHash(file: string): Promise<string> {
-    return await blake3(fs.readFileSync(file));
+    return blake3(fs.readFileSync(file));
 }
 
 export async function getValueIfExists(search_path: string, get_path: string = search_path){
@@ -182,21 +182,21 @@ export function limitLength(str: string, max_length: number): string {
     return str;
 }
 
-export async function getImageMetatags(file: string): Promise<MessageEmbed> {
+export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
 
-    const embed = new MessageEmbed();
+    const embed = new EmbedBuilder();
     embed.setTitle("Image metadata");
     embed.setDescription(getFileName(file));
-    embed.setColor('GREEN');
+    embed.setColor('Green');
 
     await ensureTagsInDB(file);
 
-    for (let i = 0; i < img_tags.length; i++) {
-        let path = `^${file}^tags^${img_tags[i].xmpName}`;
+    for (const img_tag of img_tags) {
+        let tag_path = `^${file}^tags^${img_tag.xmpName}`;
 
         embed.addFields([{
-            name: mapXmpToName(img_tags[i].xmpName),
-            value: limitLength(await getValueIfExists(path), 1024),
+            name: mapXmpToName(img_tag.xmpName),
+            value: limitLength(await getValueIfExists(tag_path), 1024),
             inline: true
         }]);
     }
@@ -205,7 +205,7 @@ export async function getImageMetatags(file: string): Promise<MessageEmbed> {
 }
 
 export function perc2color(perc: number): ColorResolvable {
-    var r, g, b = 0;
+    let r, g, b = 0;
     if (perc < 50) {
         r = 255;
         g = Math.round(5.1 * perc);
@@ -214,7 +214,7 @@ export function perc2color(perc: number): ColorResolvable {
         g = 255;
         r = Math.round(510 - 5.10 * perc);
     }
-    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    let h = r * 0x10000 + g * 0x100 + b * 0x1;
     return ('#' + ('000000' + h.toString(16)).slice(-6)) as ColorResolvable;
 }
 
@@ -265,10 +265,21 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
     }
 }
 
-function embedToString(embed: MessageEmbed) {
-    let str = embed.title;
-    for (let field of embed.fields) {
+function embedToString(embed: EmbedBuilder) {
+    let str = embed.data.title + "\n" + embed.data.description;
+    for (let field of embed.data.fields || []) {
         str += `\n${field.name}: ${field.value}`;
+    }
+    return str;
+}
+
+function payloadToString(payload: MessagePayload) {
+    let str: string = payload.options.content || "";
+    if(payload.options.files) {
+        str += "\nfiles:\n";
+        for (let file of payload.options.files) {
+            str += `\n${file}`;
+        }
     }
     return str;
 }
@@ -277,15 +288,15 @@ export function getChannelName(channel: TextBasedChannel){
     return channel.lastMessage?.guild?.channels.cache.get(channel.id)?.name || "private " + channel;
 }
 
-export async function sendToChannel(channel: TextBasedChannel | null, content: string | MessageEmbed | MessagePayload | MessageOptions, log_asError?: boolean): Promise<void> {
+export async function sendToChannel(channel: TextBasedChannel | null, content: string | EmbedBuilder | MessagePayload | MessageOptions, log_asError?: boolean): Promise<void> {
     if (channel) {
-        if (content instanceof MessageEmbed) {
+        if (content instanceof EmbedBuilder) {
             info(`channel ${wrap(getChannelName(channel), colors.GREEN)}: ${embedToString(content)}`);
             await channel.send({
                 embeds: [content]
             });
         } else if (content instanceof MessagePayload) {
-            info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: ${content.data}`);
+            info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: ${payloadToString(content)}`);
             await channel.send(content);
         } else if (typeof content === 'string') {
             const len = content.length;
@@ -308,19 +319,19 @@ export async function messageReply(message: Message, content: string): Promise<v
     await message.reply(content);
 }
 
-export async function safeReply(interaction: CommandInteraction, content: string | MessageEmbed | MessagePayload): Promise<void> {
+export async function safeReply(interaction: CommandInteraction, content: string | EmbedBuilder | MessagePayload): Promise<void> {
     if (interaction.replied) {
         await sendToChannel(interaction.channel, content);
     } else {
         const channel = interaction.channel;
         if (channel) {
-            if (content instanceof MessageEmbed) {
+            if (content instanceof EmbedBuilder) {
                 info(`channel ${wrap(getChannelName(channel), colors.GREEN)}: (reply to /${interaction.command?.name}) -> ${embedToString(content)}`);
                 await interaction.reply({
                     embeds: [content]
                 });
             } else if (content instanceof MessagePayload) {
-                info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: (reply to /${interaction.command?.name}) -> ${content.data}`);
+                info(`channel ${wrap(getChannelName(channel), colors.LIGHT_BLUE)}: (reply to /${interaction.command?.name}) -> ${payloadToString(content)}`);
                 await interaction.reply(content);
             } else {
                 info(`channel ${wrap(getChannelName(channel), colors.LIGHTER_BLUE)}: (reply to /${interaction.command?.name}) -> ${content}`);
@@ -330,7 +341,7 @@ export async function safeReply(interaction: CommandInteraction, content: string
     }
 }
 
-export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string | MessageEmbed | MessagePayload): Promise<void> {
+export async function combinedReply(interaction: CommandInteraction | undefined, message: Message | undefined, content: string | EmbedBuilder | MessagePayload): Promise<void> {
     if (interaction) {
         await safeReply(interaction, content);
     } else if (message) {
@@ -356,7 +367,7 @@ export function walk(dir: string): string[] {
 }
 
 export function getSimpleEmbed(title: string, description: string, color: ColorResolvable) {
-    const embed = new MessageEmbed();
+    const embed = new EmbedBuilder();
     embed.setTitle(title);
     embed.setDescription(description || '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
     embed.setColor(color);

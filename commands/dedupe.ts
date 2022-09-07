@@ -1,7 +1,8 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
 import fs from "fs";
-import { changeSavedDirectory, safeReply, sendToChannel, walk, getImgDir } from "../utils";
+import { safeReply, sendToChannel, walk } from "../utils";
+import { changeSavedDirectory, getImgDir } from "../sauce_utils";
 
 export default {
     category: 'Image management',

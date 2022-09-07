@@ -1,9 +1,10 @@
 import { ICommand } from "dkrcommands";
-import { getImageMetatags, getLastImgPath, getLastImgUrl, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
+import { normalize, safeReply, sendToChannel } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 import { getSauceConfString } from "../config";
-import { getLastTags } from "../sauce_utils";
+import { getLastImgPath, getLastImgUrl } from "../sauce_utils";
+import { getImageMetatags, getLastTags, writeTagsToFile } from "../tagging_utils";
 
 export default {
     category: 'Admin image management',

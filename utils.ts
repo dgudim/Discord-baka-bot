@@ -1,75 +1,16 @@
-import { BufferResolvable, ColorResolvable, CommandInteraction, Message, MessageOptions, MessagePayload, EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
-import { image_args_arr, xpm_image_args_grep, db } from "./index"
+import { ColorResolvable, CommandInteraction, Message, MessageOptions, MessagePayload, EmbedBuilder, TextBasedChannel } from "discord.js";
 import fs from "fs";
-import path from "path";
-import { exec } from 'child_process';
-import util from "util";
-const execPromise = util.promisify(exec);
-import img_tags from './image_tags.json';
 
 import { blake3 } from 'hash-wasm';
 
-import sharp from "sharp";
 import { colors, wrap } from "./colors";
-import { debug, error, info, log, logLevel, warn } from "./logger";
+import { info, log, logLevel } from "./logger";
+import { db } from ".";
 
-export type saveDirType =
-    | 'IMAGE'
-    | 'SAVE'
-
-export function getKeyByDirType(dir_type: saveDirType): string {
-    let key;
-    switch (dir_type) {
-        case 'SAVE':
-            key = 'send_file_dir'
-            break;
-        case 'IMAGE':
-            key = 'img_dir'
-            break;
-    }
-    return key;
-}
+export const eight_mb = 1024 * 1024 * 8;
 
 export function isDirectory(path: string): boolean {
     return fs.existsSync(path) && fs.statSync(path).isDirectory()
-}
-
-export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
-    if (dir) {
-        let key = getKeyByDirType(dir_type);
-        if (isDirectory(dir)) {
-            sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
-            db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
-            return true;
-        } else {
-            sendToChannel(channel, `Invalid ${dir_type} directory, will use previous`);
-            return false;
-        }
-    }
-}
-
-export async function getImgDir() {
-    return db.getData(`^${getKeyByDirType('IMAGE')}`);
-}
-
-export async function getSendDir() {
-    return db.getData(`^${getKeyByDirType('SAVE')}`);
-}
-
-let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
-let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
-
-export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): void {
-    lastFiles.set(channel.id, file);
-    lastFileUrls.set(channel.id, fileUrl);
-}
-
-export function getLastImgUrl(channel: TextBasedChannel): string {
-    return lastFileUrls.get(channel.id) || '';
-}
-
-export function getLastImgPath(channel: TextBasedChannel): string {
-    return lastFiles.get(channel.id) || '';
 }
 
 export function getFileName(file: string): string {
@@ -92,27 +33,7 @@ export async function isUrl(url: string): Promise<boolean> {
     return (await fetch(url)).ok;
 }
 
-export function mapXmpToName(xmp_tag: string): string {
-    let index = img_tags.findIndex((element) => {
-        return element.xmpName == normalize(xmp_tag);
-    });
-    if (index != -1) {
-        return img_tags[index].name;
-    }
-    warn(`Can't map xmp tag: ${xmp_tag} to name`);
-    return xmp_tag;
-}
-
-export function mapArgToXmp(arg: string): string {
-    let index = image_args_arr.indexOf(arg);
-    if (index != -1) {
-        return img_tags[index].xmpName;
-    }
-    warn(`Can't map arg: ${arg} to xmp tag`);
-    return arg;
-}
-
-async function getFileHash(file: string): Promise<string> {
+export async function getFileHash(file: string): Promise<string> {
     return blake3(fs.readFileSync(file));
 }
 
@@ -120,88 +41,11 @@ export async function getValueIfExists(search_path: string, get_path: string = s
     return await db.exists(search_path) ? db.getData(get_path) : "-";
 }
 
-export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
-
-    debug(`Writing tags to file: ${file}`);
-
-    try {
-        const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
-        debug(stdout);
-        if (stderr) {
-            error(`exiftool stderr: ${stderr}`);
-        }
-        callback();
-    } catch (err) {
-        await sendToChannel(channel, `xmp tagging error: ${err}`, true);
-    }
-}
-
-async function writeTagsToDB(file: string, hash: string): Promise<void> {
-
-    debug(`Writing tags of ${file} to database`);
-
-    try {
-        const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
-
-        const pushCallsAsync = [];
-
-        if (stdout) {
-            const fields = stdout.toLowerCase().split("\n");
-            for (let i = 0; i < fields.length - 1; i++) {
-                const split = trimStringArray(fields.at(i)!.split(':'));
-                pushCallsAsync.push(db.push(`^${file}^tags^${split[0]}`, split[1], true));
-            }
-        }
-
-        pushCallsAsync.push(db.push(`^${file}^hash`, hash, true));
-
-        await Promise.all(pushCallsAsync);
-
-        info('wrote tags to db');
-    } catch (err) {
-        error(`error writing tags to db: ${err}`);
-    }
-}
-
-export async function ensureTagsInDB(file: string): Promise<void> {
-
-    let real_hash = await getFileHash(file);
-    let database_hash = await getValueIfExists(`^${file}`, `^${file}^hash`);
-
-    debug(`calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
-
-    if (real_hash != database_hash) {
-        await writeTagsToDB(file, real_hash);
-    }
-}
-
 export function limitLength(str: string, max_length: number): string {
     if (str.length > max_length) {
         str = str.slice(0, max_length - 3) + '...';
     }
     return str;
-}
-
-export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
-
-    const embed = new EmbedBuilder();
-    embed.setTitle("Image metadata");
-    embed.setDescription(getFileName(file));
-    embed.setColor('Green');
-
-    await ensureTagsInDB(file);
-
-    for (const img_tag of img_tags) {
-        let tag_path = `^${file}^tags^${img_tag.xmpName}`;
-
-        embed.addFields([{
-            name: mapXmpToName(img_tag.xmpName),
-            value: limitLength(await getValueIfExists(tag_path), 1024),
-            inline: true
-        }]);
-    }
-
-    return embed;
 }
 
 export function perc2color(perc: number): ColorResolvable {
@@ -216,53 +60,6 @@ export function perc2color(perc: number): ColorResolvable {
     }
     let h = r * 0x10000 + g * 0x100 + b * 0x1;
     return ('#' + ('000000' + h.toString(16)).slice(-6)) as ColorResolvable;
-}
-
-export const eight_mb = 1024 * 1024 * 8;
-
-export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata: boolean = false): Promise<void> {
-    let attachment: BufferResolvable | undefined = file;
-    let message: Promise<Message<boolean>> | undefined;
-    let width = (await sharp(file).metadata()).width || 0;
-    if (fs.statSync(file).size > eight_mb || width > 3000) {
-        sendToChannel(channel, 'image too large, compressing, wait...');
-        await sharp(file)
-            .resize({ width: 1920 })
-            .jpeg({
-                quality: 80
-            })
-            .toBuffer().then(data => {
-                if (data.byteLength > eight_mb) {
-                    sendToChannel(channel, 'image still too large, bruh');
-                    attachment = undefined;
-                } else {
-                    attachment = data;
-                }
-            });
-    }
-
-    if (attachment) {
-        if (attachMetadata) {
-            message = channel.send({
-                files: [{
-                    attachment: attachment,
-                    name: getFileName(file)
-                }],
-                embeds: [await getImageMetatags(file)]
-            });
-        } else {
-            message = channel.send({
-                files: [{
-                    attachment: attachment,
-                    name: getFileName(file)
-                }]
-            });
-        }
-
-        if (message) {
-            setLastImg(channel, file, (await message).attachments.at(0)?.url || '');
-        }
-    }
 }
 
 function embedToString(embed: EmbedBuilder) {

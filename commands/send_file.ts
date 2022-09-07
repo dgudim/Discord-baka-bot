@@ -2,7 +2,8 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, sendToChannel, getSendDir } from "../utils";
+import { sendToChannel } from "../utils";
+import { changeSavedDirectory, getSendDir } from "../sauce_utils";
 
 export default {
     category: 'Administration',

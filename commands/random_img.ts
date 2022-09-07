@@ -1,5 +1,6 @@
 import { ICommand } from "dkrcommands";
-import { changeSavedDirectory, combinedReply, sendImgToChannel, walk, getImgDir } from "../utils";
+import { changeSavedDirectory, getImgDir, sendImgToChannel } from "../sauce_utils";
+import { combinedReply, walk } from "../utils";
 
 let indexUpToDate = false;
 let index: string[] = [];

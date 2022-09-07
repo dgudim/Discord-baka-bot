@@ -6,14 +6,20 @@ import sagiri from "sagiri";
 const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 
 import iqdb from '@l2studio/iqdb-api';
-import { EmbedBuilder, Snowflake, TextBasedChannel } from 'discord.js';
+import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { ensureTagsInDB, getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, getImgDir, normalizeTags, isDirectory, getValueIfExists, mapArgToXmp } from './utils';
+import { getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, normalizeTags, isDirectory, eight_mb } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 import { colors, wrap } from "./colors";
 import { debug, error, info } from "./logger";
+
+import sharp from "sharp";
+import fs from "fs";
+import path from "path";
+import { ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
+
 let browser: Browser;
 let page: Page;
 
@@ -296,18 +302,104 @@ export async function grabImageUrl(url: string) {
     return res || getAttributeBySelector('#image', 'src');
 }
 
-let last_tags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
+export type saveDirType =
+    | 'IMAGE'
+    | 'SAVE'
 
-export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void {
-    last_tags.set(channel.id, tags);
+export function getKeyByDirType(dir_type: saveDirType): string {
+    let key;
+    switch (dir_type) {
+        case 'SAVE':
+            key = 'send_file_dir'
+            break;
+        case 'IMAGE':
+            key = 'img_dir'
+            break;
+    }
+    return key;
 }
 
-export function getLastTags(channel: TextBasedChannel): TagContainer {
-    return last_tags.get(channel.id) || { postInfo: { author: '-', character: '-', copyright: '-', tags: '-', url: '-' }, file: '-' };
+let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
+let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
+
+export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
+    if (dir) {
+        let key = getKeyByDirType(dir_type);
+        if (isDirectory(dir)) {
+            sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
+            db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
+            return true;
+        } else {
+            sendToChannel(channel, `Invalid ${dir_type} directory, will use previous`);
+            return false;
+        }
+    }
 }
 
-function getImageTag(file: string, arg: string): Promise<string> {
-    return getValueIfExists(`^${file}^tags^${mapArgToXmp(arg)}`);
+export async function getImgDir() {
+    return db.getData(`^${getKeyByDirType('IMAGE')}`);
+}
+
+export async function getSendDir() {
+    return db.getData(`^${getKeyByDirType('SAVE')}`);
+}
+
+export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): void {
+    lastFiles.set(channel.id, file);
+    lastFileUrls.set(channel.id, fileUrl);
+}
+
+export function getLastImgUrl(channel: TextBasedChannel): string {
+    return lastFileUrls.get(channel.id) || '';
+}
+
+export function getLastImgPath(channel: TextBasedChannel): string {
+    return lastFiles.get(channel.id) || '';
+}
+
+export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata: boolean = false): Promise<void> {
+    let attachment: BufferResolvable | undefined = file;
+    let message: Promise<Message<boolean>> | undefined;
+    let width = (await sharp(file).metadata()).width || 0;
+    if (fs.statSync(file).size > eight_mb || width > 3000) {
+        sendToChannel(channel, 'image too large, compressing, wait...');
+        await sharp(file)
+            .resize({ width: 1920 })
+            .jpeg({
+                quality: 80
+            })
+            .toBuffer().then(data => {
+                if (data.byteLength > eight_mb) {
+                    sendToChannel(channel, 'image still too large, bruh');
+                    attachment = undefined;
+                } else {
+                    attachment = data;
+                }
+            });
+    }
+
+    if (attachment) {
+        if (attachMetadata) {
+            message = channel.send({
+                files: [{
+                    attachment: attachment,
+                    name: getFileName(file)
+                }],
+                embeds: [await getImageMetatags(file)]
+            });
+        } else {
+            message = channel.send({
+                files: [{
+                    attachment: attachment,
+                    name: getFileName(file)
+                }]
+            });
+        }
+
+        if (message) {
+            setLastImg(channel, file, (await message).attachments.at(0)?.url || '');
+        }
+    }
 }
 
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {

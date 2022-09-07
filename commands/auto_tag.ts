@@ -1,8 +1,9 @@
 import { Snowflake, TextBasedChannel } from "discord.js";
 import { ICommand } from "dkrcommands";
 import { getSauceConfString } from "../config";
-import { findSauce, searchImages } from "../sauce_utils";
-import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastImgUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
+import { changeSavedDirectory, findSauce, getLastImgUrl, searchImages, sendImgToChannel } from "../sauce_utils";
+import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
+import { getFileName, safeReply, sendToChannel } from "../utils";
 
 let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 let armedPerChannel: Map<Snowflake, boolean> = new Map<Snowflake, boolean>();

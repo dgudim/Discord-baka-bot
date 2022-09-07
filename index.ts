@@ -10,9 +10,10 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getChannelName, getDateTime, getKeyByDirType, getSimpleEmbed, messageReply, sendToChannel } from './utils';
+import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel } from './utils';
 import { colors, wrap } from './colors';
 import { debug, error, info, warn } from './logger';
+import { getKeyByDirType } from './sauce_utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 

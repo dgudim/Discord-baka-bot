@@ -2,10 +2,11 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { changeSavedDirectory, combinedReply, ensureTagsInDB, fetchUrl, getFileName, getImgDir, getLastImgUrl as getLastImgUrl, isImageUrlType, isUrl, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
-import { findSauce, getPostInfoFromUrl, grabImageUrl } from "../sauce_utils";
+import { combinedReply, fetchUrl, getFileName, isImageUrlType, isUrl, sendToChannel } from "../utils";
+import { changeSavedDirectory, findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
+import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
 
 export default {
     category: 'Admin image management',

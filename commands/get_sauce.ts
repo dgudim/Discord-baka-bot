@@ -1,9 +1,9 @@
 import { ICommand } from "dkrcommands";
-import { findSauce } from "../sauce_utils";
+import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from 'https';
 import sharp from "sharp";
-import { combinedReply, fetchUrl, getFileName, getLastImgUrl, isImageUrlType, isPngOrJpgUrlType, isUrl, sendImgToChannel, sendToChannel } from "../utils";
+import { combinedReply, fetchUrl, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, sendToChannel } from "../utils";
 import { Message, CommandInteraction, TextBasedChannel } from "discord.js";
 
 async function searchAndSendSauce(

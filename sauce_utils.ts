@@ -5,11 +5,11 @@ const booru = new Danbooru();
 import sagiri from "sagiri";
 const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 
-import iqdb from '@l2studio/iqdb-api';
+import * as iqdb from '@l2studio/iqdb-api'
 import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, normalizeTags, isDirectory, eight_mb } from './utils';
+import { getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, normalizeTags, isDirectory, eight_mb } from '@discord_bots_common/utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 import { colors, wrap } from "@discord_bots_common/colors";
@@ -17,7 +17,6 @@ import { debug, error, info } from "@discord_bots_common/logger";
 
 import sharp from "sharp";
 import fs from "fs";
-import path from "path";
 import { ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
 
 let browser: Browser;
@@ -116,7 +115,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         for (let result of sagiriResults) {
             if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
                 posts.push({
-                    source_db: 'saucenao',
+                    source_db: `saucenao (${result.site})`,
                     url: result.url,
                     similarity: result.similarity,
                     thumbnail: result.thumbnail,
@@ -141,36 +140,40 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
         while (true) {
             try {
-                iqDbResults = await iqdb(file);
+                iqDbResults = await iqdb.search(file);
             } catch (err) {
                 error(err);
                 break;
             }
 
-            if (!iqDbResults.success) {
-                sendToChannel(channel, `iqdb error: ${iqDbResults.error}`)
-                if (iqDbResults.error?.includes('try again')) {
-                    sendToChannel(channel, 'retrying call to iqdb');
-                    continue;
-                }
+            if (!iqDbResults.searched) {
+                sendToChannel(channel, `iqdb error`)
+                sendToChannel(channel, 'retrying call to iqdb');
+                continue;
             }
             break;
         }
 
         if (iqDbResults?.results) {
-            info(`got ${wrap(iqDbResults.results.length, colors.LIGHT_YELLOW)} results from iqdb`);
-            for (let res of iqDbResults.results) {
-                info(res.url + ' ' + wrap(res.similarity, colors.LIGHT_YELLOW));
-            }
+            let iqdb_posts: Post[] = [];
             for (let result of iqDbResults.results) {
-                if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
-                    posts.push({
-                        source_db: 'iqdb',
-                        url: result.url,
+                for (let result_source of result.sources) {
+                    iqdb_posts.push({
+                        source_db: `iqdb ${result_source.service}`,
+                        url: result_source.fixedHref,
                         similarity: result.similarity,
-                        thumbnail: result.image,
+                        thumbnail: result.thumbnail.fixedSrc,
                         author: '-'
                     });
+                }
+            }
+
+            info(`got ${wrap(iqdb_posts.length, colors.LIGHT_YELLOW)} results from iqdb in ${iqDbResults.timeSeconds}s, searched ${iqDbResults.searched} images`);
+
+            for (let result of iqdb_posts) {
+                info(result.url + ' ' + wrap(result.similarity, colors.LIGHT_YELLOW));
+                if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
+                    posts.push(result);
                 }
             }
         }

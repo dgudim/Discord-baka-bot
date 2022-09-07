@@ -1,4 +1,0 @@
-[submodule "node_modules_local/discord_bots_common"]
-	path = node_modules_local/discord_bots_common
-	url = https://github.com/dgudim/Discord_bots-common
-	branch = master

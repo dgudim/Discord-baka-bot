@@ -7,7 +7,7 @@ import { combinedReply, fetchUrl, getFileName, getLastImgUrl, isImageUrlType, is
 import { Message, CommandInteraction, TextBasedChannel } from "discord.js";
 
 async function searchAndSendSauce(
-    interaction: CommandInteraction, message: Message, channel: TextBasedChannel,
+    interaction: CommandInteraction | undefined, message: Message | undefined, channel: TextBasedChannel,
     min_similarity: number, fileOrUrl: string | undefined) {
 
     if (!fileOrUrl) {

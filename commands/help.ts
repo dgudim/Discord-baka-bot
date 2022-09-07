@@ -1,5 +1,5 @@
-import { MessageEmbed } from "discord.js";
-import { ICommand } from "wokcommands";
+import { EmbedBuilder } from "discord.js";
+import { ICommand } from "dkrcommands";
 import { prefix } from "..";
 import { combinedReply } from "../utils";
 
@@ -20,7 +20,7 @@ export default {
 
     callback: async ({ interaction, message, args }) => {
 
-        const embed = new MessageEmbed();
+        const embed = new EmbedBuilder();
 
         let title = args[0];
 
@@ -117,7 +117,7 @@ export default {
                 title = "Sussy Baka's";
                 embed.setDescription('(get more info by doing /help <command>)');
                 if (args[0]) {
-                    embed.setDescription(`${embed.description} / unknown command: ${args[0]}`);
+                    embed.setDescription(`${embed.data.description} / unknown command: ${args[0]}`);
                 }
                 embed.addFields([
                     {
@@ -148,7 +148,7 @@ export default {
         
 
         embed.setTitle(`${title} help page`);
-        embed.setColor('AQUA');
+        embed.setColor('Aqua');
 
         await combinedReply(interaction, message, embed);
     }

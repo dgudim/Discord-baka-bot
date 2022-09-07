@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
@@ -20,25 +20,27 @@ export default {
 
     callback: async ({ message, args, channel }) => {
 
-        changeSavedDirectory(message.channel, 'SAVE', args[0]);
+        let message_nn = message!;
 
-        if (message.attachments.size) {
+        changeSavedDirectory(message_nn.channel, 'SAVE', args[0]);
+
+        if (message_nn.attachments.size) {
 
             const send_dir = await getSendDir();
 
-            for (let i = 0; i < message.attachments.size; i++) {
-                const file = fs.createWriteStream(path.join(send_dir, message.attachments.at(i)?.name || "undefined"));
-                https.get(message.attachments.at(i)?.url + "", (response) => {
+            for (let i = 0; i < message_nn.attachments.size; i++) {
+                const file = fs.createWriteStream(path.join(send_dir, message_nn.attachments.at(i)?.name || "undefined"));
+                https.get(message_nn.attachments.at(i)?.url + "", (response) => {
                     response.pipe(file);
 
                     file.on("finish", () => {
                         file.close();
-                        sendToChannel(channel, `saved ${message.attachments.at(i)?.name}`);
+                        sendToChannel(channel, `saved ${message_nn.attachments.at(i)?.name}`);
                     });
                 });
             }
 
-            await sendToChannel(channel, `saving ${message.attachments.size} file(s) to ${send_dir}`)
+            await sendToChannel(channel, `saving ${message_nn.attachments.size} file(s) to ${send_dir}`)
         } else {
             await sendToChannel(channel, 'please provide at least one attachment');
         }

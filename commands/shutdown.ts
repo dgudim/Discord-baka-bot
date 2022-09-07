@@ -1,9 +1,7 @@
-import { MessageEmbed } from "discord.js";
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import { combinedReply, getDateTime, getSimpleEmbed, sendToChannel, sleep } from "../utils";
 import { exec } from 'child_process';
 import { status_channel } from "..";
-import { error } from "../logger";
 
 export default {
 
@@ -24,16 +22,16 @@ export default {
 
         const timeout = Math.max(+args[0], 1);
 
-        const guild = message ? message.guild : interaction.guild;
+        const guild = message?.guild || interaction?.guild;
         const msg_channel = status_channel ? status_channel : channel;
 
         await combinedReply(interaction, message, 'YES SIR! Shutting down');
         await sendToChannel(msg_channel, guild?.roles.everyone.toString() || '');
-        await sendToChannel(msg_channel, getSimpleEmbed(`🟡 Shutting down server in ${timeout} minute(s)`, getDateTime(), 'YELLOW'));
+        await sendToChannel(msg_channel, getSimpleEmbed(`🟡 Shutting down server in ${timeout} minute(s)`, getDateTime(), 'Yellow'));
         await sleep(timeout * 1000 * 60 - 15000);
-        await sendToChannel(msg_channel, getSimpleEmbed('🔴 Shutting down in 15 seconds', getDateTime(), 'RED'));
+        await sendToChannel(msg_channel, getSimpleEmbed('🔴 Shutting down in 15 seconds', getDateTime(), 'Red'));
         await sleep(15000);
-        await sendToChannel(msg_channel, getSimpleEmbed("🔴 Server is offline", getDateTime(), 'RED'));
+        await sendToChannel(msg_channel, getSimpleEmbed("🔴 Server is offline", getDateTime(), 'Red'));
 
         exec(`${args[1] ? 'reboot' : 'shutdown'} now`);
 

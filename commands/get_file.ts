@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import fs from "fs";
 import { eight_mb, safeReply, sendToChannel } from "../utils";
 
@@ -18,23 +18,25 @@ export default {
 
     callback: async ({ interaction, args, channel }) => {
 
+        let interaction_nn = interaction!;
+
         if (!fs.existsSync(args[0])){
-            await safeReply(interaction, "File does not exist");
+            await safeReply(interaction_nn, "File does not exist");
             return;
         }
 
         if (fs.statSync(args[0]).isDirectory()) {
-            await safeReply(interaction, "Can't send directories");
+            await safeReply(interaction_nn, "Can't send directories");
             return;
         }
 
         if (fs.statSync(args[0]).size > eight_mb){
-            await safeReply(interaction, "File too big ( > 8mb)");
+            await safeReply(interaction_nn, "File too big ( > 8mb)");
             return;
         }
 
         try {
-            await safeReply(interaction, "Here is your file");
+            await safeReply(interaction_nn, "Here is your file");
             await sendToChannel(channel, {
                 files: [{
                     attachment: args[0],
@@ -42,7 +44,7 @@ export default {
                 }]
             })
         } catch (err) {
-            await safeReply(interaction, `Error: ${err}`);
+            await safeReply(interaction_nn, `Error: ${err}`);
         }
 
     }

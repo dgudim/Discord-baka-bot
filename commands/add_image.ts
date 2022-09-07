@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';

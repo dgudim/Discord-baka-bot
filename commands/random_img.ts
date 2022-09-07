@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import { changeSavedDirectory, combinedReply, sendImgToChannel, walk, getImgDir } from "../utils";
 
 let indexUpToDate = false;

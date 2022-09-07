@@ -1,12 +1,13 @@
-import { EmbedFieldData, MessageEmbed } from 'discord.js';
-import { ICommand } from "wokcommands";
+import { RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
+import { ICommand } from "dkrcommands";
 import { exec } from 'child_process';
+import { safeReply } from '../utils';
 
-function addFields(embed: MessageEmbed, content: string, message: string) {
+function addFields(embed: EmbedBuilder, content: string, message: string) {
     content = content.substring(0, 5500);
     const len = content.length;
     let pos = 0;
-    let fields: EmbedFieldData | EmbedFieldData[] = [];
+    let fields: RestOrArray<APIEmbedField> = [];
     while (pos < len) {
         fields.push({
             name: pos == 0 ? message : '___',
@@ -32,13 +33,14 @@ export default {
     maxArgs: 2,
 
     callback: async ({ interaction, args }) => {
-        const embed = new MessageEmbed();
+
+        let interaction_nn = interaction!;
+
+        const embed = new EmbedBuilder();
         embed.setTitle("exec");
         embed.setDescription("executing " + args[0] + "...");
 
-        await interaction.reply({
-            embeds: [embed]
-        });
+        safeReply(interaction_nn, embed);
 
         const asRoot = parseInt(args[1]) >= 1;
 
@@ -46,26 +48,26 @@ export default {
             (error, stdout, stderr) => {
 
                 if (stdout) {
-                    embed.setColor('GREEN');
+                    embed.setColor('Green');
                     addFields(embed, stdout.toString(), 'execution sucessfull');
                 }
 
                 if (stderr) {
-                    embed.setColor('RED');
+                    embed.setColor('Red');
                     addFields(embed, stderr.toString(), 'errors while executing');
                 } else if (error) {
-                    embed.setColor('RED');
+                    embed.setColor('Red');
                     addFields(embed, error.toString(), 'error while executing');
                 }
 
                 if (!stderr && !stdout && !error) {
-                    embed.setColor('YELLOW');
+                    embed.setColor('Yellow');
                     addFields(embed, 'Command didn\'t return anything', 'check your syntax');
                 }
 
                 embed.setDescription("result of executing " + args[0]);
 
-                interaction.editReply({
+                interaction_nn.editReply({
                     embeds: [embed]
                 });
 

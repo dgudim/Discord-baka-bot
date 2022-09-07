@@ -399,7 +399,7 @@ export function stripUrlScheme(url: string) {
 
 export async function fetchUrl(url: string) {
     const res = await fetch(url);
-    if (!res.ok) { return { ok: res.ok, type: '', status: res.status, statusText: res.statusText } };
+    if (!res.ok) { return { ok: res.ok, type: '', status: res.status, statusText: res.statusText } }
     const buff = await res.blob();
     return { ok: res.ok, type: buff.type, status: res.status, statusText: res.statusText };
 }

@@ -1,4 +1,4 @@
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import { getImageMetatags, getLastImgPath, getLastImgUrl, normalize, safeReply, sendToChannel, writeTagsToFile } from '../utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
@@ -21,28 +21,30 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
+        let interraction_nn = interaction!;
+
         if (!getLastImgPath(channel)) {
-            await safeReply(interaction, "No image selected");
+            await safeReply(interraction_nn, "No image selected");
             return;
         }
 
         let confString = "";
 
-        for (let i = 0; i < interaction.options.data.length; i++) {
-            let index = image_args_arr.indexOf(interaction.options.data[i].name);
+        for (const interraction_option of interraction_nn.options.data) {
+            let index = image_args_arr.indexOf(interraction_option.name);
             if (index != -1) {
-                confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interaction.options.data[i].value?.toString())}'`;
+                confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interraction_option.value?.toString())}'`;
             } else {
-                await sendToChannel(channel, `No such parameter: ${interaction.options.data[i].name}`);
+                await sendToChannel(channel, `No such parameter: ${interraction_option.name}`);
             }
         }
 
-        if (interaction.options.data.length == 0) {
+        if (interraction_nn.options.data.length == 0) {
             let lastTagsFrom_get_sauce = getLastTags(channel);
             if (lastTagsFrom_get_sauce.file == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
-                await safeReply(interaction, "No tags provided");
+                await safeReply(interraction_nn, "No tags provided");
                 return;
             }
         }
@@ -51,6 +53,6 @@ export default {
             await sendToChannel(channel, await getImageMetatags(getLastImgPath(channel)));
         });
         
-        await safeReply(interaction, "new tags");
+        await safeReply(interraction_nn, "new tags");
     }
 } as ICommand

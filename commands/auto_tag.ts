@@ -1,5 +1,5 @@
 import { Snowflake, TextBasedChannel } from "discord.js";
-import { ICommand } from "wokcommands";
+import { ICommand } from "dkrcommands";
 import { getSauceConfString } from "../config";
 import { findSauce, searchImages } from "../sauce_utils";
 import { changeSavedDirectory, ensureTagsInDB, getFileName, getLastImgUrl, safeReply, sendImgToChannel, sendToChannel, writeTagsToFile } from "../utils";
@@ -60,39 +60,40 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        let accept_from = interaction.options.getString('accept-from') || 'booru,sankakucomplex';
-        let min_similarity = interaction.options.getNumber('min-similarity') || 90;
-        let search_query = interaction.options.getString('search-query');
-        let startingIndex = interaction.options.getInteger('index') || 0;
+        let interaction_nn = interaction!;
 
-        changeSavedDirectory(channel, 'IMAGE', interaction.options.getString("directory-path"));
+        let accept_from = interaction_nn.options.getString('accept-from') || 'booru,sankakucomplex';
+        let min_similarity = interaction_nn.options.getNumber('min-similarity') || 90;
+        let search_query = interaction_nn.options.getString('search-query');
+        let startingIndex = interaction_nn.options.getInteger('index') || 0;
+
+        changeSavedDirectory(channel, 'IMAGE', interaction_nn.options.getString("directory-path"));
 
         let images = imagesPerChannel.get(channel.id) || [];
 
         if (stopPerChannel.get(channel.id)) {
-            await safeReply(interaction, 'autotagger still stopping, wait...');
+            await safeReply(interaction_nn, 'autotagger still stopping, wait...');
             return;
         }
 
         if (activePerChannel.get(channel.id)) {
             stopPerChannel.set(channel.id, true);
-            await safeReply(interaction, 'stopping autotagger...');
+            await safeReply(interaction_nn, 'stopping autotagger...');
             return;
         }
 
         if (armedPerChannel.get(channel.id) && !search_query) {
-            await safeReply(interaction, `autotagging ${images.length} images starting at index ${startingIndex}`);
+            await safeReply(interaction_nn, `autotagging ${images.length} images starting at index ${startingIndex}`);
             activePerChannel.set(channel.id, true);
             armedPerChannel.set(channel.id, false);
             autotag(accept_from, min_similarity, startingIndex, channel);
             return;
         }
 
-        await safeReply(interaction, 'searching...');
+        await safeReply(interaction_nn, 'searching...');
         images = await searchImages(search_query || 'source-post#=-', channel);
         imagesPerChannel.set(channel.id, images);
         await sendToChannel(channel, 'use the command again without the search query to start tagging, use the command third time to stop tagging');
         armedPerChannel.set(channel.id, true);
-        return;
     }
 } as ICommand

@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { sendToChannel } from "../utils";
+import { sendToChannel } from "@discord_bots_common/utils";
 import { changeSavedDirectory, getSendDir } from "../sauce_utils";
 
 export default {

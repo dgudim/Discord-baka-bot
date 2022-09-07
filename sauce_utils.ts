@@ -12,8 +12,8 @@ import puppeteer, { Browser, Page } from 'puppeteer'
 import { getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, normalizeTags, isDirectory, eight_mb } from './utils';
 import { db, image_args_arr } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
-import { colors, wrap } from "./colors";
-import { debug, error, info } from "./logger";
+import { colors, wrap } from "@discord_bots_common/colors";
+import { debug, error, info } from "@discord_bots_common/logger";
 
 import sharp from "sharp";
 import fs from "fs";

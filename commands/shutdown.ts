@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { combinedReply, getDateTime, getSimpleEmbed, sendToChannel, sleep } from "../utils";
+import { combinedReply, getDateTime, getSimpleEmbed, sendToChannel, sleep } from "@discord_bots_common/utils";
 import { exec } from 'child_process';
 import { status_channel } from "..";
 

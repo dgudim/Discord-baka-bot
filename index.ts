@@ -10,9 +10,9 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel } from './utils';
-import { colors, wrap } from './colors';
-import { debug, error, info, warn } from './logger';
+import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel } from '@discord_bots_common/utils';
+import { colors, wrap } from '@discord_bots_common/colors';
+import { debug, error, info, warn } from '@discord_bots_common/logger';
 import { getKeyByDirType } from './sauce_utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));

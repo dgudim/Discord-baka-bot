@@ -1,6 +1,6 @@
 import { ICommand } from "dkrcommands";
 import fs from "fs";
-import { eight_mb, safeReply, sendToChannel } from "../utils";
+import { eight_mb, safeReply, sendToChannel } from "@discord_bots_common/utils";
 
 export default {
     category: 'Administration',

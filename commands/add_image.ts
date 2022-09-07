@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { combinedReply, fetchUrl, getFileName, isImageUrlType, isUrl, sendToChannel } from "../utils";
+import { combinedReply, fetchUrl, getFileName, isImageUrlType, isUrl, sendToChannel } from "@discord_bots_common/utils";
 import { changeSavedDirectory, findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";

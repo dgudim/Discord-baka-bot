@@ -1,6 +1,6 @@
 import { ICommand } from "dkrcommands";
 import { changeSavedDirectory, getImgDir, sendImgToChannel } from "../sauce_utils";
-import { combinedReply, walk } from "../utils";
+import { combinedReply, walk } from "@discord_bots_common/utils";
 
 let indexUpToDate = false;
 let index: string[] = [];

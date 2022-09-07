@@ -23,5 +23,12 @@
   },
   "devDependencies": {
     "@types/sharp": "^0.30.5"
-  }
+  },
+  "_moduleAliases": {
+    "@root": ".",
+    "discord_bots_common": "node_modules_local/discord_bots_common/src/utils"
+  },
+  "_moduleDirectories": [
+    "node_modules_local"
+  ]
 }

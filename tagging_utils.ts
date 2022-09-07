@@ -1,6 +1,6 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { TagContainer } from "./sauce_utils";
-import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray } from "./utils";
+import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray } from "@discord_bots_common/utils";
 
 import img_tags from './image_tags.json';
 
@@ -10,7 +10,7 @@ import util from "util";
 const execPromise = util.promisify(exec);
 
 import { image_args_arr, db, xpm_image_args_grep } from ".";
-import { debug, error, info, warn } from "./logger";
+import { debug, error, info, warn } from "@discord_bots_common/logger";
 
 let lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
 
@@ -23,7 +23,7 @@ export function getLastTags(channel: TextBasedChannel): TagContainer {
 }
 
 export function getImageTag(file: string, arg: string): Promise<string> {
-    return getValueIfExists(`^${file}^tags^${mapArgToXmp(arg)}`);
+    return getValueIfExists(db, `^${file}^tags^${mapArgToXmp(arg)}`);
 }
 
 export function mapXmpToName(xmp_tag: string): string {
@@ -92,7 +92,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 export async function ensureTagsInDB(file: string): Promise<void> {
 
     let real_hash = await getFileHash(file);
-    let database_hash = await getValueIfExists(`^${file}`, `^${file}^hash`);
+    let database_hash = await getValueIfExists(db, `^${file}`, `^${file}^hash`);
 
     debug(`calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
 
@@ -115,7 +115,7 @@ export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
 
         embed.addFields([{
             name: mapXmpToName(img_tag.xmpName),
-            value: limitLength(await getValueIfExists(tag_path), 1024),
+            value: limitLength(await getValueIfExists(db, tag_path), 1024),
             inline: true
         }]);
     }

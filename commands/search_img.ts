@@ -1,7 +1,7 @@
 import { Snowflake } from "discord.js";
 import { ICommand } from "dkrcommands";
 import { changeSavedDirectory, searchImages, sendImgToChannel } from "../sauce_utils";
-import { clamp, normalize, safeReply } from "../utils";
+import { clamp, normalize, safeReply } from "@discord_bots_common/utils";
 
 let currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();
 let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();

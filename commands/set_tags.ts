@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { normalize, safeReply, sendToChannel } from '../utils';
+import { normalize, safeReply, sendToChannel } from '@discord_bots_common/utils';
 import { image_args, image_args_arr, image_args_types } from '..';
 import img_tags from '../image_tags.json';
 import { getSauceConfString } from "../config";

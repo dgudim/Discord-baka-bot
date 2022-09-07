@@ -1,5 +1,5 @@
 import { GatewayIntentBits, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
-const DKRCommands = require("dkrcommands");
+import DKRCommands from "dkrcommands";
 import img_tags from './image_tags.json';
 import path from 'path';
 import fs from 'fs';

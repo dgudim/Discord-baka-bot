@@ -135,13 +135,14 @@ export default {
                     {
                         name: "⚡️ Admin commands",
                         value:
-                            `\`/set_tags  \` > Sets tags for the last image displayed by _img commands.
-                             \`/add_image \` > Download an image, tag it and save it to the database. (can be executed with prefix)
-                             \`/dedupe    \` > Dedupe image database. (can be executed with prefix)
-                             \`/auto_tag  \` > Autotag images matching search query.
-                             \`/exec      \` > Execute any command on the server.
-                             \`/get_file  \` > Get any file from the server < 8Mb.
-                             \`/terminal  \` > Toggle terminal mode in this channel (message = command). (can be executed with prefix)`
+                            `\`/set_tags    \` > Sets tags for the last image displayed by _img commands.
+                             \`/add_image   \` > Download an image, tag it and save it to the database. (can be executed with prefix)
+                             \`/dedupe      \` > Dedupe image database. (can be executed with prefix)
+                             \`/set_img_dir \` > Set image database directory. (can be executed with prefix)
+                             \`/auto_tag    \` > Autotag images matching search query.
+                             \`/exec        \` > Execute any command on the server.
+                             \`/get_file    \` > Get any file from the server < 8Mb.
+                             \`/terminal    \` > Toggle terminal mode in this channel (message = command). (can be executed with prefix)`
                     }]);
                 break;
         }

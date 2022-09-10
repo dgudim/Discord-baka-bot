@@ -160,7 +160,7 @@ client.on('ready', async () => {
         error(`${err} \n exiting`)
         process.exit(1);
     }
-
+    
     new DKRCommands(client, {
         commandDir: path.join(__dirname, 'commands'),
         typeScript: true,

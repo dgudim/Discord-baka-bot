@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import https from 'https';
 import { combinedReply, fetchUrl, getFileName, isImageUrlType, isUrl, sendToChannel } from "@discord_bots_common/utils";
-import { changeSavedDirectory, findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
@@ -17,14 +17,12 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<url> <directory-path>',
-    expectedArgsTypes: ['STRING', 'STRING'],
+    expectedArgs: '<url>',
+    expectedArgsTypes: ['STRING'],
     minArgs: 1,
-    maxArgs: 2,
+    maxArgs: 1,
 
     callback: async ({ message, interaction, channel, args }) => {
-
-        changeSavedDirectory(channel, 'IMAGE', args[1]);
 
         await combinedReply(interaction, message, 'adding image to db');
 

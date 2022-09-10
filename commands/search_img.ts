@@ -16,7 +16,7 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<search-query> <index> <directory-path>',
+    expectedArgs: '<search-query> <index>',
     expectedArgsTypes: ['STRING', 'INTEGER', 'STRING'],
     minArgs: 0,
     maxArgs: 3,
@@ -33,8 +33,6 @@ export default {
         let searchQuery = normalize(options.getString("search-query"));
         let index = options.getInteger("index");
         let empty = !searchQuery.length && index == null;
-
-        changeSavedDirectory(channel, 'IMAGE', options.getString("directory-path"));
 
         if (empty && currImg > images.length - 1) {
             await safeReply(interaction_nn, `No more images in list`);

@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { changeSavedDirectory, getImgDir, sendImgToChannel } from "../sauce_utils";
+import { getImgDir, sendImgToChannel } from "../sauce_utils";
 import { combinedReply, walk } from "@discord_bots_common/utils";
 
 let indexUpToDate = false;
@@ -16,16 +16,7 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<directory path>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 0,
-    maxArgs: 1,
-
-    callback: async ({ channel, args, interaction, message }) => {
-
-        if (changeSavedDirectory(channel, 'IMAGE', args[0])) {
-            indexUpToDate = false;
-        }
+    callback: async ({ channel, interaction, message }) => {
 
         try {
             currImg++;

@@ -91,8 +91,7 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.GuildMessageReactions
     ]
 });
 
@@ -171,7 +170,7 @@ client.on('ready', async () => {
     })
         .setDefaultPrefix(prefix)
         .setColor(0x005555);
-
+    
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
         let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
         if (channel?.isTextBased()) {

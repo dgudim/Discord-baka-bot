@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
 import fs from "fs";
-import { safeReply, sendToChannel, walk } from "@discord_bots_common/utils";
+import { safeReply, sendToChannel, walk } from "discord_bots_common";
 import { changeSavedDirectory, getImgDir } from "../sauce_utils";
 
 export default {

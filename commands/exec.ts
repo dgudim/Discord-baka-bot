@@ -1,7 +1,7 @@
 import { RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
 import { ICommand } from "dkrcommands";
 import { exec } from 'child_process';
-import { safeReply } from '@discord_bots_common/utils';
+import { safeReply } from 'discord_bots_common';
 
 function addFields(embed: EmbedBuilder, content: string, message: string) {
     content = content.substring(0, 5500);

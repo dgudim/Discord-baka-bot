@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import { ICommand } from "dkrcommands";
 import { prefix } from "..";
-import { combinedReply } from "@discord_bots_common/utils";
+import { combinedReply } from "discord_bots_common";
 
 export default {
 

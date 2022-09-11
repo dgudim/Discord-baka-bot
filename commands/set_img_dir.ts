@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { combinedReply } from "@discord_bots_common/utils";
+import { combinedReply } from "discord_bots_common";
 import { changeSavedDirectory } from "../sauce_utils";
 
 export default {

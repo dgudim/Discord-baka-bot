@@ -1,5 +1,5 @@
 import { GatewayIntentBits, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
-import DKRCommands from "dkrcommands";
+import { DKRCommands } from "dkrcommands";
 import img_tags from './image_tags.json';
 import path from 'path';
 import fs from 'fs';
@@ -162,14 +162,12 @@ client.on('ready', async () => {
     }
     
     new DKRCommands(client, {
-        commandDir: path.join(__dirname, 'commands'),
-        typeScript: true,
+        commandsDir: path.join(__dirname, 'commands'),
+        typescript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '', process.env.MINEICE_SERV_ID || ''],
-        disabledDefaultCommands: ['language', 'prefix', 'help']
-    })
-        .setDefaultPrefix(prefix)
-        .setColor(0x005555);
+        prefix: prefix
+    });
     
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
         let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);

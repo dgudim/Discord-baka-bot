@@ -1,6 +1,6 @@
 import { ICommand } from "dkrcommands";
 import { toggleTerminalChannel } from "../index"
-import { combinedReply } from "@discord_bots_common/utils";
+import { combinedReply } from "discord_bots_common";
 
 export default {
     category: 'Administration',

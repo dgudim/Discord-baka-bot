@@ -14,7 +14,7 @@
     "danbooru": "^3.1.0",
     "discord_bots_common": "github:dgudim/Discord_bots-common",
     "discord.js": "^14.3.0",
-    "dkrcommands": "^1.0.0-beta.1",
+    "dkrcommands": "^1.0.0-beta.2",
     "dotenv": "^16.0.2",
     "hash-wasm": "^4.9.0",
     "node-json-db": "^2.1.2",

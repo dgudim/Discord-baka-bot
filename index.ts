@@ -163,7 +163,7 @@ client.on('ready', async () => {
     
     new DKRCommands(client, {
         commandsDir: path.join(__dirname, 'commands'),
-        typescript: true,
+        typeScript: true,
         botOwners: ['410761741484687371', '470215458889662474'],
         testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '', process.env.MINEICE_SERV_ID || ''],
         prefix: prefix

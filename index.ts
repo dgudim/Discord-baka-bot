@@ -131,6 +131,19 @@ function writeExifToolConfig(): void {
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
     debug('exiftool config written');
 }
+function secondsToDhms(seconds: number) {
+    let d = Math.floor(seconds / (3600 * 24));
+    let h = Math.floor(seconds % (3600 * 24) / 3600);
+    let m = Math.floor(seconds % 3600 / 60);
+    let s = Math.floor(seconds % 60);
+
+    let dDisplay = d > 0 ? (d + "d") : "";
+    let hDisplay = h > 0 ? (h + "h") : "";
+    let mDisplay = m > 0 ? (m + "m") : "";
+    let sDisplay = s > 0 ? (s + "s") : "";
+    return dDisplay + hDisplay + mDisplay + sDisplay;
+}
+
 
 client.on('ready', async () => {
 
@@ -140,14 +153,12 @@ client.on('ready', async () => {
         await db.push(`^${getKeyByDirType('SAVE')}`, '/home/kloud/Downloads', true);
     }
 
-    client.user?.setPresence({
-        status: 'online',
-        activities: [{
-            name: 'prefix is ' + prefix
-        }]
-    });
-
     writeExifToolConfig();
+
+    if (!process.env.TEST_SERVERS) {
+        warn(`${wrap("TEST_SERVERS", colors.LIGHT_YELLOW)} environment variable is not set, can't proceed`);
+        process.exit(1);
+    }
 
     if (!process.env.EXIFTOOL_PATH) {
         warn(`${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
@@ -164,8 +175,8 @@ client.on('ready', async () => {
     new DKRCommands(client, {
         commandsDir: path.join(__dirname, 'commands'),
         typeScript: true,
-        botOwners: ['410761741484687371', '470215458889662474'],
-        testServers: [process.env.LOCAL_SERV_ID || '', process.env.FILEBIN_SERV_ID || '', process.env.MINEICE_SERV_ID || ''],
+        botOwners: process.env.OWNERS?.split(","),
+        testServers: process.env.TEST_SERVERS?.split(","),
         prefix: prefix
     });
     
@@ -184,6 +195,17 @@ client.on('ready', async () => {
     } else {
         warn(`please specify ${wrap('TEMP_DIR', colors.LIGHTER_BLUE)} and ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)}`);
     }
+
+    // every 10 minutes
+    setInterval(async function () {
+        // update status
+        client.user?.setPresence({
+            status: 'online',
+            activities: [{
+                name: `prefix is ${prefix}, uptime: ${secondsToDhms(process.uptime())}`
+            }]
+        });
+    }, 10 * 60 * 1000);
 });
 
 client.on('messageCreate', (message) => {

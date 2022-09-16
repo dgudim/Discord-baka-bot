@@ -3,19 +3,19 @@ import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from 'https';
 import sharp from "sharp";
-import { combinedReply, fetchUrl, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, sendToChannel } from "discord_bots_common";
-import { Message, CommandInteraction, TextBasedChannel } from "discord.js";
+import { fetchUrl, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
+import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
 
 async function searchAndSendSauce(
-    interaction: CommandInteraction | undefined, message: Message | undefined, channel: TextBasedChannel,
+    interaction: CommandInteraction, channel: TextBasedChannel,
     min_similarity: number, fileOrUrl: string | undefined) {
 
     if (!fileOrUrl) {
-        await combinedReply(interaction, message, "No file provided.");
+        await safeReply(interaction, "No file provided.");
         return;
     }
 
-    await combinedReply(interaction, message, `searching sauce for ${getFileName(fileOrUrl)}`);
+    await safeReply(interaction, `Searching sauce for ${getFileName(fileOrUrl)}`);
     let sauce = await findSauce(fileOrUrl, channel, min_similarity);
     if (sauce) {
         await sendToChannel(channel, sauce.embed);
@@ -26,55 +26,68 @@ export default {
     category: 'Image management',
     description: 'Get sauce of an image',
 
-    slash: 'both',
+    slash: true,
     testOnly: true,
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<url> <min-similarity>',
-    expectedArgsTypes: ['STRING', 'NUMBER'],
-    minArgs: 0,
-    maxArgs: 2,
+    options: [
+        {
+            name: "url",
+            description: "Url to get the sauce from",
+            type: ApplicationCommandOptionType.String,
+            required: false
+        }, {
+            name: "image",
+            description: "File to get the sauce from",
+            type: ApplicationCommandOptionType.Attachment,
+            required: false
+        }, {
+            name: "min-similarity",
+            description: "Minimum similarity of the image (1-100)",
+            type: ApplicationCommandOptionType.Integer,
+            required: false
+        }
+    ],
 
-    callback: async ({ channel, interaction, message, args }) => {
+    callback: async ({ channel, interaction, }) => {
 
-        let url = interaction ? interaction.options.getString('url') : args[0];
-        let min_similarity = (interaction ? interaction.options.getNumber('min-similarity') : +args[1]) || 75;
+        let interaction_nn = interaction!;
+
+        let min_similarity = interaction_nn.options.getNumber('min-similarity') || 75;
 
         let urls: string[] = [];
-        if (url) {
-            if (await isUrl(url)) {
-                urls.push(url);
-            } else {
-                await combinedReply(interaction, message, "Invalid Url");
-            }
-        }
+        let argument_url = interaction_nn.options.getString("url");
+        let embed_url = interaction_nn.options.getAttachment("image")?.url || "";
 
-        if (message && message.attachments.size) {
-            for (let attachement of message.attachments) {
-                let res = await fetchUrl(attachement[1].url);
-                if (isImageUrlType(res.type)) {
-                    urls.push(attachement[1].url);
-                } else {
-                    await sendToChannel(channel, `attachement ${attachement[1].name} does not look like an image`);
-                }
+        if (await isUrl(argument_url)) {
+            urls.push(argument_url!);
+        } else if (argument_url) {
+            await sendToChannel(channel, 'Invalid url');
+        }
+        if (await isUrl(embed_url)) {
+            let res = await fetchUrl(embed_url);
+            if (isImageUrlType(res.type)) {
+                urls.push(embed_url);
+            } else {
+                await sendToChannel(channel, `attachement ${embed_url} does not look like an image`);
             }
         }
 
         if (!urls.length) {
-            await searchAndSendSauce(interaction, message, channel, min_similarity, getLastImgUrl(channel));
+            await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
             return;
         }
 
-        await combinedReply(interaction, message, `Getting sauce for ${urls.length} image(s)`);
+        await safeReply(interaction_nn, `Getting sauce for ${urls.length} image(s)`);
 
         for (let image_url of urls) {
             let res = await fetchUrl(image_url);
             if (isPngOrJpgUrlType(res.type)) {
-                await searchAndSendSauce(interaction, message, channel, min_similarity, image_url);
+                await searchAndSendSauce(interaction_nn, channel, min_similarity, image_url);
             } else {
 
-                await combinedReply(interaction, message, 'attachement is not jpg or png, converting, please wait');
+                await safeReply(interaction_nn, 'attachement is not jpg or png, converting, please wait');
 
                 const filePath = '/tmp/temp.jpg';
                 const file_stream = fs.createWriteStream(filePath);
@@ -94,7 +107,7 @@ export default {
                     file_stream.on('finish', async () => {
                         file_stream.close();
                         await sendImgToChannel(channel, filePath);
-                        await searchAndSendSauce(interaction, message, channel, min_similarity, getLastImgUrl(channel));
+                        await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
                     });
                 });
             }

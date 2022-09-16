@@ -2,11 +2,12 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { combinedReply, fetchUrl, getFileName, isImageUrlType, isUrl, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getFileName, isImageUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
+import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
     category: 'Admin image management',
@@ -17,24 +18,50 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<url>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 1,
-    maxArgs: 1,
+    options: [{
+        name: "url",
+        description: "Image url",
+        type: ApplicationCommandOptionType.String,
+        required: false,
+    }, {
+        name: "file",
+        description: "Image file",
+        type: ApplicationCommandOptionType.Attachment,
+        required: false,
+    }],
 
-    callback: async ({ message, interaction, channel, args }) => {
+    callback: async ({ interaction, channel }) => {
 
-        await combinedReply(interaction, message, 'adding image to db');
+        const interaction_nn = interaction!;
 
-        if (await isUrl(args[0])) {
-            let input_url = args[0];
+        let urls: string[] = [];
+        let argument_url = interaction_nn.options.getString("url");
+        let embed_url = interaction_nn.options.getAttachment("file")?.url;
+        
+        if (await isUrl(argument_url)) {
+            urls.push(argument_url!);
+        } else if (argument_url) {
+            await sendToChannel(channel, 'Invalid url');
+        }   
+        if (await isUrl(embed_url)) {
+            urls.push(embed_url!);
+        }        
 
-            const res = await fetchUrl(input_url);
-            
+        if(!urls.length) {
+            await sendToChannel(channel, 'No images to add');
+            return;
+        } else {
+            await safeReply(interaction_nn, 'Adding image(s) to db');
+        }
+
+        for (const url of urls) {
+
+            const res = await fetchUrl(url);
+
             if (res.ok) {
-                
+
                 const is_plain_image = isImageUrlType(res.type);
-                const img_url = is_plain_image ? input_url : await grabImageUrl(input_url);
+                const img_url = is_plain_image ? url : await grabImageUrl(url);
 
                 if (img_url) {
 
@@ -64,7 +91,7 @@ export default {
                             sendToChannel(channel, `saved ${fileName}, `);
                             let postInfo;
                             if (!is_plain_image) {
-                                postInfo = await getPostInfoFromUrl(input_url);
+                                postInfo = await getPostInfoFromUrl(url);
                             }
                             if (!postInfo) {
                                 await sendImgToChannel(channel, file_path);
@@ -91,8 +118,7 @@ export default {
             } else {
                 await sendToChannel(channel, `return code: ${res.status}, ${res.statusText}`);
             }
-        } else {
-            await sendToChannel(channel, 'invalid url');
         }
+
     }
 } as ICommand

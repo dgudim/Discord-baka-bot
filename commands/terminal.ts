@@ -1,21 +1,21 @@
 import { ICommand } from "dkrcommands";
 import { toggleTerminalChannel } from "../index"
-import { combinedReply } from "discord_bots_common";
+import { safeReply } from "discord_bots_common";
 
 export default {
     category: 'Administration',
     description: 'Enable terminal mode in this channel',
 
-    slash: 'both',
+    slash: true,
     testOnly: true,
     ownerOnly: true,
     hidden: true,
 
-    callback: async ({ interaction, message, channel }) => {
+    callback: async ({ interaction, channel }) => {
 
-        const user = interaction?.user || message?.author;
-        const sucessfull = toggleTerminalChannel(channel, user!.id);
+        const user = interaction!.user;
+        const sucessfull = toggleTerminalChannel(channel, user.id);
         
-        await combinedReply(interaction, message, `Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user!.username}`);
+        await safeReply(interaction!, `Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user.username}`);
     }
 } as ICommand

@@ -4,47 +4,53 @@ import path from "path";
 import https from 'https';
 import { sendToChannel } from "discord_bots_common";
 import { changeSavedDirectory, getSendDir } from "../sauce_utils";
+import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
     category: 'Administration',
     description: 'Send any file to the server',
 
-    slash: false,
+    slash: true,
     testOnly: true,
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<save path>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 0,
-    maxArgs: 1,
-
-    callback: async ({ message, args, channel }) => {
-
-        let message_nn = message!;
-
-        changeSavedDirectory(message_nn.channel, 'SAVE', args[0]);
-
-        if (message_nn.attachments.size) {
-
-            const send_dir = await getSendDir();
-
-            for (let i = 0; i < message_nn.attachments.size; i++) {
-                const file = fs.createWriteStream(path.join(send_dir, message_nn.attachments.at(i)?.name || "undefined"));
-                https.get(message_nn.attachments.at(i)?.url + "", (response) => {
-                    response.pipe(file);
-
-                    file.on("finish", () => {
-                        file.close();
-                        sendToChannel(channel, `saved ${message_nn.attachments.at(i)?.name}`);
-                    });
-                });
-            }
-
-            await sendToChannel(channel, `saving ${message_nn.attachments.size} file(s) to ${send_dir}`)
-        } else {
-            await sendToChannel(channel, 'please provide at least one attachment');
+    options: [
+        {
+            name: "file",
+            description: "The file itself",
+            type: ApplicationCommandOptionType.Attachment,
+            required: true
+        }, {
+            name: "save-path",
+            description: "Where to save the file to",
+            type: ApplicationCommandOptionType.String,
+            required: false
         }
+    ],
+
+    callback: async ({ interaction, channel }) => {
+
+        let interaction_nn = interaction!;
+        const attachment = interaction_nn.options.getAttachment("file")!;
+        const attachment_name = attachment.name || "undefined";
+
+        changeSavedDirectory(channel, 'SAVE', interaction_nn.options.getString("save-path"));
+
+        const send_dir = await getSendDir();
+
+        const file = fs.createWriteStream(path.join(send_dir, attachment_name));
+        https.get(attachment.url, (response) => {
+            response.pipe(file);
+
+            file.on("finish", () => {
+                file.close();
+                sendToChannel(channel, `saved ${attachment_name}`);
+            });
+        });
+
+        await sendToChannel(channel, `saving ${attachment_name} to ${send_dir}`);
+
 
     }
 } as ICommand

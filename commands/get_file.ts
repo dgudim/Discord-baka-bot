@@ -1,6 +1,7 @@
 import { ICommand } from "dkrcommands";
 import fs from "fs";
 import { eight_mb, safeReply, sendToChannel } from "discord_bots_common";
+import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
     category: 'Administration',
@@ -11,26 +12,31 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<file path>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 1,
-    maxArgs: 1,
+    options: [
+        {
+            name: "file-path",
+            description: "Where to get the file from",
+            type: ApplicationCommandOptionType.String,
+            required: true
+        }
+    ],
 
-    callback: async ({ interaction, args, channel }) => {
+    callback: async ({ interaction, channel }) => {
 
         let interaction_nn = interaction!;
+        const file_path = interaction_nn.options.getString("file-path")!;
 
-        if (!fs.existsSync(args[0])){
+        if (!fs.existsSync(file_path)){
             await safeReply(interaction_nn, "File does not exist");
             return;
         }
 
-        if (fs.statSync(args[0]).isDirectory()) {
+        if (fs.statSync(file_path).isDirectory()) {
             await safeReply(interaction_nn, "Can't send directories");
             return;
         }
 
-        if (fs.statSync(args[0]).size > eight_mb){
+        if (fs.statSync(file_path).size > eight_mb){
             await safeReply(interaction_nn, "File too big ( > 8mb)");
             return;
         }
@@ -39,8 +45,8 @@ export default {
             await safeReply(interaction_nn, "Here is your file");
             await sendToChannel(channel, {
                 files: [{
-                    attachment: args[0],
-                    name: args[0].substring(args[0].lastIndexOf('/') + 1)
+                    attachment: file_path,
+                    name: file_path.substring(file_path.lastIndexOf('/') + 1)
                 }]
             })
         } catch (err) {

@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import { db } from "..";
 import fs from "fs";
 import { safeReply, sendToChannel, walk } from "discord_bots_common";
-import { changeSavedDirectory, getImgDir } from "../sauce_utils";
+import { getImgDir } from "../sauce_utils";
 
 export default {
     category: 'Image management',
@@ -13,19 +13,12 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<directory-path>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 0,
-    maxArgs: 1,
-
-    callback: async ({ channel, interaction, args }) => {
+    callback: async ({ channel, interaction }) => {
 
         let interaction_nn = interaction!;
 
         await safeReply(interaction_nn, "Deduping databse...");
-
-        changeSavedDirectory(channel, 'IMAGE', args[0]);
-
+        
         let images = walk(await getImgDir());
         let hashMap = new Map<string, string>();
         let deleted = 0;

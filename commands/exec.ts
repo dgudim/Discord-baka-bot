@@ -1,4 +1,4 @@
-import { RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
+import { RestOrArray, APIEmbedField, EmbedBuilder, ApplicationCommandOptionType } from 'discord.js';
 import { ICommand } from "dkrcommands";
 import { exec } from 'child_process';
 import { safeReply } from 'discord_bots_common';
@@ -27,24 +27,31 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<command> <as root>',
-    expectedArgsTypes: ['STRING', 'INTEGER'],
-    minArgs: 1,
-    maxArgs: 2,
+    options: [{
+        name: "command",
+        description: "Command to execute",
+        type: ApplicationCommandOptionType.String,
+        required: true
+    }, {
+        name: "as-root",
+        description: "Whether to execute as root",
+        type: ApplicationCommandOptionType.Boolean,
+        required: false
+    }],
 
-    callback: async ({ interaction, args }) => {
+    callback: async ({ interaction }) => {
 
         let interaction_nn = interaction!;
+        const command = interaction_nn.options.getString("command") || "";
+        const as_root = interaction_nn.options.getBoolean("as_root");
 
         const embed = new EmbedBuilder();
         embed.setTitle("exec");
-        embed.setDescription("executing " + args[0] + "...");
+        embed.setDescription(`executing ${command}...`);
 
         safeReply(interaction_nn, embed);
 
-        const asRoot = parseInt(args[1]) >= 1;
-
-        exec(asRoot ? ("timeout 5s " + args[0]) : ("runuser -l kloud -c 'timeout 5s " + args[0] + "'"),
+        exec(as_root ? ("timeout 5s " + command) : (`runuser -l kloud -c 'timeout 5s ${command}'`),
             (error, stdout, stderr) => {
 
                 if (stdout) {
@@ -52,12 +59,11 @@ export default {
                     addFields(embed, stdout.toString(), 'execution sucessfull');
                 }
 
-                if (stderr) {
+                const err = error + "\n" + stderr;
+
+                if (stderr || error) {
                     embed.setColor('Red');
-                    addFields(embed, stderr.toString(), 'errors while executing');
-                } else if (error) {
-                    embed.setColor('Red');
-                    addFields(embed, error.toString(), 'error while executing');
+                    addFields(embed, err.toString(), 'errors while executing');
                 }
 
                 if (!stderr && !stdout && !error) {
@@ -65,12 +71,12 @@ export default {
                     addFields(embed, 'Command didn\'t return anything', 'check your syntax');
                 }
 
-                embed.setDescription("result of executing " + args[0]);
-
+                embed.setDescription(`result of executing ${command}`);
+                
                 interaction_nn.editReply({
                     embeds: [embed]
                 });
-
+                
             });
     }
 } as ICommand

@@ -1,27 +1,24 @@
 import { ICommand } from "dkrcommands";
-import { combinedReply } from "discord_bots_common";
 import { changeSavedDirectory } from "../sauce_utils";
+import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
     category: 'Administration',
     description: 'Set image database directory',
 
-    slash: 'both',
+    slash: true,
     testOnly: true,
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: '<img-dir>',
-    expectedArgsTypes: ['STRING'],
-    minArgs: 1,
-    maxArgs: 1,
+    options: [{
+        name: "img-dir",
+        description: "Image database directory",
+        type: ApplicationCommandOptionType.String,
+        required: true
+    }],
 
-    callback: async ({ interaction, message, channel, args }) => {
-
-        if (!args[0]) {
-            await combinedReply(interaction, message, "no directory provided");
-        }
-
-        changeSavedDirectory(channel, "IMAGE", args[0]);        
+    callback: async ({ interaction, channel }) => {
+        changeSavedDirectory(channel, "IMAGE", interaction!.options.getString("img-dir"));        
     }
 } as ICommand

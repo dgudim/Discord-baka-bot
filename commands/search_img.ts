@@ -1,4 +1,4 @@
-import { Snowflake } from "discord.js";
+import { ApplicationCommandOptionType, Snowflake } from "discord.js";
 import { ICommand } from "dkrcommands";
 import { searchImages, sendImgToChannel } from "../sauce_utils";
 import { clamp, normalize, safeReply } from "discord_bots_common";
@@ -16,11 +16,18 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    expectedArgs: '<search-query> <index>',
-    expectedArgsTypes: ['STRING', 'INTEGER', 'STRING'],
-    minArgs: 0,
-    maxArgs: 3,
-
+    options: [{
+        name: "search-query",
+        description: "Image search query",
+        type: ApplicationCommandOptionType.String,
+        required: false
+    }, {
+        name: "index",
+        description: "Image index to jump to",
+        type: ApplicationCommandOptionType.Integer,
+        required: false
+    }],
+    
     callback: async ({ channel, interaction }) => {
 
         let interaction_nn = interaction!;

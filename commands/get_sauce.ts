@@ -3,7 +3,7 @@ import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from 'https';
 import sharp from "sharp";
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isPngOrJpgUrlType, safeReply, sendToChannel } from "discord_bots_common";
 import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
 
 async function searchAndSendSauce(

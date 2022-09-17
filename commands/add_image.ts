@@ -13,7 +13,7 @@ export default {
     category: 'Admin image management',
     description: 'Download an image, tag it and save it to the database',
 
-    slash: 'both',
+    slash: true,
     testOnly: true,
     ownerOnly: true,
     hidden: true,

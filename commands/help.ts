@@ -15,41 +15,38 @@ export default {
 
     options: [{
         name: "command",
-        nameLocalizations: {
-            ru: "Команда"
-        },
+        //nameLocalizations: {
+        //    ru: "Команда"
+        //},
         description: "Command to get help about",
-        descriptionLocalizations: {
-            ru: "Команда, по которой нужна помощь"
-        },
+        //descriptionLocalizations: {
+        //    ru: "Команда, по которой нужна помощь"
+        //},
         type: ApplicationCommandOptionType.String,
         required: false,
         choices: [{
             name: "Random image",
-            nameLocalizations: {
-                ru: "Случайная картинка"
-            },
+            //nameLocalizations: {
+            //    ru: "Случайная картинка"
+            //},
             value: "random_img"
-        },
-        {
+        }, {
             name: "Search image",
-            nameLocalizations: {
-                ru: "Поиск картинки"
-            },
+            //nameLocalizations: {
+            //    ru: "Поиск картинки"
+            //},
             value: "search_img"
-        },
-        {
+        }, {
             name: "Send file",
-            nameLocalizations: {
-                ru: "Отправить файл"
-            },
+            //nameLocalizations: {
+            //    ru: "Отправить файл"
+            //},
             value: "send_file"
-        },
-        {
+        }, {
             name: "Get sauce",
-            nameLocalizations: {
-                ru: "Получить соус"
-            },
+            //nameLocalizations: {
+            //    ru: "Получить соус"
+            //},
             value: "get_sauce",
         }],
     }],

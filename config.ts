@@ -1,5 +1,5 @@
 import { PostInfo, TagContainer } from "./sauce_utils";
-import { normalizeTags, stripUrlScheme } from "@discord_bots_common/utils";
+import { normalizeTags, stripUrlScheme } from "discord_bots_common";
 
 export const search_modifiers = new Map([
     ["@*=",

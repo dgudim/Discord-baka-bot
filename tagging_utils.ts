@@ -1,6 +1,7 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { TagContainer } from "./sauce_utils";
-import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray } from "@discord_bots_common/utils";
+import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray, 
+    debug, error, info, warn } from "discord_bots_common";
 
 import img_tags from './image_tags.json';
 
@@ -10,7 +11,6 @@ import util from "util";
 const execPromise = util.promisify(exec);
 
 import { db, image_args, xpm_image_args_grep } from ".";
-import { debug, error, info, warn } from "@discord_bots_common/logger";
 
 let lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
 

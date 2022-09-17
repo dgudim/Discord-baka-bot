@@ -19,6 +19,7 @@ export default {
     }],
 
     callback: async ({ interaction, channel }) => {
+        interaction?.reply("Changing image directory");
         changeSavedDirectory(channel, "IMAGE", interaction!.options.getString("img-dir"));
     }
 } as ICommand

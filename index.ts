@@ -10,10 +10,10 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel } from '@discord_bots_common/utils';
-import { colors, wrap } from '@discord_bots_common/colors';
-import { debug, error, info, warn } from '@discord_bots_common/logger';
+import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap } from 'discord_bots_common';
 import { getKeyByDirType } from './sauce_utils';
+
+import * as readline from 'readline';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -90,7 +90,8 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -226,6 +227,16 @@ client.on('ready', async () => {
     }, 10 * 60 * 1000);
 });
 
+
+let rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+rl.on('line', (message: string) => {
+    info(message)
+})
+
 client.on('messageCreate', (message) => {
 
     if (message.author.id != client.user?.id) {
@@ -235,7 +246,7 @@ client.on('messageCreate', (message) => {
         }
         if (message.attachments) {
             for (let attachement of message.attachments) {
-                msg += "\n" + attachement[1].name + ": " + attachement[1].proxyURL;
+                msg += "\n" + attachement[1].name + ": " + attachement[1].url;
             }
         }
         info(`channel ${wrap(getChannelName(message.channel), colors.YELLOW)}, user ${wrap(message.author.tag, colors.LIGHT_RED)}: ${msg}`);
@@ -244,9 +255,10 @@ client.on('messageCreate', (message) => {
     if (!message.content.startsWith(prefix) &&
         terminalShellsByChannel.has(message.channelId) &&
         channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
-        terminalShellsByChannel.get(message.channelId)?.stdin.write(
-            isBuiltin(message.content.trim()) ? message.content.trim() + "\n" :
-                "timeout 5s " + message.content.trim() + " | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' \n");
+        const command = isBuiltin(message.content.trim()) ? message.content.trim() + "\n" :
+            "timeout 5s '" + message.content.trim() + "' | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g'"
+        info(`-> ${wrap("executing", colors.LIGHTER_BLUE)} "${command}"`);
+        terminalShellsByChannel.get(message.channelId)?.stdin.write(`${command} \n`);
         return;
     }
 

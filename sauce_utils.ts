@@ -9,11 +9,10 @@ import * as iqdb from '@l2studio/iqdb-api'
 import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from 'discord.js';
 
 import puppeteer, { Browser, Page } from 'puppeteer'
-import { getFileName, limitLength, perc2color, sendToChannel, sleep, trimStringArray, walk, normalizeTags, isDirectory, eight_mb } from '@discord_bots_common/utils';
-import { db, image_args_arr } from ".";
+import { getFileName, limitLength, perc2color, sendToChannel, sleep, 
+    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info } from 'discord_bots_common';
+import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
-import { colors, wrap } from "@discord_bots_common/colors";
-import { debug, error, info } from "@discord_bots_common/logger";
 
 import sharp from "sharp";
 import fs from "fs";
@@ -441,7 +440,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
         if (search_term_split.length != 2) {
             sendToChannel(channel, `Invalid search term ${search_term}`);
         } else {
-            if (image_args_arr.indexOf(search_term_split[0]) == -1) {
+            if (image_args.indexOf(search_term_split[0]) == -1) {
                 sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
             } else {
                 const results = await Promise.all(images.map((value) => {

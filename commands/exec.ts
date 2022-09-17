@@ -49,7 +49,7 @@ export default {
         embed.setTitle("exec");
         embed.setDescription(`executing ${command}...`);
 
-        safeReply(interaction_nn, embed);
+        await safeReply(interaction_nn, embed);
 
         exec(as_root ? ("timeout 5s " + command) : (`runuser -l kloud -c 'timeout 5s ${command}'`),
             (error, stdout, stderr) => {

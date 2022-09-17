@@ -26,7 +26,7 @@ export default {
         let interaction_nn = interaction!;
         const file_path = interaction_nn.options.getString("file-path")!;
 
-        if (!fs.existsSync(file_path)){
+        if (!fs.existsSync(file_path)) {
             await safeReply(interaction_nn, "File does not exist");
             return;
         }
@@ -36,7 +36,7 @@ export default {
             return;
         }
 
-        if (fs.statSync(file_path).size > eight_mb){
+        if (fs.statSync(file_path).size > eight_mb) {
             await safeReply(interaction_nn, "File too big ( > 8mb)");
             return;
         }

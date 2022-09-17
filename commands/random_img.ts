@@ -30,11 +30,11 @@ export default {
                     .sort((a, b) => a.sort - b.sort)
                     .map(({ value }) => value);
                 currImg = 0;
-                await safeReply(interaction_nn, `loaded ${index.length} images`);
+                await safeReply(interaction_nn, `Loaded ${index.length} images`);
                 indexUpToDate = true;
             }
             await safeReply(interaction_nn, "Here is your image");
-            
+
             await sendImgToChannel(channel, index[currImg], true);
 
         } catch (err) {

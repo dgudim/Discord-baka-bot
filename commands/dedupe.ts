@@ -18,7 +18,7 @@ export default {
         let interaction_nn = interaction!;
 
         await safeReply(interaction_nn, "Deduping databse...");
-        
+
         let images = walk(await getImgDir());
         let hashMap = new Map<string, string>();
         let deleted = 0;

@@ -27,7 +27,7 @@ export default {
         type: ApplicationCommandOptionType.Integer,
         required: false
     }],
-    
+
     callback: async ({ channel, interaction }) => {
 
         let interaction_nn = interaction!;
@@ -47,7 +47,7 @@ export default {
         }
 
         if (searchQuery.length) {
-            await safeReply(interaction_nn, 'searching...');
+            await safeReply(interaction_nn, 'Searching...');
             images = await searchImages(searchQuery, channel);
             imagesPerChannel.set(channel.id, images);
             currImg = 0;

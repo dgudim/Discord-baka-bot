@@ -1,4 +1,4 @@
-import { GatewayIntentBits, TextBasedChannel, Message, Client } from 'discord.js'; // discord api
+import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType } from 'discord.js'; // discord api
 import { DKRCommands } from "dkrcommands";
 import img_tags from './image_tags.json';
 import path from 'path';
@@ -17,9 +17,8 @@ import { getKeyByDirType } from './sauce_utils';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
-export let image_args_arr: string[] = [];
-export let image_args: string = "";
-export let image_args_types: string[] = [];
+export let image_args_command_options: { name: string; description: string; type: ApplicationCommandOptionType | undefined; required: boolean; }[] = [];
+export let image_args: string[] = [];
 export let xpm_image_args_grep: string = "";
 
 dotenv.config();
@@ -111,9 +110,28 @@ function writeExifToolConfig(): void {
     `;
 
     for (let i = 0; i < img_tags.length; i++) {
-        image_args_arr.push(img_tags[i].name.toLowerCase().replace(' ', '-'));
-        image_args += (i > 0 ? ' ' : '') + `<${img_tags[i].name}>`;
-        image_args_types.push(img_tags[i].type.toUpperCase());
+        const name = img_tags[i].name.toLowerCase().replace(' ', '-');
+        image_args.push(name);
+        const raw_type = img_tags[i].type.toUpperCase();
+        let type;
+        switch (raw_type) {
+            case "STRING":
+                type = ApplicationCommandOptionType.String;
+                break;
+            case "INTEGER":
+                type = ApplicationCommandOptionType.Integer;
+                break;
+            default:
+                error(`Unknowt xmp arg type: ${raw_type}`);
+                break;
+        }
+        image_args_command_options.push({
+            name: name,
+            description: name,
+            type: type,
+            required: false,
+        });
+
         xpm_image_args_grep += ` -e '${img_tags[i].xmpName}'`;
         exifToolConfig += `
         ${img_tags[i].xmpName.toUpperCase()} => {
@@ -171,7 +189,7 @@ client.on('ready', async () => {
         error(`${err} \n exiting`)
         process.exit(1);
     }
-    
+
     new DKRCommands(client, {
         commandsDir: path.join(__dirname, 'commands'),
         typeScript: true,
@@ -179,7 +197,7 @@ client.on('ready', async () => {
         testServers: process.env.TEST_SERVERS?.split(","),
         prefix: prefix
     });
-    
+
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
         let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
         if (channel?.isTextBased()) {

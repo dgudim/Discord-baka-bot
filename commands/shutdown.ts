@@ -14,22 +14,19 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    options: [
-        {
-            name: "timeout-minutes",
-            description: "Number of seconds befor shutdown/reboot",
-            type: ApplicationCommandOptionType.Number,
-            required: true,
-            minValue: 1,
-            maxValue: 15
-        },
-        {
-            name: "reboot",
-            description: "reboot instead of shutdown",
-            type: ApplicationCommandOptionType.Boolean,
-            required: false
-        }
-    ],
+    options: [{
+        name: "timeout-minutes",
+        description: "Number of seconds befor shutdown/reboot",
+        type: ApplicationCommandOptionType.Number,
+        required: true,
+        minValue: 1,
+        maxValue: 15
+    }, {
+        name: "reboot",
+        description: "reboot instead of shutdown",
+        type: ApplicationCommandOptionType.Boolean,
+        required: false
+    }],
 
     callback: async ({ channel, interaction, guild }) => {
 

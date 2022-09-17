@@ -9,7 +9,7 @@ import { exec } from 'child_process';
 import util from "util";
 const execPromise = util.promisify(exec);
 
-import { image_args_arr, db, xpm_image_args_grep } from ".";
+import { db, image_args, xpm_image_args_grep } from ".";
 import { debug, error, info, warn } from "@discord_bots_common/logger";
 
 let lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
@@ -38,7 +38,7 @@ export function mapXmpToName(xmp_tag: string): string {
 }
 
 export function mapArgToXmp(arg: string): string {
-    let index = image_args_arr.indexOf(arg);
+    let index = image_args.indexOf(arg);
     if (index != -1) {
         return img_tags[index].xmpName;
     }

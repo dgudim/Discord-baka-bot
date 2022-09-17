@@ -15,7 +15,7 @@ export default {
 
         const user = interaction!.user;
         const sucessfull = toggleTerminalChannel(channel, user.id);
-        
+
         await safeReply(interaction!, `Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user.username}`);
     }
 } as ICommand

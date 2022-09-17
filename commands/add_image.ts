@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { fetchUrl, getFileName, isImageUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { getSauceConfString } from "../config";
@@ -24,7 +24,7 @@ export default {
         type: ApplicationCommandOptionType.String,
         required: false,
     }, {
-        name: "file",
+        name: "image",
         description: "Image file",
         type: ApplicationCommandOptionType.Attachment,
         required: false,
@@ -34,20 +34,9 @@ export default {
 
         const interaction_nn = interaction!;
 
-        let urls: string[] = [];
-        let argument_url = interaction_nn.options.getString("url");
-        let embed_url = interaction_nn.options.getAttachment("file")?.url;
-        
-        if (await isUrl(argument_url)) {
-            urls.push(argument_url!);
-        } else if (argument_url) {
-            await sendToChannel(channel, 'Invalid url');
-        }   
-        if (await isUrl(embed_url)) {
-            urls.push(embed_url!);
-        }        
+        let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
-        if(!urls.length) {
+        if (!urls.length) {
             await sendToChannel(channel, 'No images to add');
             return;
         } else {
@@ -88,7 +77,7 @@ export default {
 
                         file.on('finish', async () => {
                             file.close();
-                            sendToChannel(channel, `saved ${fileName}, `);
+                            sendToChannel(channel, `Saved ${fileName}, `);
                             let postInfo;
                             if (!is_plain_image) {
                                 postInfo = await getPostInfoFromUrl(url);
@@ -104,16 +93,16 @@ export default {
                             }
                             if (postInfo) {
                                 writeTagsToFile(getSauceConfString(postInfo), file_path, channel, () => {
-                                    sendToChannel(channel, `wrote tags`);
+                                    sendToChannel(channel, `Wrote tags`);
                                     ensureTagsInDB(file_path);
                                 });
                             } else {
-                                await sendToChannel(channel, `could not get tags`);
+                                await sendToChannel(channel, `Could not get tags`);
                             }
                         });
                     });
                 } else {
-                    await sendToChannel(channel, 'could not get image url from page');
+                    await sendToChannel(channel, 'Could not get image url from page');
                 }
             } else {
                 await sendToChannel(channel, `return code: ${res.status}, ${res.statusText}`);

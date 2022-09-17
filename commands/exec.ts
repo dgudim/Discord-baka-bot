@@ -42,7 +42,7 @@ export default {
     callback: async ({ interaction }) => {
 
         let interaction_nn = interaction!;
-        const command = interaction_nn.options.getString("command") || "";
+        const command = interaction_nn.options.getString("command");
         const as_root = interaction_nn.options.getBoolean("as_root");
 
         const embed = new EmbedBuilder();
@@ -72,11 +72,11 @@ export default {
                 }
 
                 embed.setDescription(`result of executing ${command}`);
-                
+
                 interaction_nn.editReply({
                     embeds: [embed]
                 });
-                
+
             });
     }
 } as ICommand

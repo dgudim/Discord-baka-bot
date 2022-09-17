@@ -3,7 +3,7 @@ import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from 'https';
 import sharp from "sharp";
-import { fetchUrl, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, isPngOrJpgUrlType, isUrl, safeReply, sendToChannel } from "discord_bots_common";
 import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
 
 async function searchAndSendSauce(
@@ -31,23 +31,22 @@ export default {
     ownerOnly: false,
     hidden: false,
 
-    options: [
-        {
-            name: "url",
-            description: "Url to get the sauce from",
-            type: ApplicationCommandOptionType.String,
-            required: false
-        }, {
-            name: "image",
-            description: "File to get the sauce from",
-            type: ApplicationCommandOptionType.Attachment,
-            required: false
-        }, {
-            name: "min-similarity",
-            description: "Minimum similarity of the image (1-100)",
-            type: ApplicationCommandOptionType.Integer,
-            required: false
-        }
+    options: [{
+        name: "url",
+        description: "Url to get the sauce from",
+        type: ApplicationCommandOptionType.String,
+        required: false
+    }, {
+        name: "image",
+        description: "File to get the sauce from",
+        type: ApplicationCommandOptionType.Attachment,
+        required: false
+    }, {
+        name: "min-similarity",
+        description: "Minimum similarity of the image (1-100)",
+        type: ApplicationCommandOptionType.Integer,
+        required: false
+    }
     ],
 
     callback: async ({ channel, interaction, }) => {
@@ -56,23 +55,7 @@ export default {
 
         let min_similarity = interaction_nn.options.getNumber('min-similarity') || 75;
 
-        let urls: string[] = [];
-        let argument_url = interaction_nn.options.getString("url");
-        let embed_url = interaction_nn.options.getAttachment("image")?.url || "";
-
-        if (await isUrl(argument_url)) {
-            urls.push(argument_url!);
-        } else if (argument_url) {
-            await sendToChannel(channel, 'Invalid url');
-        }
-        if (await isUrl(embed_url)) {
-            let res = await fetchUrl(embed_url);
-            if (isImageUrlType(res.type)) {
-                urls.push(embed_url);
-            } else {
-                await sendToChannel(channel, `attachement ${embed_url} does not look like an image`);
-            }
-        }
+        let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
         if (!urls.length) {
             await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
@@ -87,7 +70,7 @@ export default {
                 await searchAndSendSauce(interaction_nn, channel, min_similarity, image_url);
             } else {
 
-                await safeReply(interaction_nn, 'attachement is not jpg or png, converting, please wait');
+                await safeReply(interaction_nn, 'Attachement is not jpg or png, converting, please wait');
 
                 const filePath = '/tmp/temp.jpg';
                 const file_stream = fs.createWriteStream(filePath);

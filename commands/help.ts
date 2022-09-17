@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import { ICommand } from "dkrcommands";
-import { prefix } from "..";
 import { safeReply } from "discord_bots_common";
 
 export default {
@@ -155,28 +154,23 @@ export default {
 
             embed.addFields([
                 {
-                    name: "Current prefix is",
-                    value: prefix
-                },
-                {
                     name: "⚙️ User commands",
                     value:
-                        `\`/random_img   \` > Displays a random image from specified directory. (can be executed with prefix)
+                        `\`/random_img   \` > Displays a random image from specified directory.
                              \`/search_img   \` > Searches images by a search query.
-                             \`/send_file    \` > Send file to a specified directory on the server. (use with prefix)
+                             \`/send_file    \` > Send file to a specified directory on the server.
                              \`/get_sauce    \` > Get sauce of an image.`
-                },
-                {
+                }, {
                     name: "⚡️ Admin commands",
                     value:
                         `\`/set_tags    \` > Sets tags for the last image displayed by _img commands.
-                             \`/add_image   \` > Download an image, tag it and save it to the database. (can be executed with prefix)
-                             \`/dedupe      \` > Dedupe image database. (can be executed with prefix)
-                             \`/set_img_dir \` > Set image database directory. (can be executed with prefix)
+                             \`/add_image   \` > Download an image, tag it and save it to the database.
+                             \`/dedupe      \` > Dedupe image database.
+                             \`/set_img_dir \` > Set image database directory.
                              \`/auto_tag    \` > Autotag images matching search query.
                              \`/exec        \` > Execute any command on the server.
                              \`/get_file    \` > Get any file from the server < 8Mb.
-                             \`/terminal    \` > Toggle terminal mode in this channel (message = command). (can be executed with prefix)`
+                             \`/terminal    \` > Toggle terminal mode in this channel (message = command) (to write a message, prepend '>' to your command).`
                 }]);
         }
 

@@ -59,11 +59,9 @@ export default {
                     addFields(embed, stdout.toString(), 'execution sucessfull');
                 }
 
-                const err = error + "\n" + stderr;
-
-                if (stderr || error) {
+                if (error) {
                     embed.setColor('Red');
-                    addFields(embed, err.toString(), 'errors while executing');
+                    addFields(embed, error.toString(), 'errors while executing');
                 }
 
                 if (!stderr && !stdout && !error) {

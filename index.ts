@@ -1,4 +1,4 @@
-import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType } from 'discord.js'; // discord api
+import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake } from 'discord.js'; // discord api
 import { DKRCommands } from "dkrcommands";
 import img_tags from './image_tags.json';
 import path from 'path';
@@ -31,8 +31,6 @@ const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
     'exec', 'exit', 'export', 'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let', 'local',
     'logout', 'popd', 'printf', 'pushd', 'pwd', 'read', 'readonly', 'set', 'shift', 'shopt', 'source',
     'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait', 'y', 'n'];
-
-export const prefix = '>';
 
 function isBuiltin(str: string): boolean {
     let command = str.split(' ')[0];
@@ -195,8 +193,7 @@ client.on('ready', async () => {
         commandsDir: path.join(__dirname, 'commands'),
         typeScript: true,
         botOwners: process.env.OWNERS?.split(","),
-        testServers: process.env.TEST_SERVERS?.split(","),
-        prefix: prefix
+        testServers: process.env.TEST_SERVERS?.split(",")
     });
 
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
@@ -221,20 +218,53 @@ client.on('ready', async () => {
         client.user?.setPresence({
             status: 'online',
             activities: [{
-                name: `prefix is ${prefix}, uptime: ${secondsToDhms(process.uptime())}`
+                name: `uptime: ${secondsToDhms(process.uptime())}`
             }]
         });
     }, 10 * 60 * 1000);
 });
 
+let messageCache = new Map<Snowflake, Message>();
 
-let rl = readline.createInterface({
+const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
 rl.on('line', (message: string) => {
-    info(message)
+    if (message.startsWith("|=") || message.startsWith("==")) {
+        const reply = message.startsWith("|=");
+        message = message.slice(2);
+        const delim_index = message.indexOf(":");
+        let id = message.slice(0, delim_index);
+        let msg = message.slice(delim_index + 1);
+        if(!reply) {
+            let channel;
+            for (let guild_channel of client.channels.cache) {
+                if (guild_channel[0] == id) {
+                    channel = guild_channel[1];
+                    break;
+                }
+            }
+
+            if (channel) {
+                if (channel.isTextBased()) {
+                    channel.send(msg);
+                } else {
+                    warn(`channel ${wrap(id, colors.CYAN)} is not a text based channel`);
+                }
+            } else {
+                warn(`could not find channel ${wrap(id, colors.CYAN)}`);
+            }
+        } else {
+            const message = messageCache.get(id);
+            if(message) {
+                messageReply(message, msg);
+            } else {
+                warn(`Couldn't reply to ${message}, invalid id or message expired`);
+            }
+        }
+    }
 })
 
 client.on('messageCreate', (message) => {
@@ -249,10 +279,16 @@ client.on('messageCreate', (message) => {
                 msg += "\n" + attachement[1].name + ": " + attachement[1].url;
             }
         }
-        info(`channel ${wrap(getChannelName(message.channel), colors.YELLOW)}, user ${wrap(message.author.tag, colors.LIGHT_RED)}: ${msg}`);
+        const messageId = message.id;
+        messageCache.set(messageId, message);
+        // hold max 50 messages in cache
+        if (messageCache.size > 50) {
+            messageCache.delete(Array.from(messageCache.keys()).at(0)!);
+        }
+        info(`channel ${wrap(getChannelName(message.channel), colors.YELLOW)} (${message.channelId}), user ${wrap(message.author.tag, colors.LIGHT_RED)}: ${msg} (id: ${messageId})`);
     }
 
-    if (!message.content.startsWith(prefix) &&
+    if (!message.content.startsWith('>') &&
         terminalShellsByChannel.has(message.channelId) &&
         channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
         const command = isBuiltin(message.content.trim()) ? message.content.trim() + "\n" :

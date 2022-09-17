@@ -1,5 +1,6 @@
 import { PostInfo, TagContainer } from "./sauce_utils";
-import { normalizeTags, stripUrlScheme } from "discord_bots_common";
+import { messageReply, normalizeTags, stripUrlScheme } from "discord_bots_common";
+import { Message } from "discord.js";
 
 export const search_modifiers = new Map([
     ["@*=",
@@ -50,19 +51,12 @@ export const search_modifiers = new Map([
         }]
 ]);
 
-function checkTag(tag_name: string, tag_content: string): string {
-    return tag_content != '-' ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : '';
-}
-
-export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
-    if ('postInfo' in lastTagsFrom_get_sauce) {
-        lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
-    }
-    return checkTag('character', lastTagsFrom_get_sauce.character) +
-        checkTag('author', lastTagsFrom_get_sauce.author) +
-        checkTag('copyright', lastTagsFrom_get_sauce.copyright) +
-        checkTag('tags', lastTagsFrom_get_sauce.tags) +
-        ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
-}
+export const messageReplies = new Map([ // put your message replies here
+    ["ping", (message: Message) => { messageReply(message, 'pong'); }],
+    ["windows", (message: Message) => { messageReply(message, '🐧 Linux 🐧'); }],
+    ["pain and suffering", (message: Message) => { messageReply(message, 'main() and buffering'); }],
+    ["понял", (message: Message) => { messageReply(message, 'не поняла'); }],
+    ["amogus", (message: Message) => { messageReply(message, 'sus'); }]
+]);
 
 export const sourcePrecedence = ['danbooru', 'gelbooru', 'sankakucomplex', 'konachan', 'yande.re']

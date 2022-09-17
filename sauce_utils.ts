@@ -10,13 +10,13 @@ import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } 
 
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { getFileName, limitLength, perc2color, sendToChannel, sleep, 
-    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info } from 'discord_bots_common';
+    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme } from 'discord_bots_common';
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 
 import sharp from "sharp";
 import fs from "fs";
-import { ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
+import { checkTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
 
 let browser: Browser;
 let page: Page;
@@ -319,6 +319,17 @@ export function getKeyByDirType(dir_type: saveDirType): string {
             break;
     }
     return key;
+}
+
+export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
+    if ('postInfo' in lastTagsFrom_get_sauce) {
+        lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
+    }
+    return checkTag('character', lastTagsFrom_get_sauce.character) +
+        checkTag('author', lastTagsFrom_get_sauce.author) +
+        checkTag('copyright', lastTagsFrom_get_sauce.copyright) +
+        checkTag('tags', lastTagsFrom_get_sauce.tags) +
+        ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
 }
 
 let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();

@@ -1,5 +1,4 @@
 import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake } from 'discord.js'; // discord api
-import { DKRCommands } from "dkrcommands";
 import img_tags from './image_tags.json';
 import path from 'path';
 import fs from 'fs';
@@ -10,10 +9,11 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap } from 'discord_bots_common';
+import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit } from 'discord_bots_common';
 import { getKeyByDirType } from './sauce_utils';
 
 import * as readline from 'readline';
+import { messageReplies } from './config';
 
 export const db = new JsonDB(new Config("db", true, true, '^'));
 
@@ -93,14 +93,6 @@ const client = new Client({
     ]
 });
 
-const messageReplies = new Map([ // put your message replies here
-    ["ping", (message: Message) => { messageReply(message, 'pong'); }],
-    ["windows", (message: Message) => { messageReply(message, '🐧 Linux 🐧'); }],
-    ["pain and suffering", (message: Message) => { messageReply(message, 'main() and buffering'); }],
-    ["понял", (message: Message) => { messageReply(message, 'не поняла'); }],
-    ["amogus", (message: Message) => { messageReply(message, 'sus'); }]
-]);
-
 function writeExifToolConfig(): void {
     let exifToolConfig = `
     %Image::ExifTool::UserDefined = (
@@ -172,11 +164,11 @@ client.on('ready', async () => {
 
     writeExifToolConfig();
 
-    if (!process.env.TEST_SERVERS) {
-        warn(`${wrap("TEST_SERVERS", colors.LIGHT_YELLOW)} environment variable is not set, can't proceed`);
-        process.exit(1);
-    }
-
+    testEnvironmentVar(process.env.TEST_SERVERS, "TEST_SERVERS", true);
+    testEnvironmentVar(process.env.OWNERS, "OWNERS", false);
+    testEnvironmentVar(process.env.TEMP_DIR, "TEMP_DIR", false);
+    testEnvironmentVar(process.env.STATUS_CHANNEL_ID, "STATUS_CHANNEL_ID", false);
+    
     if (!process.env.EXIFTOOL_PATH) {
         warn(`${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
         process.env.EXIFTOOL_PATH = 'exiftool'
@@ -189,12 +181,7 @@ client.on('ready', async () => {
         process.exit(1);
     }
 
-    new DKRCommands(client, {
-        commandsDir: path.join(__dirname, 'commands'),
-        typeScript: true,
-        botOwners: process.env.OWNERS?.split(","),
-        testServers: process.env.TEST_SERVERS?.split(",")
-    });
+    dkrInit(client, __dirname);
 
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
         let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
@@ -208,8 +195,6 @@ client.on('ready', async () => {
             fs.mkdirSync(process.env.TEMP_DIR);
             await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
         }
-    } else {
-        warn(`please specify ${wrap('TEMP_DIR', colors.LIGHTER_BLUE)} and ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)}`);
     }
 
     // every 10 minutes
@@ -251,10 +236,10 @@ rl.on('line', (message: string) => {
                 if (channel.isTextBased()) {
                     channel.send(msg);
                 } else {
-                    warn(`channel ${wrap(id, colors.CYAN)} is not a text based channel`);
+                    warn(`Channel ${wrap(id, colors.CYAN)} is not a text based channel`);
                 }
             } else {
-                warn(`could not find channel ${wrap(id, colors.CYAN)}`);
+                warn(`Could not find channel ${wrap(id, colors.CYAN)}`);
             }
         } else {
             const message = messageCache.get(id);

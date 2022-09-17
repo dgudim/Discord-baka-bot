@@ -1,7 +1,7 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { TagContainer } from "./sauce_utils";
 import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray, 
-    debug, error, info, warn } from "discord_bots_common";
+    debug, error, info, warn, normalizeTags } from "discord_bots_common";
 
 import img_tags from './image_tags.json';
 
@@ -13,6 +13,10 @@ const execPromise = util.promisify(exec);
 import { db, image_args, xpm_image_args_grep } from ".";
 
 let lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
+
+export function checkTag(tag_name: string, tag_content: string): string {
+    return tag_content != '-' ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : '';
+}
 
 export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void {
     lastTags.set(channel.id, tags);

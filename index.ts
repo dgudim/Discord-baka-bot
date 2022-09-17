@@ -261,7 +261,7 @@ rl.on('line', (message: string) => {
             if(message) {
                 messageReply(message, msg);
             } else {
-                warn(`Couldn't reply to ${message}, invalid id or message expired`);
+                warn(`Couldn't reply to ${id}, invalid id or message expired`);
             }
         }
     }

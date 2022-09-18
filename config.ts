@@ -1,5 +1,4 @@
-import { PostInfo, TagContainer } from "./sauce_utils";
-import { messageReply, normalizeTags, stripUrlScheme } from "discord_bots_common";
+import { messageReply } from "discord_bots_common";
 import { Message } from "discord.js";
 
 export const search_modifiers = new Map([

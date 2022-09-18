@@ -3,9 +3,8 @@ import fs from "fs";
 import path from "path";
 import https from 'https';
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, grabImageUrl, sendImgToChannel } from "../sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
-import { getSauceConfString } from "../config";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType } from "discord.js";
 
@@ -37,10 +36,10 @@ export default {
         let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
         if (!urls.length) {
-            await sendToChannel(channel, 'No images to add');
+            await sendToChannel(channel, '🚫 No images to add');
             return;
         } else {
-            await safeReply(interaction_nn, 'Adding image(s) to db');
+            await safeReply(interaction_nn, '📥 Adding image(s) to db');
         }
 
         for (const url of urls) {
@@ -58,11 +57,11 @@ export default {
                     const file_path = path.join(await getImgDir(), fileName);
 
                     if (fs.existsSync(file_path)) {
-                        await sendToChannel(channel, 'file aleady exists');
+                        await sendToChannel(channel, '❌ File aleady exists', true);
                         return;
                     }
 
-                    await sendToChannel(channel, `saving as ${fileName}`);
+                    await sendToChannel(channel, `📥 Saving as ${fileName}`);
 
                     const file = fs.createWriteStream(file_path);
 
@@ -77,7 +76,7 @@ export default {
 
                         file.on('finish', async () => {
                             file.close();
-                            sendToChannel(channel, `Saved ${fileName}, `);
+                            sendToChannel(channel, `💾 Saved ${fileName}, `);
                             let postInfo;
                             if (!is_plain_image) {
                                 postInfo = await getPostInfoFromUrl(url);
@@ -93,19 +92,19 @@ export default {
                             }
                             if (postInfo) {
                                 writeTagsToFile(getSauceConfString(postInfo), file_path, channel, () => {
-                                    sendToChannel(channel, `Wrote tags`);
+                                    sendToChannel(channel, `📝 Wrote tags`);
                                     ensureTagsInDB(file_path);
                                 });
                             } else {
-                                await sendToChannel(channel, `Could not get tags`);
+                                await sendToChannel(channel, `❌ Could not get tags`, true);
                             }
                         });
                     });
                 } else {
-                    await sendToChannel(channel, 'Could not get image url from page');
+                    await sendToChannel(channel, '❌ Could not get image url from page', true);
                 }
             } else {
-                await sendToChannel(channel, `return code: ${res.status}, ${res.statusText}`);
+                await sendToChannel(channel, `❌ Return code: ${res.status}, ${res.statusText}`, true);
             }
         }
 

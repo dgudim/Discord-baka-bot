@@ -11,11 +11,11 @@ async function searchAndSendSauce(
     min_similarity: number, fileOrUrl: string | undefined) {
 
     if (!fileOrUrl) {
-        await safeReply(interaction, "No file provided.");
+        await safeReply(interaction, "❌ No file provided.");
         return;
     }
 
-    await safeReply(interaction, `Searching sauce for ${getFileName(fileOrUrl)}`);
+    await safeReply(interaction, `🔎 Searching sauce for ${getFileName(fileOrUrl)}`);
     let sauce = await findSauce(fileOrUrl, channel, min_similarity);
     if (sauce) {
         await sendToChannel(channel, sauce.embed);
@@ -62,7 +62,7 @@ export default {
             return;
         }
 
-        await safeReply(interaction_nn, `Getting sauce for ${urls.length} image(s)`);
+        await safeReply(interaction_nn, `📥 Getting sauce for ${urls.length} image(s)`);
 
         for (let image_url of urls) {
             let res = await fetchUrl(image_url);
@@ -70,7 +70,7 @@ export default {
                 await searchAndSendSauce(interaction_nn, channel, min_similarity, image_url);
             } else {
 
-                await safeReply(interaction_nn, 'Attachement is not jpg or png, converting, please wait');
+                await safeReply(interaction_nn, '🕜 Attachement is not jpg or png, converting, please wait');
 
                 const filePath = '/tmp/temp.jpg';
                 const file_stream = fs.createWriteStream(filePath);

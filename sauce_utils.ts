@@ -339,11 +339,11 @@ export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDi
     if (dir) {
         let key = getKeyByDirType(dir_type);
         if (isDirectory(dir)) {
-            sendToChannel(channel, `Changed ${dir_type.toLowerCase()} directory to ${dir}`);
+            sendToChannel(channel, `📂 Changed ${dir_type.toLowerCase()} directory to ${dir}`);
             db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
         } else {
-            sendToChannel(channel, `Invalid ${dir_type} directory, will use previous`);
+            sendToChannel(channel, `❌ Invalid ${dir_type} directory, will use previous`, true);
             return false;
         }
     }
@@ -375,7 +375,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
     let message: Promise<Message<boolean>> | undefined;
     let width = (await sharp(file).metadata()).width || 0;
     if (fs.statSync(file).size > eight_mb || width > 3000) {
-        sendToChannel(channel, 'image too large, compressing, wait...');
+        sendToChannel(channel, '🕜 Image too large, compressing, wait...');
         await sharp(file)
             .resize({ width: 1920 })
             .jpeg({
@@ -383,7 +383,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
             })
             .toBuffer().then(data => {
                 if (data.byteLength > eight_mb) {
-                    sendToChannel(channel, 'image still too large, bruh');
+                    sendToChannel(channel, '❌ Image still too large, bruh', true);
                     attachment = undefined;
                 } else {
                     attachment = data;
@@ -420,13 +420,13 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
     let images: string[] = [];
     const img_dir = await getImgDir();
     if (!isDirectory(img_dir)) {
-        await sendToChannel(channel, `Image directory ${img_dir} does not exist or not a directory`);
+        await sendToChannel(channel, `❌ Image directory ${img_dir} does not exist or not a directory`, true);
         return images;
     }
     images = walk(img_dir);
 
     if (images.length > 0 && !await db.exists(`^${images[0]}`)) {
-        await sendToChannel(channel, "refreshing image tag database, might take a while...");
+        await sendToChannel(channel, "🕝 Refreshing image tag database, might take a while...");
         await Promise.all(images.map((value) => {
             ensureTagsInDB(value);
         }));
@@ -449,10 +449,10 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
         let search_term_split = trimStringArray(search_term.split(activeModifier_key));
 
         if (search_term_split.length != 2) {
-            sendToChannel(channel, `Invalid search term ${search_term}`);
+            sendToChannel(channel, `🚫 Invalid search term ${search_term}`, true);
         } else {
             if (image_args.indexOf(search_term_split[0]) == -1) {
-                sendToChannel(channel, `No such xmp tag: ${search_term_split[0]}`);
+                sendToChannel(channel, `🚫 No such xmp tag: ${search_term_split[0]}`, true);
             } else {
                 const results = await Promise.all(images.map((value) => {
                     return getImageTag(value, search_term_split[0]);
@@ -466,6 +466,6 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
         }
     }
 
-    sendToChannel(channel, `Found ${images.length} images`);
+    sendToChannel(channel, `🔎 Found ${images.length} images`);
     return images;
 }

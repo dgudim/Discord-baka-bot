@@ -1,8 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { normalize, safeReply, sendToChannel } from 'discord_bots_common';
 import img_tags from '../image_tags.json';
-import { getSauceConfString } from "../config";
-import { getLastImgPath, getLastImgUrl } from "../sauce_utils";
+import { getLastImgPath, getLastImgUrl, getSauceConfString } from "../sauce_utils";
 import { getImageMetatags, getLastTags, writeTagsToFile } from "../tagging_utils";
 import { image_args, image_args_command_options } from "..";
 
@@ -22,7 +21,7 @@ export default {
         let interraction_nn = interaction!;
 
         if (!getLastImgPath(channel)) {
-            await safeReply(interraction_nn, "No image selected");
+            await safeReply(interraction_nn, "🚫 No image selected");
             return;
         }
 
@@ -33,7 +32,7 @@ export default {
             if (index != -1) {
                 confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interraction_option.value?.toString())}'`;
             } else {
-                await sendToChannel(channel, `No such parameter: ${interraction_option.name}`);
+                await sendToChannel(channel, `🚫 No such parameter: ${interraction_option.name}`, true);
             }
         }
 
@@ -42,7 +41,7 @@ export default {
             if (lastTagsFrom_get_sauce.file == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
-                await safeReply(interraction_nn, "No tags provided");
+                await safeReply(interraction_nn, "🚫 No tags provided");
                 return;
             }
         }
@@ -51,6 +50,6 @@ export default {
             await sendToChannel(channel, await getImageMetatags(getLastImgPath(channel)));
         });
 
-        await safeReply(interraction_nn, "new tags");
+        await safeReply(interraction_nn, "🪧 New tags");
     }
 } as ICommand

@@ -42,10 +42,10 @@ export default {
         changeSavedDirectory(channel, 'SAVE', interaction_nn.options.getString("save-path"));
 
         if (!urls.length) {
-            await safeReply(interaction_nn, `No files so save`);
+            await safeReply(interaction_nn, `🚫 No files so save`);
             return;
         } else {
-            await safeReply(interaction_nn, 'Saving file(s)');
+            await safeReply(interaction_nn, '📥 Saving file(s)');
         }
 
         const send_dir = await getSendDir();
@@ -58,11 +58,11 @@ export default {
 
                 file.on("finish", () => {
                     file.close();
-                    sendToChannel(channel, `Saved ${fileName}`);
+                    sendToChannel(channel, `💾 Saved ${fileName}`);
                 });
             });
 
-            await sendToChannel(channel, `Saving ${fileName} to ${send_dir}`);
+            await sendToChannel(channel, `📥 Saving ${fileName} to ${send_dir}`);
         }
     }
 } as ICommand

@@ -9,7 +9,7 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getChannelName, getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit } from 'discord_bots_common';
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, guildToString, channelToString, userToString } from 'discord_bots_common';
 import { getKeyByDirType } from './sauce_utils';
 
 import * as readline from 'readline';
@@ -46,7 +46,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         const shell_session = spawn('/bin/sh');
 
         shell_session.on('error', (err) => {
-            sendToChannel(channel, 'Failed to start shell session: ' + err);
+            sendToChannel(channel, '❌ Failed to start shell session: ' + err);
         });
 
         shell_session.stdout.on('data', (data) => {
@@ -58,8 +58,8 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         });
 
         shell_session.on('close', (code) => {
-            sendToChannel(channel, 'shell session exited with code ' + code);
-            sendToChannel(channel, 'turned OFF terminal mode for all users in this channel');
+            sendToChannel(channel, '🐚 Shell session exited with code ' + code);
+            sendToChannel(channel, '⚙️ Turned OFF terminal mode for all users in this channel');
             terminalShellsByChannel.delete(channel_id);
             channelTerminalShellUsers.set(channel_id, []);
         });
@@ -113,7 +113,7 @@ function writeExifToolConfig(): void {
                 type = ApplicationCommandOptionType.Integer;
                 break;
             default:
-                error(`Unknowt xmp arg type: ${raw_type}`);
+                error(`❌ Unknown xmp arg type: ${raw_type}`);
                 break;
         }
         image_args_command_options.push({
@@ -138,7 +138,7 @@ function writeExifToolConfig(): void {
     `;
 
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
-    debug('exiftool config written');
+    debug('💾 Exiftool config written');
 }
 function secondsToDhms(seconds: number) {
     let d = Math.floor(seconds / (3600 * 24));
@@ -170,14 +170,14 @@ client.on('ready', async () => {
     testEnvironmentVar(process.env.STATUS_CHANNEL_ID, "STATUS_CHANNEL_ID", false);
     
     if (!process.env.EXIFTOOL_PATH) {
-        warn(`${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
+        warn(`🟧🔎 ${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
         process.env.EXIFTOOL_PATH = 'exiftool'
     }
 
     try {
         await execPromise(process.env.EXIFTOOL_PATH);
     } catch (err) {
-        error(`${err} \n exiting`)
+        error(`❌ ${err} \n exiting`)
         process.exit(1);
     }
 
@@ -188,7 +188,7 @@ client.on('ready', async () => {
         if (channel?.isTextBased()) {
             status_channel = channel;
         } else {
-            error(`${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
+            error(`❌ ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
             channel = null;
         }
         if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
@@ -203,7 +203,7 @@ client.on('ready', async () => {
         client.user?.setPresence({
             status: 'online',
             activities: [{
-                name: `uptime: ${secondsToDhms(process.uptime())}`
+                name: `🕓 Uptime: ${secondsToDhms(process.uptime())}`
             }]
         });
     }, 10 * 60 * 1000);
@@ -236,17 +236,17 @@ rl.on('line', (message: string) => {
                 if (channel.isTextBased()) {
                     channel.send(msg);
                 } else {
-                    warn(`Channel ${wrap(id, colors.CYAN)} is not a text based channel`);
+                    error(`📜 Channel ${wrap(id, colors.CYAN)} is not a text based channel`);
                 }
             } else {
-                warn(`Could not find channel ${wrap(id, colors.CYAN)}`);
+                error(`❌ Could not find channel ${wrap(id, colors.CYAN)}`);
             }
         } else {
             const message = messageCache.get(id);
             if(message) {
                 messageReply(message, msg);
             } else {
-                warn(`Couldn't reply to ${id}, invalid id or message expired`);
+                error(`❌ Couldn't reply to ${id}, invalid id or message expired`);
             }
         }
     }
@@ -270,7 +270,7 @@ client.on('messageCreate', (message) => {
         if (messageCache.size > 50) {
             messageCache.delete(Array.from(messageCache.keys()).at(0)!);
         }
-        info(`channel ${wrap(getChannelName(message.channel), colors.YELLOW)} (${message.channelId}), user ${wrap(message.author.tag, colors.LIGHT_RED)}: ${msg} (id: ${messageId})`);
+        info(`${guildToString(message.guild)} ${channelToString(message.channel)} ${userToString(message.author)}: ${msg} (${wrap(messageId, colors.GRAY)})`);
     }
 
     if (!message.content.startsWith('>') &&

@@ -47,7 +47,7 @@ export default {
 
         const embed = new EmbedBuilder();
         embed.setTitle("exec");
-        embed.setDescription(`executing ${command}...`);
+        embed.setDescription(`⚙️ Executing ${command}...`);
 
         await safeReply(interaction_nn, embed);
 
@@ -56,20 +56,20 @@ export default {
 
                 if (stdout) {
                     embed.setColor('Green');
-                    addFields(embed, stdout.toString(), 'execution sucessfull');
+                    addFields(embed, stdout.toString(), '🟩 Execution sucessfull');
                 }
 
                 if (error) {
                     embed.setColor('Red');
-                    addFields(embed, error.toString(), 'errors while executing');
+                    addFields(embed, error.toString(), '❌ Errors while executing');
                 }
 
                 if (!stderr && !stdout && !error) {
                     embed.setColor('Yellow');
-                    addFields(embed, 'Command didn\'t return anything', 'check your syntax');
+                    addFields(embed, '🚫 Command didn\'t return anything', '📝 check your syntax');
                 }
 
-                embed.setDescription(`result of executing ${command}`);
+                embed.setDescription(`🟦 Result of executing ${command}`);
 
                 interaction_nn.editReply({
                     embeds: [embed]

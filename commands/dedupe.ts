@@ -17,7 +17,7 @@ export default {
 
         let interaction_nn = interaction!;
 
-        await safeReply(interaction_nn, "Deduping databse...");
+        await safeReply(interaction_nn, "🗃 Deduping databse...");
 
         let images = walk(await getImgDir());
         let hashMap = new Map<string, string>();
@@ -30,15 +30,15 @@ export default {
                     try {
                         fs.unlinkSync(image);
                         deleted++;
-                        sendToChannel(channel, `deleted ${image}`);
+                        sendToChannel(channel, `🗑 Deleted ${image}`);
                     } catch (err) {
-                        sendToChannel(channel, `error deleting ${image}`);
+                        sendToChannel(channel, `❌ Error deleting ${image}`, true);
                     }
                 } else {
                     hashMap.set(sourcePost, image);
                 }
             }
         }
-        await safeReply(interaction_nn, `Dedupe finished, ${deleted} images deleted`);
+        await safeReply(interaction_nn, `🟩 Dedupe finished, ${deleted} images deleted`);
     }
 } as ICommand

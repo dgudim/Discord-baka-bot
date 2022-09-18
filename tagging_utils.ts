@@ -1,7 +1,7 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { TagContainer } from "./sauce_utils";
 import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray, 
-    debug, error, info, warn, normalizeTags } from "discord_bots_common";
+    debug, error, info, normalizeTags } from "discord_bots_common";
 
 import img_tags from './image_tags.json';
 
@@ -37,7 +37,7 @@ export function mapXmpToName(xmp_tag: string): string {
     if (index != -1) {
         return img_tags[index].name;
     }
-    warn(`Can't map xmp tag: ${xmp_tag} to name`);
+    error(`❌ Can't map xmp tag: ${xmp_tag} to name`);
     return xmp_tag;
 }
 
@@ -46,29 +46,29 @@ export function mapArgToXmp(arg: string): string {
     if (index != -1) {
         return img_tags[index].xmpName;
     }
-    warn(`Can't map arg: ${arg} to xmp tag`);
+    error(`❌ Can't map arg: ${arg} to xmp tag`);
     return arg;
 }
 
 export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
 
-    debug(`Writing tags to file: ${file}`);
+    debug(`📝 Writing tags to file: ${file}`);
 
     try {
         const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
         debug(stdout);
         if (stderr) {
-            error(`exiftool stderr: ${stderr}`);
+            error(`❌ Exiftool stderr: ${stderr}`);
         }
         callback();
     } catch (err) {
-        await sendToChannel(channel, `xmp tagging error: ${err}`, true);
+        await sendToChannel(channel, `❌ Xmp tagging error: ${err}`, true);
     }
 }
 
 async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
-    debug(`Writing tags of ${file} to database`);
+    debug(`📝 Writing tags of ${file} to database`);
 
     try {
         const { stdout } = await execPromise((`${process.env.EXIFTOOL_PATH} -xmp:all '${file}' | grep -i ${xpm_image_args_grep}`));
@@ -87,9 +87,9 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
         await Promise.all(pushCallsAsync);
 
-        info('wrote tags to db');
+        info('📄 Wrote tags to db');
     } catch (err) {
-        error(`error writing tags to db: ${err}`);
+        error(`❌ Error writing tags to db: ${err}`);
     }
 }
 
@@ -98,7 +98,7 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     let real_hash = await getFileHash(file);
     let database_hash = await getValueIfExists(db, `^${file}`, `^${file}^hash`);
 
-    debug(`calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
+    debug(`⛓ Calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
 
     if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);
@@ -108,7 +108,7 @@ export async function ensureTagsInDB(file: string): Promise<void> {
 export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
 
     const embed = new EmbedBuilder();
-    embed.setTitle("Image metadata");
+    embed.setTitle("🖼 Image metadata");
     embed.setDescription(getFileName(file));
     embed.setColor('Green');
 

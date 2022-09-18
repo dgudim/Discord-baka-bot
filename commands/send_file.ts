@@ -57,7 +57,7 @@ export default {
                 await sendToChannel(channel, `❌ File ${filePath} aleady exists`, true);
                 continue;
             }
-            const file = fs.createWriteStream(path.join(sendDir, fileName));
+            const file = fs.createWriteStream(filePath);
             https.get(url, (response) => {
                 response.pipe(file);
 

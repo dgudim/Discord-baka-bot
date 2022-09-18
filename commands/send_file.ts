@@ -48,11 +48,16 @@ export default {
             await safeReply(interaction_nn, '📥 Saving file(s)');
         }
 
-        const send_dir = await getSendDir();
+        const sendDir = await getSendDir();
 
         for (const url of urls) {
             const fileName = getFileName(url);
-            const file = fs.createWriteStream(path.join(send_dir, fileName));
+            const filePath = path.join(sendDir, fileName);
+            if (fs.existsSync(filePath)) {
+                await sendToChannel(channel, `❌ File ${filePath} aleady exists`, true);
+                continue;
+            }
+            const file = fs.createWriteStream(path.join(sendDir, fileName));
             https.get(url, (response) => {
                 response.pipe(file);
 
@@ -62,7 +67,7 @@ export default {
                 });
             });
 
-            await sendToChannel(channel, `📥 Saving ${fileName} to ${send_dir}`);
+            await sendToChannel(channel, `📥 Saving ${fileName} to ${sendDir}`);
         }
     }
 } as ICommand

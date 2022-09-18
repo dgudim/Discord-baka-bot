@@ -270,7 +270,7 @@ client.on('messageCreate', (message) => {
         if (messageCache.size > 50) {
             messageCache.delete(Array.from(messageCache.keys()).at(0)!);
         }
-        info(`${guildToString(message.guild)} ${channelToString(message.channel)} ${userToString(message.author)}: ${msg} (${wrap(messageId, colors.GRAY)})`);
+        info(`${channelToString(message.channel, true)} ${userToString(message.author)}: ${msg} (${wrap(messageId, colors.GRAY)})`);
     }
 
     if (!message.content.startsWith('>') &&

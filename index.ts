@@ -277,7 +277,7 @@ client.on('messageCreate', (message) => {
         terminalShellsByChannel.has(message.channelId) &&
         channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
         const command = isBuiltin(message.content.trim()) ? message.content.trim() + "\n" :
-            "timeout 5s '" + message.content.trim() + "' | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g'"
+            "timeout 5s " + message.content.trim() + " | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g'"
         info(`-> ${wrap("executing", colors.LIGHTER_BLUE)} "${command}"`);
         terminalShellsByChannel.get(message.channelId)?.stdin.write(`${command} \n`);
         return;

@@ -164,11 +164,11 @@ client.on('ready', async () => {
 
     writeExifToolConfig();
 
-    testEnvironmentVar(process.env.TEST_SERVERS, "TEST_SERVERS", true);
-    testEnvironmentVar(process.env.OWNERS, "OWNERS", false);
-    testEnvironmentVar(process.env.TEMP_DIR, "TEMP_DIR", false);
-    testEnvironmentVar(process.env.STATUS_CHANNEL_ID, "STATUS_CHANNEL_ID", false);
-    testEnvironmentVar(process.env.PIXIV_TOKEN, "PIXIV_TOKEN", false);
+    testEnvironmentVar("TEST_SERVERS", true);
+    testEnvironmentVar("OWNERS", false);
+    testEnvironmentVar("TEMP_DIR", false);
+    testEnvironmentVar("STATUS_CHANNEL_ID", false);
+    testEnvironmentVar("PIXIV_TOKEN", false);
     
     if (!process.env.EXIFTOOL_PATH) {
         warn(`🟧🔎 ${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);

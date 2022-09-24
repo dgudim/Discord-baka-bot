@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import https from 'https';
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, sendImgToChannel } from "../sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType } from "discord.js";
@@ -36,7 +36,7 @@ export default {
         let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
         if (!urls.length) {
-            await sendToChannel(channel, '🚫 No images to add');
+            await safeReply(interaction_nn, '🚫 No images to add');
             return;
         } else {
             await safeReply(interaction_nn, '📥 Adding image(s) to db');
@@ -50,6 +50,19 @@ export default {
 
                 const is_plain_image = isImageUrlType(res.type);
                 const img_url = is_plain_image ? url : await grabImageUrl(url);
+
+                // special treatment for pixiv
+                if (!is_plain_image && url.includes('pixiv')) {
+                    const client = await ensurePixivLogin();
+                    if (client) {
+                        await sendToChannel(channel, `📥 Downloading from pixiv (unknown filename)`);
+                        await client.util.downloadIllust(url, await getImgDir(), "original");
+                        await sendToChannel(channel, `💾 Saved`);
+                    } else {
+                        await safeReply(interaction_nn, "🚫 Can't download from pixiv without token");
+                    }
+                    return;
+                }
 
                 if (img_url) {
 

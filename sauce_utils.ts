@@ -10,8 +10,6 @@ import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } 
 
 import pixiv from "pixiv.ts"
 
-let pixiv_client: pixiv;
-
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { getFileName, limitLength, perc2color, sendToChannel, sleep, 
     trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn } from 'discord_bots_common';
@@ -24,6 +22,7 @@ import { checkTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } 
 
 let browser: Browser;
 let page: Page;
+let pixiv_client: pixiv;
 
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
@@ -97,7 +96,7 @@ async function ensurePuppeteerStarted() {
     }
 }
 
-async function ensurePixivLogin() {
+export async function ensurePixivLogin() {
     if (process.env.PIXIV_TOKEN) {
         if(!pixiv_client) {
             debug('logging into pixiv');
@@ -323,16 +322,6 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 }
 
 export async function grabImageUrl(url: string) {
-
-    if (url.includes('pixiv')) {
-        if (process.env.PIXIV_TOKEN) {
-            pixiv_client = pixiv_client ? pixiv_client : await pixiv.refreshLogin(process.env.PIXIV_TOKEN);
-            return (await pixiv_client.illust.get(url)).url;
-        } else {
-            warn(`🟧🔎 ${wrap('PIXIV_TOKEN', colors.LIGHTER_BLUE)} not specified, can't login into pixiv`);
-            return "";
-        }
-    }
 
     await ensurePuppeteerStarted();
 

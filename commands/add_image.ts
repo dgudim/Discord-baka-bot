@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, info, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
@@ -36,7 +36,7 @@ async function processAndSaveImage(
 
     target.on('finish', async () => {
         target.close();
-        sendToChannel(channel, `💾 Saved ${file_name}, `);
+        await sendToChannel(channel, `💾 Saved ${file_name}, `);
         let postInfo;
         if (!is_plain_image) {
             postInfo = await getPostInfoFromUrl(img_url);
@@ -116,6 +116,9 @@ export default {
                         const img_dir = "./downloaded";
                         await sendToChannel(channel, `📥 Downloading from pixiv`);
                         await client.util.downloadIllust(illust, img_dir, "original");
+
+                        // wait for images to be saved (idk why await on downloadIllust is not enough)
+                        await sleep(3000);
 
                         const images = walk(img_dir);
 

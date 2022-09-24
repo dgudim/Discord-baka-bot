@@ -49,20 +49,24 @@ export default {
             if (res.ok) {
 
                 const is_plain_image = isImageUrlType(res.type);
-                const img_url = is_plain_image ? url : await grabImageUrl(url);
 
                 // special treatment for pixiv
                 if (!is_plain_image && url.includes('pixiv')) {
                     const client = await ensurePixivLogin();
                     if (client) {
-                        await sendToChannel(channel, `📥 Downloading from pixiv (unknown filename)`);
-                        await client.util.downloadIllust(url, await getImgDir(), "original");
+                        const illust = await client.illust.get(url);
+                        const img_dir = await getImgDir();
+                        await sendToChannel(channel, `📥 Downloading from pixiv (${illust.user.name} - ${illust.title}) tp ${img_dir}`);
+                        await client.util.downloadIllust(illust, img_dir, "original");
                         await sendToChannel(channel, `💾 Saved`);
                     } else {
                         await safeReply(interaction_nn, "🚫 Can't download from pixiv without token");
                     }
                     return;
                 }
+
+                const img_url = is_plain_image ? url : await grabImageUrl(url);
+                
 
                 if (img_url) {
 

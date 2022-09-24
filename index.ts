@@ -168,6 +168,7 @@ client.on('ready', async () => {
     testEnvironmentVar(process.env.OWNERS, "OWNERS", false);
     testEnvironmentVar(process.env.TEMP_DIR, "TEMP_DIR", false);
     testEnvironmentVar(process.env.STATUS_CHANNEL_ID, "STATUS_CHANNEL_ID", false);
+    testEnvironmentVar(process.env.PIXIV_TOKEN, "STATUS_CHANNEL_ID", false);
     
     if (!process.env.EXIFTOOL_PATH) {
         warn(`🟧🔎 ${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);

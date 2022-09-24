@@ -8,9 +8,13 @@ const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
 import * as iqdb from '@l2studio/iqdb-api'
 import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from 'discord.js';
 
+import pixiv from "pixiv.ts"
+
+let pixiv_client: pixiv;
+
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { getFileName, limitLength, perc2color, sendToChannel, sleep, 
-    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme } from 'discord_bots_common';
+    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn } from 'discord_bots_common';
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 
@@ -90,6 +94,19 @@ async function ensurePuppeteerStarted() {
         });
         page = await browser.newPage();
         debug('starting puppeteer');
+    }
+}
+
+async function ensurePixivLogin() {
+    if (process.env.PIXIV_TOKEN) {
+        if(!pixiv_client) {
+            debug('logging into pixiv');
+            pixiv_client = await pixiv.refreshLogin(process.env.PIXIV_TOKEN);
+        }
+        return pixiv_client;
+    } else {
+        warn(`🟧🔎 ${wrap('PIXIV_TOKEN', colors.LIGHTER_BLUE)} not specified, can't login into pixiv`);
+        return undefined;
     }
 }
 
@@ -235,6 +252,29 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
 export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
 
+    if (url.includes('pixiv')) {
+        const illust = await (await ensurePixivLogin())?.illust.get(url);
+
+        if(illust) {
+
+            let tags: string[] = [];
+            for (const pixiv_tag of illust.tags) {
+                if (pixiv_tag.translated_name) {
+                    tags.push(pixiv_tag.translated_name);
+                }
+            }
+
+            return {
+                author: `${illust.user.name} (${illust.user.id})`,
+                character: "-",
+                copyright: "-",
+                tags: tags.join(",") || "-",
+                url: url
+            }
+        }
+        return undefined;
+    }
+
     if (url.includes('danbooru')) {
         const fileName = getFileName(url);
         const lastIndex = fileName.indexOf('?');
@@ -283,6 +323,17 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 }
 
 export async function grabImageUrl(url: string) {
+
+    if (url.includes('pixiv')) {
+        if (process.env.PIXIV_TOKEN) {
+            pixiv_client = pixiv_client ? pixiv_client : await pixiv.refreshLogin(process.env.PIXIV_TOKEN);
+            return (await pixiv_client.illust.get(url)).url;
+        } else {
+            warn(`🟧🔎 ${wrap('PIXIV_TOKEN', colors.LIGHTER_BLUE)} not specified, can't login into pixiv`);
+            return "";
+        }
+    }
+
     await ensurePuppeteerStarted();
 
     await page.goto(url);

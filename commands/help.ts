@@ -82,8 +82,8 @@ export default {
                         name: "=",
                         value: `
                              \`=\` content must include every search value
-                              == == == (tags: tag1, tag2 | search string: tags=tag1,tag2 will match) ✅
-                              == == == (tags: tag1, tag2 | search string: tags=tag1,tag3 wont match) ❌`
+                              == == == (tags: tag1, tag2 | search string: tags=ag will match) ✅
+                              == == == (tags: tag1, tag2 | search string: tags=tag3 wont match) ❌`
                     },
                     {
                         name: "@=",
@@ -123,7 +123,7 @@ export default {
                         value: `
                          \`#=\` strict equals
                           == == == (tags: tag1, tag2 | search string: tags=tag1, tag2 will match) ✅
-                          == == == (tags: tag1, tag2 | search string: tags=tag1 wont match) ❌`
+                          == == == (tags: tag1, tag2 | search string: tags=tag1, tag3 wont match) ❌`
                     },
                     {
                         name: "!=",

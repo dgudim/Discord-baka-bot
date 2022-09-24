@@ -21,8 +21,9 @@ export const search_modifiers = new Map([
         }],
     ["#=",
         (content: string[], search_term: string[]) => {
-            return content.join() == search_term.join();
-            // strict equals
+            return search_term.every((value) =>
+                content.some((content_value) => content_value == value));
+            // strict equals of every search value and any content_value
         }],
     ["*=",
         (content: string[], search_term: string[]) => {

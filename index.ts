@@ -9,7 +9,7 @@ import dotenv from 'dotenv'; // evironment vars
 
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, guildToString, channelToString, userToString } from 'discord_bots_common';
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, guildToString, channelToString, userToString, messageContentToString } from 'discord_bots_common';
 import { getKeyByDirType } from './sauce_utils';
 
 import * as readline from 'readline';
@@ -255,22 +255,16 @@ rl.on('line', (message: string) => {
 client.on('messageCreate', (message) => {
 
     if (message.author.id != client.user?.id) {
-        let msg = "";
-        if (message.content) {
-            msg += message.content;
-        }
-        if (message.attachments) {
-            for (let attachement of message.attachments) {
-                msg += "\n" + attachement[1].name + ": " + attachement[1].url;
-            }
-        }
         const messageId = message.id;
         messageCache.set(messageId, message);
         // hold max 50 messages in cache
         if (messageCache.size > 50) {
             messageCache.delete(Array.from(messageCache.keys()).at(0)!);
         }
-        info(`${channelToString(message.channel, true)} ${userToString(message.author)}: ${msg} (${wrap(messageId, colors.GRAY)})`);
+        info(`${channelToString(message.channel, true)} ${userToString(message.author)}: ${messageContentToString({
+            content: message.content,
+            embeds: message.embeds
+        })} (${wrap(messageId, colors.GRAY)})`);
     }
 
     if (!message.content.startsWith('>') &&

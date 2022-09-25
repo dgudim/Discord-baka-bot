@@ -141,10 +141,31 @@ export default {
                         await sendToChannel(channel, `📥 Downloading from pixiv`);
                         await client.util.downloadIllust(illust, img_dir, "original");
 
-                        // wait for images to be saved (idk why await on downloadIllust is not enough)
-                        await sleep(3000);
-
-                        const images = walk(img_dir);
+                        // monitor size (wait for files to be saved) (idk why await on downloadIllust is not enough)
+                        let exit = false;
+                        let prev_size = 0;
+                        let images: string[] = [];
+                        while(true) {
+                            let images_stats = fs.readdirSync(img_dir);
+                            let curr_size = 0;
+                            images = [];
+                            for (const image_stats of images_stats) {
+                                const file = img_dir + "/" + image_stats;
+                                images.push(file);
+                                const stat = fs.statSync(file);
+                                curr_size += stat.size;
+                            }
+                            if(exit) {
+                                break;
+                            }
+                            if (prev_size == curr_size) {
+                                exit = true;
+                            } else {
+                                exit = false;
+                            }
+                            prev_size = curr_size;
+                            await sleep(1500);
+                        }
 
                         const postInfo = await getPostInfoFromUrl(url);
 
@@ -166,7 +187,7 @@ export default {
                     return;
                 }
 
-                
+
                 const img_url = is_plain_image ? url : await grabImageUrl(url);
 
                 if (img_url) {

@@ -60,7 +60,7 @@ export async function writeTagsToFile(confString: string, file: string, channel:
         if (stderr) {
             error(`❌ Exiftool stderr: ${stderr}`);
         }
-        callback();
+        await callback();
     } catch (err) {
         await sendToChannel(channel, `❌ Xmp tagging error: ${err}`, true);
     }

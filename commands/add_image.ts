@@ -2,30 +2,65 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { fetchUrl, getAllUrlFileAttachements, getFileName, info, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel } from "../sauce_utils";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextChannel } from "discord.js";
 import { IncomingMessage } from "http";
 
-async function processAndSaveImage(
-    source: fs.ReadStream | IncomingMessage,
-    file_name: string,
-    channel: TextChannel, img_url: string, 
-    send_from_target_file: boolean, is_plain_image: boolean) {
-
+async function getFilePath(file_name: string, channel: TextChannel) {
     file_name = file_name.endsWith(".jpeg") ? file_name : file_name + '.jpeg';
     const file_path = path.join(await getImgDir(), file_name);
 
     if (fs.existsSync(file_path)) {
         await sendToChannel(channel, '❌ File aleady exists', true);
+        return undefined;
+    }
+
+    return file_path;
+}
+
+async function getMetadata(channel: TextChannel, img_url: string, is_plain_image: boolean, file_name: string) {
+
+    const file_path = await getFilePath(file_name, channel);
+    if (!file_path) {
+        return undefined;
+    }
+
+    let postInfo;
+    if (!is_plain_image) {
+        postInfo = await getPostInfoFromUrl(img_url);
+    }
+
+    if (!is_plain_image) {
+        await sendImgToChannel(channel, file_path);
+    } else {
+        await sendToChannel(channel, img_url);
+    }
+
+    if (!postInfo) {
+        const sauce = await findSauce(getLastImgUrl(channel), channel, 85);
+        if (sauce && sauce.post.similarity >= 85) {
+            postInfo = sauce.postInfo;
+        }
+    }
+
+    return { postInfo, file_name, file_path };
+}
+
+async function processAndSaveImage(
+    source: fs.ReadStream | IncomingMessage,
+    metadata: { postInfo: PostInfo | undefined, file_name: string, file_path: string } | undefined,
+    channel: TextChannel) {
+
+    if (!metadata) {
         return;
     }
 
-    await sendToChannel(channel, `📥 Saving as ${file_name}`);
+    await sendToChannel(channel, `📥 Saving as ${metadata.file_name}`);
 
-    const target = fs.createWriteStream(file_path);
+    const target = fs.createWriteStream(metadata.file_path);
 
     const sharpPipeline = sharp();
     sharpPipeline.jpeg({
@@ -34,36 +69,25 @@ async function processAndSaveImage(
 
     source.pipe(sharpPipeline);
 
-    target.on('finish', async () => {
-        target.close();
-        await sendToChannel(channel, `💾 Saved ${file_name}, `);
-        let postInfo;
-        if (!is_plain_image) {
-            postInfo = await getPostInfoFromUrl(img_url);
-        }
+    return new Promise<void>(resolve => {
 
-        if (send_from_target_file || !is_plain_image) {
-            await sendImgToChannel(channel, file_path);
-        } else {
-            await sendToChannel(channel, img_url);
-        }
+        target.on('finish', async () => {
+            target.close();
+            await sendToChannel(channel, `💾 Saved ${metadata.file_name}, `);
 
-        if (!postInfo) {
-            const sauce = await findSauce(getLastImgUrl(channel), channel, 85);
-            if (sauce && sauce.post.similarity >= 85) {
-                postInfo = sauce.postInfo;
+            if (metadata.postInfo) {
+                await writeTagsToFile(getSauceConfString(metadata.postInfo), metadata.file_path, channel, async () => {
+                    await ensureTagsInDB(metadata.file_path);
+                    await sendToChannel(channel, `📝 Wrote tags`);
+                });
+            } else {
+                await sendToChannel(channel, `❌ Could not get tags`, true);
             }
-        }
 
-        if (postInfo) {
-            writeTagsToFile(getSauceConfString(postInfo), file_path, channel, () => {
-                sendToChannel(channel, `📝 Wrote tags`);
-                ensureTagsInDB(file_path);
-            });
-        } else {
-            await sendToChannel(channel, `❌ Could not get tags`, true);
-        }
-    });
+            resolve();
+        });
+
+    })
 }
 
 export default {
@@ -122,8 +146,14 @@ export default {
 
                         const images = walk(img_dir);
 
+                        const metadata = (await getMetadata(channel, url, is_plain_image, "temp_file"))!;
+
                         for (const image of images) {
-                            await processAndSaveImage(fs.createReadStream(image), getFileName(image), channel, url, true, is_plain_image);
+                            const new_file_path = await getFilePath(getFileName(image), channel);
+                            if(new_file_path) {
+                                metadata.file_path = new_file_path;
+                                await processAndSaveImage(fs.createReadStream(image), metadata, channel);
+                            }
                             fs.unlinkSync(image);
                         }
 
@@ -137,8 +167,8 @@ export default {
                 const img_url = is_plain_image ? url : await grabImageUrl(url);
 
                 if (img_url) {
-                    https.get(img_url, (response) => {
-                        processAndSaveImage(response, getFileName(img_url), channel, img_url, false, is_plain_image);
+                    https.get(img_url, async (response) => {
+                        processAndSaveImage(response, await getMetadata(channel, img_url, is_plain_image, getFileName(img_url)), channel);
                     });
                 } else {
                     await sendToChannel(channel, '❌ Could not get image url from page', true);

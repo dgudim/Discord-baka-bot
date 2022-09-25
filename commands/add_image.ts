@@ -143,23 +143,23 @@ export default {
 
                         // monitor size (wait for files to be saved) (idk why await on downloadIllust is not enough)
                         let exit = false;
-                        let prev_size = 0;
+                        let prev_time = 0;
                         let images: string[] = [];
                         while(true) {
                             let images_stats = fs.readdirSync(img_dir);
-                            let curr_size = 0;
+                            let curr_time = 0;
                             images = [];
                             for (const image_stats of images_stats) {
                                 const file = img_dir + "/" + image_stats;
                                 images.push(file);
                                 const stat = fs.statSync(file);
-                                curr_size += stat.size;
+                                curr_time += stat.mtime.getTime();
                             }
                             if(exit) {
                                 break;
                             }
-                            exit = prev_size == curr_size;
-                            prev_size = curr_size;
+                            exit = prev_time == curr_time;
+                            prev_time = curr_time;
                             await sleep(1500);
                         }
 

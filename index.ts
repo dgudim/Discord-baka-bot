@@ -140,6 +140,7 @@ function writeExifToolConfig(): void {
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
     debug('💾 Exiftool config written');
 }
+
 function secondsToDhms(seconds: number) {
     let d = Math.floor(seconds / (3600 * 24));
     let h = Math.floor(seconds % (3600 * 24) / 3600);
@@ -152,7 +153,6 @@ function secondsToDhms(seconds: number) {
     let sDisplay = s > 0 ? (s + "s") : "";
     return dDisplay + hDisplay + mDisplay + sDisplay;
 }
-
 
 client.on('ready', async () => {
 

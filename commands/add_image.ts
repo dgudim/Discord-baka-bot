@@ -146,13 +146,16 @@ export default {
 
                         const images = walk(img_dir);
 
-                        const metadata = (await getMetadata(channel, url, is_plain_image, "temp_file"))!;
+                        const postInfo = await getPostInfoFromUrl(url);
 
                         for (const image of images) {
-                            const new_file_path = await getFilePath(getFileName(image), channel);
+                            const new_file_name = getFileName(image);
+                            const new_file_path = await getFilePath(new_file_name, channel);
                             if(new_file_path) {
-                                metadata.file_path = new_file_path;
-                                await processAndSaveImage(fs.createReadStream(image), metadata, channel);
+                                await processAndSaveImage(fs.createReadStream(image), { 
+                                    postInfo: postInfo, 
+                                    file_name: new_file_name, 
+                                    file_path: new_file_path }, channel);
                             }
                             fs.unlinkSync(image);
                         }
@@ -163,7 +166,7 @@ export default {
                     return;
                 }
 
-
+                
                 const img_url = is_plain_image ? url : await grabImageUrl(url);
 
                 if (img_url) {

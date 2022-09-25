@@ -158,11 +158,7 @@ export default {
                             if(exit) {
                                 break;
                             }
-                            if (prev_size == curr_size) {
-                                exit = true;
-                            } else {
-                                exit = false;
-                            }
+                            exit = prev_size == curr_size;
                             prev_size = curr_size;
                             await sleep(1500);
                         }

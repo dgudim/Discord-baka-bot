@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { debug, fetchUrl, getAllUrlFileAttachements, getFileHash, getFileName, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
+import { debug, fetchUrl, getAllUrlFileAttachements, getFileHash, getFileName, isImageUrlType, safeReply, sendToChannel, sleep } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";

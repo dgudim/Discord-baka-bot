@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from 'https';
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
+import { debug, fetchUrl, getAllUrlFileAttachements, getFileHash, getFileName, isImageUrlType, safeReply, sendToChannel, sleep, walk } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
@@ -136,31 +136,32 @@ export default {
                 if (!is_plain_image && url.includes('pixiv')) {
                     const client = await ensurePixivLogin();
                     if (client) {
-                        const illust = await client.illust.get(url);
                         const img_dir = "./downloaded";
                         await sendToChannel(channel, `📥 Downloading from pixiv`);
-                        await client.util.downloadIllust(illust, img_dir, "original");
+                        await client.util.downloadIllust(url, img_dir, "original");
 
                         // monitor size (wait for files to be saved) (idk why await on downloadIllust is not enough)
                         let exit = false;
-                        let prev_time = 0;
+                        let prev_hash = "";
                         let images: string[] = [];
                         while(true) {
                             let images_stats = fs.readdirSync(img_dir);
-                            let curr_time = 0;
+                            let curr_hash = "";
                             images = [];
                             for (const image_stats of images_stats) {
                                 const file = img_dir + "/" + image_stats;
                                 images.push(file);
-                                const stat = fs.statSync(file);
-                                curr_time += stat.mtime.getTime();
+                                curr_hash += await getFileHash(file);
                             }
                             if(exit) {
                                 break;
                             }
-                            exit = prev_time == curr_time;
-                            prev_time = curr_time;
-                            await sleep(1500);
+                            if (prev_hash != curr_hash || !curr_hash.length) {
+                                debug(`hash mismatch, waiting... (${prev_hash} || ${curr_hash})`);
+                            }
+                            exit = prev_hash == curr_hash && curr_hash.length > 0;
+                            prev_hash = curr_hash;
+                            await sleep(1000);
                         }
 
                         const postInfo = await getPostInfoFromUrl(url);
@@ -173,6 +174,7 @@ export default {
                                     postInfo: postInfo, 
                                     file_name: new_file_name, 
                                     file_path: new_file_path }, channel);
+                                await sendImgToChannel(channel, new_file_path);
                             }
                             fs.unlinkSync(image);
                         }

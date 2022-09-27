@@ -1,16 +1,16 @@
-import { RestOrArray, APIEmbedField, EmbedBuilder, ApplicationCommandOptionType } from 'discord.js';
+import { RestOrArray, APIEmbedField, EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
 import { ICommand } from "dkrcommands";
-import { exec } from 'child_process';
-import { safeReply } from 'discord_bots_common';
+import { exec } from "child_process";
+import { safeReply } from "discord_bots_common";
 
 function addFields(embed: EmbedBuilder, content: string, message: string) {
     content = content.substring(0, 5500);
     const len = content.length;
     let pos = 0;
-    let fields: RestOrArray<APIEmbedField> = [];
+    const fields: RestOrArray<APIEmbedField> = [];
     while (pos < len) {
         fields.push({
-            name: pos == 0 ? message : '___',
+            name: pos == 0 ? message : "___",
             value: content.slice(pos, pos + 1023)
         });
         pos += 1023;
@@ -19,8 +19,8 @@ function addFields(embed: EmbedBuilder, content: string, message: string) {
 }
 
 export default {
-    category: 'Administration',
-    description: 'Execute any command on the server',
+    category: "Administration",
+    description: "Execute any command on the server",
 
     slash: true,
     testOnly: true,
@@ -41,7 +41,7 @@ export default {
 
     callback: async ({ interaction }) => {
 
-        let interaction_nn = interaction!;
+        const interaction_nn = interaction!;
         const command = interaction_nn.options.getString("command");
         const as_root = interaction_nn.options.getBoolean("as_root");
 
@@ -55,18 +55,18 @@ export default {
             (error, stdout, stderr) => {
 
                 if (stdout) {
-                    embed.setColor('Green');
-                    addFields(embed, stdout.toString(), '🟩 Execution sucessfull');
+                    embed.setColor("Green");
+                    addFields(embed, stdout.toString(), "🟩 Execution sucessfull");
                 }
 
                 if (error) {
-                    embed.setColor('Red');
-                    addFields(embed, error.toString(), '❌ Errors while executing');
+                    embed.setColor("Red");
+                    addFields(embed, error.toString(), "❌ Errors while executing");
                 }
 
                 if (!stderr && !stdout && !error) {
-                    embed.setColor('Yellow');
-                    addFields(embed, '🚫 Command didn\'t return anything', '📝 check your syntax');
+                    embed.setColor("Yellow");
+                    addFields(embed, "🚫 Command didn't return anything", "📝 check your syntax");
                 }
 
                 embed.setDescription(`🟦 Result of executing ${command}`);
@@ -77,4 +77,4 @@ export default {
 
             });
     }
-} as ICommand
+} as ICommand;

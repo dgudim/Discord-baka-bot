@@ -52,11 +52,11 @@ export const search_modifiers = new Map([
 ]);
 
 export const messageReplies = new Map([ // put your message replies here
-    ["ping", (message: Message) => { messageReply(message, 'pong'); }],
-    ["windows", (message: Message) => { messageReply(message, '🐧 Linux 🐧'); }],
-    ["pain and suffering", (message: Message) => { messageReply(message, 'main() and buffering'); }],
-    ["понял", (message: Message) => { messageReply(message, 'не поняла'); }],
-    ["amogus", (message: Message) => { messageReply(message, 'sus'); }]
+    ["ping", (message: Message) => { messageReply(message, "pong"); }],
+    ["windows", (message: Message) => { messageReply(message, "🐧 Linux 🐧"); }],
+    ["pain and suffering", (message: Message) => { messageReply(message, "main() and buffering"); }],
+    ["понял", (message: Message) => { messageReply(message, "не поняла"); }],
+    ["amogus", (message: Message) => { messageReply(message, "sus"); }]
 ]);
 
-export const sourcePrecedence = ['danbooru', 'gelbooru', 'sankakucomplex', 'konachan', 'yande.re']
+export const sourcePrecedence = ["danbooru", "gelbooru", "sankakucomplex", "konachan", "yande.re"];

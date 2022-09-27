@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
-import https from 'https';
+import https from "https";
 import sharp from "sharp";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isPngOrJpgUrlType, safeReply, sendToChannel } from "discord_bots_common";
 import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
@@ -16,15 +16,15 @@ async function searchAndSendSauce(
     }
 
     await safeReply(interaction, `🔎 Searching sauce for ${getFileName(fileOrUrl)}`);
-    let sauce = await findSauce(fileOrUrl, channel, min_similarity);
+    const sauce = await findSauce(fileOrUrl, channel, min_similarity);
     if (sauce) {
         await sendToChannel(channel, sauce.embed);
     }
 }
 
 export default {
-    category: 'Image management',
-    description: 'Get sauce of an image',
+    category: "Image management",
+    description: "Get sauce of an image",
 
     slash: true,
     testOnly: true,
@@ -51,11 +51,11 @@ export default {
 
     callback: async ({ channel, interaction, }) => {
 
-        let interaction_nn = interaction!;
+        const interaction_nn = interaction!;
 
-        let min_similarity = interaction_nn.options.getNumber('min-similarity') || 75;
+        const min_similarity = interaction_nn.options.getNumber("min-similarity") || 75;
 
-        let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
+        const urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
         if (!urls.length) {
             await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
@@ -64,15 +64,15 @@ export default {
 
         await safeReply(interaction_nn, `📥 Getting sauce for ${urls.length} image(s)`);
 
-        for (let image_url of urls) {
-            let res = await fetchUrl(image_url);
+        for (const image_url of urls) {
+            const res = await fetchUrl(image_url);
             if (isPngOrJpgUrlType(res.type)) {
                 await searchAndSendSauce(interaction_nn, channel, min_similarity, image_url);
             } else {
 
-                await safeReply(interaction_nn, '🕜 Attachement is not jpg or png, converting, please wait');
+                await safeReply(interaction_nn, "🕜 Attachement is not jpg or png, converting, please wait");
 
-                const filePath = '/tmp/temp.jpg';
+                const filePath = "/tmp/temp.jpg";
                 const file_stream = fs.createWriteStream(filePath);
                 if (fs.existsSync(filePath)) {
                     fs.unlinkSync(filePath);
@@ -87,7 +87,7 @@ export default {
 
                     response.pipe(sharpPipeline);
 
-                    file_stream.on('finish', async () => {
+                    file_stream.on("finish", async () => {
                         file_stream.close();
                         await sendImgToChannel(channel, filePath);
                         await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
@@ -96,4 +96,4 @@ export default {
             }
         }
     }
-} as ICommand
+} as ICommand;

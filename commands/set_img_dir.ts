@@ -3,8 +3,8 @@ import { changeSavedDirectory } from "../sauce_utils";
 import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
-    category: 'Administration',
-    description: 'Set image database directory',
+    category: "Administration",
+    description: "Set image database directory",
 
     slash: true,
     testOnly: true,
@@ -22,4 +22,4 @@ export default {
         interaction?.reply("Changing image directory");
         changeSavedDirectory(channel, "IMAGE", interaction!.options.getString("img-dir"));
     }
-} as ICommand
+} as ICommand;

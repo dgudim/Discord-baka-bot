@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
-import https from 'https';
+import https from "https";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
@@ -10,11 +10,11 @@ import { ApplicationCommandOptionType, TextChannel } from "discord.js";
 import { IncomingMessage } from "http";
 
 async function getFilePath(file_name: string, channel: TextChannel) {
-    file_name = file_name.endsWith(".jpeg") ? file_name : file_name + '.jpeg';
+    file_name = file_name.endsWith(".jpeg") ? file_name : file_name + ".jpeg";
     const file_path = path.join(await getImgDir(), file_name);
 
     if (fs.existsSync(file_path)) {
-        await sendToChannel(channel, '❌ File aleady exists', true);
+        await sendToChannel(channel, "❌ File aleady exists", true);
         return undefined;
     }
 
@@ -71,7 +71,7 @@ async function processAndSaveImage(
 
     return new Promise<void>(resolve => {
 
-        target.on('finish', async () => {
+        target.on("finish", async () => {
             target.close();
             await sendToChannel(channel, `💾 Saved ${metadata.file_name}, `);
 
@@ -87,12 +87,12 @@ async function processAndSaveImage(
             resolve();
         });
 
-    })
+    });
 }
 
 export default {
-    category: 'Admin image management',
-    description: 'Download an image, tag it and save it to the database',
+    category: "Admin image management",
+    description: "Download an image, tag it and save it to the database",
 
     slash: true,
     testOnly: true,
@@ -115,13 +115,13 @@ export default {
 
         const interaction_nn = interaction!;
 
-        let urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
+        const urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
 
         if (!urls.length) {
-            await safeReply(interaction_nn, '🚫 No images to add');
+            await safeReply(interaction_nn, "🚫 No images to add");
             return;
         } else {
-            await safeReply(interaction_nn, '📥 Adding image(s) to db');
+            await safeReply(interaction_nn, "📥 Adding image(s) to db");
         }
 
         for (const url of urls) {
@@ -133,7 +133,7 @@ export default {
                 const is_plain_image = isImageUrlType(res.type);
 
                 // special treatment for pixiv
-                if (!is_plain_image && url.includes('pixiv')) {
+                if (!is_plain_image && url.includes("pixiv")) {
                     const client = await ensurePixivLogin();
                     if (client) {
                         const img_dir = "./downloaded";
@@ -146,7 +146,7 @@ export default {
                         for (const image of images) {
                             const new_file_name = getFileName(image);
                             const new_file_path = await getFilePath(new_file_name, channel);
-                            if(new_file_path) {
+                            if (new_file_path) {
                                 await processAndSaveImage(fs.createReadStream(image), { 
                                     postInfo: postInfo, 
                                     file_name: new_file_name, 
@@ -170,7 +170,7 @@ export default {
                         processAndSaveImage(response, await getMetadata(channel, img_url, is_plain_image, getFileName(img_url)), channel);
                     });
                 } else {
-                    await sendToChannel(channel, '❌ Could not get image url from page', true);
+                    await sendToChannel(channel, "❌ Could not get image url from page", true);
                 }
             } else {
                 await sendToChannel(channel, `❌ Return code: ${res.status}, ${res.statusText}`, true);
@@ -178,4 +178,4 @@ export default {
         }
 
     }
-} as ICommand
+} as ICommand;

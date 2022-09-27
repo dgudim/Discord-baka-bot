@@ -4,8 +4,8 @@ import { eight_mb, safeReply, sendToChannel } from "discord_bots_common";
 import { ApplicationCommandOptionType } from "discord.js";
 
 export default {
-    category: 'Administration',
-    description: 'Get any file from the server',
+    category: "Administration",
+    description: "Get any file from the server",
 
     slash: true,
     testOnly: true,
@@ -23,7 +23,7 @@ export default {
 
     callback: async ({ interaction, channel }) => {
 
-        let interaction_nn = interaction!;
+        const interaction_nn = interaction!;
         const file_path = interaction_nn.options.getString("file-path")!;
 
         if (!fs.existsSync(file_path)) {
@@ -46,12 +46,12 @@ export default {
             await sendToChannel(channel, {
                 files: [{
                     attachment: file_path,
-                    name: file_path.substring(file_path.lastIndexOf('/') + 1)
+                    name: file_path.substring(file_path.lastIndexOf("/") + 1)
                 }]
-            })
+            });
         } catch (err) {
             await safeReply(interaction_nn, `❌ Error: ${err}`);
         }
 
     }
-} as ICommand
+} as ICommand;

@@ -1,39 +1,39 @@
-import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake } from 'discord.js'; // discord api
-import img_tags from './image_tags.json';
-import path from 'path';
-import fs from 'fs';
-import { exec, spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake } from "discord.js"; // discord api
+import img_tags from "./image_tags.json";
+import path from "path";
+import fs from "fs";
+import { exec, spawn, ChildProcessWithoutNullStreams } from "child_process";
 import util from "util";
 const execPromise = util.promisify(exec);
-import dotenv from 'dotenv'; // evironment vars
+import dotenv from "dotenv"; // evironment vars
 
-import { JsonDB } from 'node-json-db';
-import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString } from 'discord_bots_common';
-import { getKeyByDirType } from './sauce_utils';
+import { JsonDB } from "node-json-db";
+import { Config } from "node-json-db/dist/lib/JsonDBConfig";
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString } from "discord_bots_common";
+import { getKeyByDirType } from "./sauce_utils";
 
-import * as readline from 'readline';
-import { messageReplies } from './config';
+import * as readline from "readline";
+import { messageReplies } from "./config";
 
-export const db = new JsonDB(new Config("db", true, true, '^'));
+export const db = new JsonDB(new Config("db", true, true, "^"));
 
-export let image_args_command_options: { name: string; description: string; type: ApplicationCommandOptionType | undefined; required: boolean; }[] = [];
-export let image_args: string[] = [];
-export let xpm_image_args_grep: string = "";
+export const image_args_command_options: { name: string; description: string; type: ApplicationCommandOptionType | undefined; required: boolean; }[] = [];
+export const image_args: string[] = [];
+export let xpm_image_args_grep = "";
 
 dotenv.config();
 
 const terminalShellsByChannel = new Map<string, ChildProcessWithoutNullStreams>();
 const channelTerminalShellUsers = new Map<string, Array<string>>();
 
-const bultInCommands = ['alias', 'bg', 'bind', 'builtin',
-    'cd', 'command', 'compgen', 'complete', 'declare', 'dirs', 'disown', 'echo', 'enable', 'eval',
-    'exec', 'exit', 'export', 'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let', 'local',
-    'logout', 'popd', 'printf', 'pushd', 'pwd', 'read', 'readonly', 'set', 'shift', 'shopt', 'source',
-    'suspend', 'test', 'times', 'trap', 'type', 'typeset', 'ulimit', 'umask', 'unalias', 'unset', 'until', 'wait', 'y', 'n'];
+const bultInCommands = ["alias", "bg", "bind", "builtin",
+    "cd", "command", "compgen", "complete", "declare", "dirs", "disown", "echo", "enable", "eval",
+    "exec", "exit", "export", "fc", "fg", "getopts", "hash", "help", "history", "jobs", "kill", "let", "local",
+    "logout", "popd", "printf", "pushd", "pwd", "read", "readonly", "set", "shift", "shopt", "source",
+    "suspend", "test", "times", "trap", "type", "typeset", "ulimit", "umask", "unalias", "unset", "until", "wait", "y", "n"];
 
 function isBuiltin(str: string): boolean {
-    let command = str.split(' ')[0];
+    const command = str.split(" ")[0];
     return bultInCommands.some(bultInCommand => command == bultInCommand);
 }
 
@@ -41,25 +41,25 @@ export let status_channel: TextBasedChannel;
 
 export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string): boolean {
     let added = false;
-    const channel_id = channel?.id || '';
+    const channel_id = channel?.id || "";
     if (!terminalShellsByChannel.has(channel_id)) {
-        const shell_session = spawn('/bin/sh');
+        const shell_session = spawn("/bin/sh");
 
-        shell_session.on('error', (err) => {
-            sendToChannel(channel, '❌ Failed to start shell session: ' + err);
+        shell_session.on("error", (err) => {
+            sendToChannel(channel, "❌ Failed to start shell session: " + err);
         });
 
-        shell_session.stdout.on('data', (data) => {
-            sendToChannel(channel, (data + '').trim());
+        shell_session.stdout.on("data", (data) => {
+            sendToChannel(channel, (data + "").trim());
         });
 
-        shell_session.stderr.on('data', (data) => {
-            sendToChannel(channel, (data + '').trim());
+        shell_session.stderr.on("data", (data) => {
+            sendToChannel(channel, (data + "").trim());
         });
 
-        shell_session.on('close', (code) => {
-            sendToChannel(channel, '🐚 Shell session exited with code ' + code);
-            sendToChannel(channel, '⚙️ Turned OFF terminal mode for all users in this channel');
+        shell_session.on("close", (code) => {
+            sendToChannel(channel, "🐚 Shell session exited with code " + code);
+            sendToChannel(channel, "⚙️ Turned OFF terminal mode for all users in this channel");
             terminalShellsByChannel.delete(channel_id);
             channelTerminalShellUsers.set(channel_id, []);
         });
@@ -68,7 +68,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         channelTerminalShellUsers.set(channel_id, []);
     }
 
-    let client_index = channelTerminalShellUsers.get(channel_id)!.indexOf(client_id);
+    const client_index = channelTerminalShellUsers.get(channel_id)!.indexOf(client_id);
 
     if (client_index == -1) {
         channelTerminalShellUsers.get(channel_id)?.push(client_id);
@@ -101,7 +101,7 @@ function writeExifToolConfig(): void {
     `;
 
     for (let i = 0; i < img_tags.length; i++) {
-        const name = img_tags[i].name.toLowerCase().replace(' ', '-');
+        const name = img_tags[i].name.toLowerCase().replace(" ", "-");
         image_args.push(name);
         const raw_type = img_tags[i].type.toUpperCase();
         let type;
@@ -138,28 +138,28 @@ function writeExifToolConfig(): void {
     `;
 
     fs.writeFileSync(path.join(__dirname, "./exiftoolConfig.conf"), exifToolConfig);
-    debug('💾 Exiftool config written');
+    debug("💾 Exiftool config written");
 }
 
 function secondsToDhms(seconds: number) {
-    let d = Math.floor(seconds / (3600 * 24));
-    let h = Math.floor(seconds % (3600 * 24) / 3600);
-    let m = Math.floor(seconds % 3600 / 60);
-    let s = Math.floor(seconds % 60);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor(seconds % (3600 * 24) / 3600);
+    const m = Math.floor(seconds % 3600 / 60);
+    const s = Math.floor(seconds % 60);
 
-    let dDisplay = d > 0 ? (d + "d") : "";
-    let hDisplay = h > 0 ? (h + "h") : "";
-    let mDisplay = m > 0 ? (m + "m") : "";
-    let sDisplay = s > 0 ? (s + "s") : "";
+    const dDisplay = d > 0 ? (d + "d") : "";
+    const hDisplay = h > 0 ? (h + "h") : "";
+    const mDisplay = m > 0 ? (m + "m") : "";
+    const sDisplay = s > 0 ? (s + "s") : "";
     return dDisplay + hDisplay + mDisplay + sDisplay;
 }
 
-client.on('ready', async () => {
+client.on("ready", async () => {
 
-    if (!await db.exists(`^${getKeyByDirType('IMAGE')}`)
-        || !await db.exists(`^${getKeyByDirType('SAVE')}`)) {
-        await db.push(`^${getKeyByDirType('IMAGE')}`, '/home/public_files', true);
-        await db.push(`^${getKeyByDirType('SAVE')}`, '/home/kloud/Downloads', true);
+    if (!await db.exists(`^${getKeyByDirType("IMAGE")}`)
+        || !await db.exists(`^${getKeyByDirType("SAVE")}`)) {
+        await db.push(`^${getKeyByDirType("IMAGE")}`, "/home/public_files", true);
+        await db.push(`^${getKeyByDirType("SAVE")}`, "/home/kloud/Downloads", true);
     }
 
     writeExifToolConfig();
@@ -169,16 +169,16 @@ client.on('ready', async () => {
     testEnvironmentVar("TEMP_DIR", false);
     testEnvironmentVar("STATUS_CHANNEL_ID", false);
     testEnvironmentVar("PIXIV_TOKEN", false);
-    
+
     if (!process.env.EXIFTOOL_PATH) {
-        warn(`🟧🔎 ${wrap('EXIFTOOL_PATH', colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap('PATH', colors.LIGHTER_BLUE)} variable`);
-        process.env.EXIFTOOL_PATH = 'exiftool'
+        warn(`🟧🔎 ${wrap("EXIFTOOL_PATH", colors.LIGHTER_BLUE)} not specified, will try to search the system ${wrap("PATH", colors.LIGHTER_BLUE)} variable`);
+        process.env.EXIFTOOL_PATH = "exiftool";
     }
 
     try {
         await execPromise(process.env.EXIFTOOL_PATH);
     } catch (err) {
-        error(`❌ ${err} \n exiting`)
+        error(`❌ ${err} \n exiting`);
         process.exit(1);
     }
 
@@ -189,7 +189,7 @@ client.on('ready', async () => {
         if (channel?.isTextBased()) {
             status_channel = channel;
         } else {
-            error(`❌ ${wrap('STATUS_CHANNEL_ID', colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
+            error(`❌ ${wrap("STATUS_CHANNEL_ID", colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
             channel = null;
         }
         if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
@@ -202,7 +202,7 @@ client.on('ready', async () => {
     setInterval(async function () {
         // update status
         client.user?.setPresence({
-            status: 'online',
+            status: "online",
             activities: [{
                 name: `🕓 Uptime: ${secondsToDhms(process.uptime())}`
             }]
@@ -210,23 +210,23 @@ client.on('ready', async () => {
     }, 10 * 60 * 1000);
 });
 
-let messageCache = new Map<Snowflake, Message>();
+const messageCache = new Map<Snowflake, Message>();
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-rl.on('line', (message: string) => {
+rl.on("line", (message: string) => {
     if (message.startsWith("|=") || message.startsWith("==")) {
         const reply = message.startsWith("|=");
         message = message.slice(2);
         const delim_index = message.indexOf(":");
-        let id = message.slice(0, delim_index);
-        let msg = message.slice(delim_index + 1);
-        if(!reply) {
+        const id = message.slice(0, delim_index);
+        const msg = message.slice(delim_index + 1);
+        if (!reply) {
             let channel;
-            for (let guild_channel of client.channels.cache) {
+            for (const guild_channel of client.channels.cache) {
                 if (guild_channel[0] == id) {
                     channel = guild_channel[1];
                     break;
@@ -244,16 +244,16 @@ rl.on('line', (message: string) => {
             }
         } else {
             const message = messageCache.get(id);
-            if(message) {
+            if (message) {
                 messageReply(message, msg);
             } else {
                 error(`❌ Couldn't reply to ${id}, invalid id or message expired`);
             }
         }
     }
-})
+});
 
-client.on('messageCreate', (message) => {
+client.on("messageCreate", (message) => {
 
     if (message.author.id != client.user?.id) {
         const messageId = message.id;
@@ -268,11 +268,11 @@ client.on('messageCreate', (message) => {
         })} (${wrap(messageId, colors.GRAY)})`);
     }
 
-    if (!message.content.startsWith('>') &&
+    if (!message.content.startsWith(">") &&
         terminalShellsByChannel.has(message.channelId) &&
         channelTerminalShellUsers.get(message.channelId)?.indexOf(message.author.id) != -1) {
         const command = isBuiltin(message.content.trim()) ? message.content.trim() + "\n" :
-            "timeout 5s " + message.content.trim() + " | sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g'"
+            "timeout 5s " + message.content.trim() + " | sed -e 's/\x1b[[0-9;]*[a-zA-Z]//g'";
         info(`-> ${wrap("executing", colors.LIGHTER_BLUE)} "${command}"`);
         terminalShellsByChannel.get(message.channelId)?.stdin.write(`${command} \n`);
         return;

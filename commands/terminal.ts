@@ -1,10 +1,10 @@
 import { ICommand } from "dkrcommands";
-import { toggleTerminalChannel } from "../index"
+import { toggleTerminalChannel } from "../index";
 import { safeReply } from "discord_bots_common";
 
 export default {
-    category: 'Administration',
-    description: 'Enable terminal mode in this channel',
+    category: "Administration",
+    description: "Enable terminal mode in this channel",
 
     slash: true,
     testOnly: true,
@@ -18,4 +18,4 @@ export default {
 
         await safeReply(interaction!, `⚙️ Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user.username}`);
     }
-} as ICommand
+} as ICommand;

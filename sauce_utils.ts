@@ -1,18 +1,20 @@
 
-const Danbooru = require('danbooru');
+const Danbooru = require("danbooru");
 const booru = new Danbooru();
 
 import sagiri from "sagiri";
-const sagiri_client = sagiri('d78bfeac5505ab0a2af7f19d369029d4f6cd5176');
+const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
-import * as iqdb from '@l2studio/iqdb-api'
-import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from 'discord.js';
+import * as iqdb from "@l2studio/iqdb-api";
+import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from "discord.js";
 
-import pixiv from "pixiv.ts"
+import pixiv from "pixiv.ts";
 
-import puppeteer, { Browser, Page } from 'puppeteer'
-import { getFileName, limitLength, perc2color, sendToChannel, sleep, 
-    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn } from 'discord_bots_common';
+import puppeteer, { Browser, Page } from "puppeteer";
+import {
+    getFileName, limitLength, perc2color, sendToChannel, sleep,
+    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn
+} from "discord_bots_common";
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 
@@ -27,14 +29,14 @@ let pixiv_client: pixiv;
 async function getTagsBySelector(selector: string) {
     return page.evaluate(sel => {
         return Array.from(document.querySelectorAll(sel))
-            .map(elem => elem.textContent?.replaceAll(' ', '_'));
+            .map(elem => elem.textContent?.replaceAll(" ", "_"));
     }, selector);
 }
 
 async function getAttributeBySelector(selector: string, attribute: string) {
     return page.evaluate((sel, attr) => {
-        let img = document.querySelector(sel);
-        return img ? img.getAttribute(attr) : '';
+        const img = document.querySelector(sel);
+        return img ? img.getAttribute(attr) : "";
     }, selector, attribute);
 }
 
@@ -78,38 +80,38 @@ async function grabBySelectors(url: string,
     const generalTags = await getTagsBySelector(tagSelector);
 
     return {
-        author: authorTags.join(",") || '-',
-        character: characterTags.join(",") || '-',
-        tags: generalTags.join(",") || '-',
-        copyright: copyrightTags.join(",") || '-',
+        author: authorTags.join(",") || "-",
+        character: characterTags.join(",") || "-",
+        tags: generalTags.join(",") || "-",
+        copyright: copyrightTags.join(",") || "-",
         url: url
-    }
+    };
 }
 
 async function ensurePuppeteerStarted() {
     if (!browser) {
         browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
         page = await browser.newPage();
-        debug('starting puppeteer');
+        debug("starting puppeteer");
     }
 }
 
 export async function ensurePixivLogin() {
     if (process.env.PIXIV_TOKEN) {
-        if(!pixiv_client) {
-            debug('logging into pixiv');
+        if (!pixiv_client) {
+            debug("logging into pixiv");
             pixiv_client = await pixiv.refreshLogin(process.env.PIXIV_TOKEN);
         }
         return pixiv_client;
     } else {
-        warn(`🟧🔎 ${wrap('PIXIV_TOKEN', colors.LIGHTER_BLUE)} not specified, can't login into pixiv`);
+        warn(`🟧🔎 ${wrap("PIXIV_TOKEN", colors.LIGHTER_BLUE)} not specified, can't login into pixiv`);
         return undefined;
     }
 }
 
-export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from: string = '', set_last_tags: boolean = true) {
+export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from = "", set_last_tags = true) {
 
     info(`searching sauce for ${file}`);
 
@@ -117,24 +119,24 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     let sagiriResults;
 
-    let posts: Post[] = [];
+    const posts: Post[] = [];
     try {
         sagiriResults = await sagiri_client(file);
 
         info(`got ${wrap(sagiriResults.length, colors.LIGHT_YELLOW)} results from saucenao`);
 
-        for (let res of sagiriResults) {
-            info(res.url + ' ' + wrap(res.similarity, colors.LIGHT_YELLOW));
+        for (const res of sagiriResults) {
+            info(res.url + " " + wrap(res.similarity, colors.LIGHT_YELLOW));
         }
 
-        for (let result of sagiriResults) {
-            if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
+        for (const result of sagiriResults) {
+            if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
                 posts.push({
                     source_db: `saucenao (${result.site})`,
                     url: result.url,
                     similarity: result.similarity,
                     thumbnail: result.thumbnail,
-                    author: result.authorName || '-'
+                    author: result.authorName || "-"
                 });
             }
         }
@@ -145,7 +147,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     let callIq = !sagiriResults;
 
-    if (!posts.some((post) => post.url.includes('booru') && post.similarity >= min_similarity)) {
+    if (!posts.some((post) => post.url.includes("booru") && post.similarity >= min_similarity)) {
         callIq = true;
     }
 
@@ -153,52 +155,48 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         sendToChannel(channel, "calling iqdb, wait...");
         let iqDbResults;
 
-        while (true) {
+        while (!iqDbResults?.results) {
             try {
                 iqDbResults = await iqdb.search(file);
             } catch (err) {
                 error(err);
                 break;
             }
-
-            if (!iqDbResults.searched) {
-                sendToChannel(channel, `iqdb error`)
-                sendToChannel(channel, 'retrying call to iqdb');
-                continue;
-            }
-            break;
+            
+            sendToChannel(channel, `iqdb error`);
+            sendToChannel(channel, "retrying call to iqdb");  
         }
 
         if (iqDbResults?.results) {
-            let iqdb_posts: Post[] = [];
-            for (let result of iqDbResults.results) {
-                for (let result_source of result.sources) {
+            const iqdb_posts: Post[] = [];
+            for (const result of iqDbResults.results) {
+                for (const result_source of result.sources) {
                     iqdb_posts.push({
                         source_db: `iqdb ${result_source.service}`,
                         url: result_source.fixedHref,
                         similarity: result.similarity,
                         thumbnail: result.thumbnail.fixedSrc,
-                        author: '-'
+                        author: "-"
                     });
                 }
             }
 
             info(`got ${wrap(iqdb_posts.length, colors.LIGHT_YELLOW)} results from iqdb in ${iqDbResults.timeSeconds}s, searched ${iqDbResults.searched} images`);
 
-            for (let result of iqdb_posts) {
-                info(result.url + ' ' + wrap(result.similarity, colors.LIGHT_YELLOW));
-                if (!only_accept_from || trimStringArray(only_accept_from.split(',')).some((elem) => result.url.includes(elem))) {
+            for (const result of iqdb_posts) {
+                info(result.url + " " + wrap(result.similarity, colors.LIGHT_YELLOW));
+                if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
                     posts.push(result);
                 }
             }
         }
     }
 
-    posts.sort((a, b) => { return b.similarity - a.similarity });
+    posts.sort((a, b) => { return b.similarity - a.similarity; });
 
     let best_post_combined = posts[0];
     for (const source of sourcePrecedence) {
-        let res = posts.find((value) => { return value.url.includes(source) && value.similarity >= min_similarity });
+        const res = posts.find((value) => { return value.url.includes(source) && value.similarity >= min_similarity; });
         if (res) {
             best_post_combined = res;
             break;
@@ -211,13 +209,13 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         embed.setColor(perc2color(best_post_combined.similarity));
         embed.setDescription(`similarity: ${best_post_combined.similarity}`);
 
-        let postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.url) || {
-            author: best_post_combined.author.replaceAll(' ', '_') || '-',
-            character: '-',
-            tags: '-',
-            copyright: '-',
+        const postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.url) || {
+            author: best_post_combined.author.replaceAll(" ", "_") || "-",
+            character: "-",
+            tags: "-",
+            copyright: "-",
             url: best_post_combined.url
-        }
+        };
 
         embed.setURL(best_post_combined.url);
         embed.setImage(best_post_combined.thumbnail);
@@ -242,7 +240,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
             setLastTags(channel, { postInfo: postInfo, file: file });
         }
 
-        return { 'post': best_post_combined, 'postInfo': postInfo, 'embed': embed };
+        return { "post": best_post_combined, "postInfo": postInfo, "embed": embed };
     } else {
         sendToChannel(channel, "No sauce found :(");
         return null;
@@ -251,12 +249,12 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
 export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
 
-    if (url.includes('pixiv')) {
+    if (url.includes("pixiv")) {
         const illust = await (await ensurePixivLogin())?.illust.get(url);
 
-        if(illust) {
+        if (illust) {
 
-            let tags: string[] = [];
+            const tags: string[] = [];
             for (const pixiv_tag of illust.tags) {
                 if (pixiv_tag.translated_name) {
                     tags.push(pixiv_tag.translated_name);
@@ -269,52 +267,52 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
                 copyright: "-",
                 tags: tags.join(",") || "-",
                 url: url
-            }
+            };
         }
         return undefined;
     }
 
-    if (url.includes('danbooru')) {
+    if (url.includes("danbooru")) {
         const fileName = getFileName(url);
-        const lastIndex = fileName.indexOf('?');
+        const lastIndex = fileName.indexOf("?");
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
 
         return {
-            author: post.tag_string_artist || '-',
-            character: post.tag_string_character || '-',
-            tags: post.tag_string_general || '-',
-            copyright: post.tag_string_copyright || '-',
+            author: post.tag_string_artist || "-",
+            character: post.tag_string_character || "-",
+            tags: post.tag_string_general || "-",
+            copyright: post.tag_string_copyright || "-",
             url: url
-        }
+        };
     }
 
-    if (url.includes('gelbooru')) {
+    if (url.includes("gelbooru")) {
 
         return grabBySelectors(url,
-            '#tag-list > li.tag-type-artist > a',
-            '#tag-list > li.tag-type-copyright > a',
-            '#tag-list > li.tag-type-character > a',
-            '#tag-list > li.tag-type-general > a');
-
-    }
-
-    if (url.includes('sankakucomplex') || url.includes('rule34')) {
-
-        return grabBySelectors(url,
-            '#tag-sidebar > li.tag-type-artist > a',
-            '#tag-sidebar > li.tag-type-copyright > a',
-            '#tag-sidebar > li.tag-type-character > a',
-            '#tag-sidebar > li.tag-type-general > a');
+            "#tag-list > li.tag-type-artist > a",
+            "#tag-list > li.tag-type-copyright > a",
+            "#tag-list > li.tag-type-character > a",
+            "#tag-list > li.tag-type-general > a");
 
     }
 
-    if (url.includes('yande') || url.includes('konachan')) {
+    if (url.includes("sankakucomplex") || url.includes("rule34")) {
 
         return grabBySelectors(url,
-            '#tag-sidebar > li.tag-type-artist > a:nth-child(2)',
-            '#tag-sidebar > li.tag-type-copyright > a:nth-child(2)',
-            '#tag-sidebar > li.tag-type-character > a:nth-child(2)',
-            '#tag-sidebar > li.tag-type-general > a:nth-child(2)');
+            "#tag-sidebar > li.tag-type-artist > a",
+            "#tag-sidebar > li.tag-type-copyright > a",
+            "#tag-sidebar > li.tag-type-character > a",
+            "#tag-sidebar > li.tag-type-general > a");
+
+    }
+
+    if (url.includes("yande") || url.includes("konachan")) {
+
+        return grabBySelectors(url,
+            "#tag-sidebar > li.tag-type-artist > a:nth-child(2)",
+            "#tag-sidebar > li.tag-type-copyright > a:nth-child(2)",
+            "#tag-sidebar > li.tag-type-character > a:nth-child(2)",
+            "#tag-sidebar > li.tag-type-general > a:nth-child(2)");
 
     }
 
@@ -329,58 +327,58 @@ export async function grabImageUrl(url: string) {
 
     let res;
 
-    if (url.includes('danbooru')) {
-        res = await getAttributeBySelector('.image-view-original-link', 'href');
-    } else if (url.includes('yande.re')) {
-        res = await getAttributeBySelector('#highres-show', 'href');
-    } else if (url.includes('gelbooru')) {
-        await callFunction('resizeTransition();');
-    } else if (url.includes('rule34')) {
-        await callFunction('Post.highres();');
-    } else if (url.includes('sankakucomplex')) {
-        await page.click('#image');
+    if (url.includes("danbooru")) {
+        res = await getAttributeBySelector(".image-view-original-link", "href");
+    } else if (url.includes("yande.re")) {
+        res = await getAttributeBySelector("#highres-show", "href");
+    } else if (url.includes("gelbooru")) {
+        await callFunction("resizeTransition();");
+    } else if (url.includes("rule34")) {
+        await callFunction("Post.highres();");
+    } else if (url.includes("sankakucomplex")) {
+        await page.click("#image");
     }
 
-    return res || getAttributeBySelector('#image', 'src');
+    return res || getAttributeBySelector("#image", "src");
 }
 
 export type saveDirType =
-    | 'IMAGE'
-    | 'SAVE'
+    | "IMAGE"
+    | "SAVE"
 
 export function getKeyByDirType(dir_type: saveDirType): string {
     let key;
     switch (dir_type) {
-        case 'SAVE':
-            key = 'send_file_dir'
+        case "SAVE":
+            key = "send_file_dir";
             break;
-        case 'IMAGE':
-            key = 'img_dir'
+        case "IMAGE":
+            key = "img_dir";
             break;
     }
     return key;
 }
 
 export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
-    if ('postInfo' in lastTagsFrom_get_sauce) {
+    if ("postInfo" in lastTagsFrom_get_sauce) {
         lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
     }
-    return checkTag('character', lastTagsFrom_get_sauce.character) +
-        checkTag('author', lastTagsFrom_get_sauce.author) +
-        checkTag('copyright', lastTagsFrom_get_sauce.copyright) +
-        checkTag('tags', lastTagsFrom_get_sauce.tags) +
+    return checkTag("character", lastTagsFrom_get_sauce.character) +
+        checkTag("author", lastTagsFrom_get_sauce.author) +
+        checkTag("copyright", lastTagsFrom_get_sauce.copyright) +
+        checkTag("tags", lastTagsFrom_get_sauce.tags) +
         ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
 }
 
-let lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
-let lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
+const lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
+const lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
 
 export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
     if (dir) {
-        let key = getKeyByDirType(dir_type);
+        const key = getKeyByDirType(dir_type);
         if (isDirectory(dir)) {
             sendToChannel(channel, `📂 Changed ${dir_type.toLowerCase()} directory to ${dir}`);
-            db.push(`^${key}`, dir.endsWith('/') ? dir.substring(0, dir.length - 1) : dir, true);
+            db.push(`^${key}`, dir.endsWith("/") ? dir.substring(0, dir.length - 1) : dir, true);
             return true;
         } else {
             sendToChannel(channel, `❌ Invalid ${dir_type} directory, will use previous`, true);
@@ -390,11 +388,11 @@ export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDi
 }
 
 export async function getImgDir() {
-    return db.getData(`^${getKeyByDirType('IMAGE')}`);
+    return db.getData(`^${getKeyByDirType("IMAGE")}`);
 }
 
 export async function getSendDir() {
-    return db.getData(`^${getKeyByDirType('SAVE')}`);
+    return db.getData(`^${getKeyByDirType("SAVE")}`);
 }
 
 export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): void {
@@ -403,19 +401,19 @@ export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: str
 }
 
 export function getLastImgUrl(channel: TextBasedChannel): string {
-    return lastFileUrls.get(channel.id) || '';
+    return lastFileUrls.get(channel.id) || "";
 }
 
 export function getLastImgPath(channel: TextBasedChannel): string {
-    return lastFiles.get(channel.id) || '';
+    return lastFiles.get(channel.id) || "";
 }
 
-export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata: boolean = false): Promise<void> {
+export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata = false): Promise<void> {
     let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
-    let width = (await sharp(file).metadata()).width || 0;
+    const width = (await sharp(file).metadata()).width || 0;
     if (fs.statSync(file).size > eight_mb || width > 3000) {
-        sendToChannel(channel, '🕜 Image too large, compressing, wait...');
+        sendToChannel(channel, "🕜 Image too large, compressing, wait...");
         await sharp(file)
             .resize({ width: 1920 })
             .jpeg({
@@ -423,7 +421,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
             })
             .toBuffer().then(data => {
                 if (data.byteLength > eight_mb) {
-                    sendToChannel(channel, '❌ Image still too large, bruh', true);
+                    sendToChannel(channel, "❌ Image still too large, bruh", true);
                     attachment = undefined;
                 } else {
                     attachment = data;
@@ -450,7 +448,7 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
         }
 
         if (message) {
-            setLastImg(channel, file, (await message).attachments.at(0)?.url || '');
+            setLastImg(channel, file, (await message).attachments.at(0)?.url || "");
         }
     }
 }
@@ -473,12 +471,12 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
         await sleep(5000); // let the database save
     }
 
-    let search_terms = trimStringArray(searchQuery.split(';'));
+    const search_terms = trimStringArray(searchQuery.split(";"));
     for (const search_term of search_terms) {
 
         let activeModifier_key = "";
         let activeModifier = (_content: string[], _search_term: string[]) => true;
-        for (let [key, func] of search_modifiers.entries()) {
+        for (const [key, func] of search_modifiers.entries()) {
             if (search_term.indexOf(key) != -1) {
                 activeModifier_key = key;
                 activeModifier = func;
@@ -486,7 +484,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
             }
         }
 
-        let search_term_split = trimStringArray(search_term.split(activeModifier_key));
+        const search_term_split = trimStringArray(search_term.split(activeModifier_key));
 
         if (search_term_split.length != 2) {
             sendToChannel(channel, `🚫 Invalid search term ${search_term}`, true);
@@ -499,8 +497,8 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
                 }));
                 images = images.filter((_element, index) => {
                     return activeModifier(
-                        trimStringArray(results[index].split(',')),
-                        trimStringArray(search_term_split[1].split(',')));
+                        trimStringArray(results[index].split(",")),
+                        trimStringArray(search_term_split[1].split(",")));
                 });
             }
         }

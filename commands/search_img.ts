@@ -3,13 +3,13 @@ import { ICommand } from "dkrcommands";
 import { searchImages, sendImgToChannel } from "../sauce_utils";
 import { clamp, normalize, safeReply } from "discord_bots_common";
 
-let currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();
-let imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
+const currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();
+const imagesPerChannel: Map<Snowflake, string[]> = new Map<Snowflake, string[]>();
 
 export default {
 
-    category: 'Image management',
-    description: 'Search image by tags',
+    category: "Image management",
+    description: "Search image by tags",
 
     slash: true,
     testOnly: true,
@@ -30,16 +30,16 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        let interaction_nn = interaction!;
+        const interaction_nn = interaction!;
 
         let currImg = currImgs.get(channel.id) || 0;
         let images = imagesPerChannel.get(channel.id) || [];
 
-        let options = interaction_nn.options;
+        const options = interaction_nn.options;
 
-        let searchQuery = normalize(options.getString("search-query"));
+        const searchQuery = normalize(options.getString("search-query"));
         let index = options.getInteger("index");
-        let empty = !searchQuery.length && index == null;
+        const empty = !searchQuery.length && index == null;
 
         if (empty && currImg > images.length - 1) {
             await safeReply(interaction_nn, `🚫 No more images in list`);
@@ -47,7 +47,7 @@ export default {
         }
 
         if (searchQuery.length) {
-            await safeReply(interaction_nn, '🔎 Searching...');
+            await safeReply(interaction_nn, "🔎 Searching...");
             images = await searchImages(searchQuery, channel);
             imagesPerChannel.set(channel.id, images);
             currImg = 0;
@@ -70,9 +70,9 @@ export default {
             return;
         }
 
-        let file = images[currImg];
+        const file = images[currImg];
         await safeReply(interaction_nn, `🖼 Here is your image (index: ${currImg})`);
         await sendImgToChannel(channel, file, true);
         currImgs.set(channel.id, currImg + 1);
     }
-} as ICommand
+} as ICommand;

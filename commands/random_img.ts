@@ -8,8 +8,8 @@ let currImg = 0;
 
 export default {
 
-    category: 'Image management',
-    description: 'Get random image from image database',
+    category: "Image management",
+    description: "Get random image from image database",
 
     slash: true,
     testOnly: true,
@@ -41,4 +41,4 @@ export default {
             await safeReply(interaction_nn, `❌ Error: ${err}`);
         }
     }
-} as ICommand
+} as ICommand;

@@ -5,8 +5,8 @@ import { safeReply, sendToChannel, walk } from "discord_bots_common";
 import { getImgDir } from "../sauce_utils";
 
 export default {
-    category: 'Image management',
-    description: 'Dedupe image database',
+    category: "Image management",
+    description: "Dedupe image database",
 
     slash: true,
     testOnly: true,
@@ -15,18 +15,18 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        let interaction_nn = interaction!;
+        const interaction_nn = interaction!;
 
         await safeReply(interaction_nn, "🗃 Deduping databse...");
 
-        let images = walk(await getImgDir());
-        let hashMap = new Map<string, string>();
+        const images = walk(await getImgDir());
+        const hashMap = new Map<string, string>();
         let deleted = 0;
         for (const image of images) {
             let sourcePost;
             if (await db.exists(`^${image}^tags^sourcepost`)) {
                 sourcePost = await db.getData(`^${image}^tags^sourcepost`);
-                if (sourcePost != '-' && hashMap.has(sourcePost)) {
+                if (sourcePost != "-" && hashMap.has(sourcePost)) {
                     try {
                         fs.unlinkSync(image);
                         deleted++;
@@ -41,4 +41,4 @@ export default {
         }
         await safeReply(interaction_nn, `🟩 Dedupe finished, ${deleted} images deleted`);
     }
-} as ICommand
+} as ICommand;

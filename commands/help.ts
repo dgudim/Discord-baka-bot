@@ -4,8 +4,8 @@ import { safeReply } from "discord_bots_common";
 
 export default {
 
-    category: 'Help',
-    description: 'Display help',
+    category: "Help",
+    description: "Display help",
 
     slash: true,
     testOnly: true,
@@ -54,18 +54,18 @@ export default {
 
         const embed = new EmbedBuilder();
 
-        let command = interaction?.options.getString("command");
+        const command = interaction?.options.getString("command");
 
         if (command) {
             embed.setTitle(`${command} help page`);
             switch (command) {
-                case 'random_img':
+                case "random_img":
                     embed.addFields([{
                         name: `${command} command`,
                         value: `Just displays a random image, nothing to add, has no parameters`
                     }]);
                     break;
-                case 'search_img':
+                case "search_img":
                     embed.addFields([{
                         name: `${command} command`,
                         value: `search the database for a particular image, has 2 parameters \`<search-query>\` and \`<index>\`
@@ -133,13 +133,13 @@ export default {
                           == == == (tags: tag1, tag2 | search string: tags=tag1, tag3 wont match) ❌`
                     }]);
                     break;
-                case 'send_file':
+                case "send_file":
                     embed.addFields([{
                         name: `${command} command`,
                         value: `Send file(s) to the server, <save path> changes the save directory, if it's empty, the file will be saved to the previous directory`
                     }]);
                     break;
-                case 'get_sauce':
+                case "get_sauce":
                     embed.addFields([{
                         name: `${command} command`,
                         value: `Get sause of an image, the image can be provided by url or by file (use with prefix), 
@@ -150,7 +150,7 @@ export default {
             }
         } else {
             embed.setTitle(`Sussy Baka's help page`);
-            embed.setDescription('(get more info by doing /help <command>)');
+            embed.setDescription("(get more info by doing /help <command>)");
 
             embed.addFields([
                 {
@@ -174,8 +174,8 @@ export default {
                 }]);
         }
 
-        embed.setColor('Aqua');
+        embed.setColor("Aqua");
 
         await safeReply(interaction!, embed);
     }
-} as ICommand
+} as ICommand;

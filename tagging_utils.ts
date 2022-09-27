@@ -1,21 +1,23 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { TagContainer } from "./sauce_utils";
-import { getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray, 
-    debug, error, info, normalizeTags } from "discord_bots_common";
+import {
+    getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray,
+    debug, error, info, normalizeTags
+} from "discord_bots_common";
 
-import img_tags from './image_tags.json';
+import img_tags from "./image_tags.json";
 
-import path from "path"
-import { exec } from 'child_process';
+import path from "path";
+import { exec } from "child_process";
 import util from "util";
 const execPromise = util.promisify(exec);
 
 import { db, image_args, xpm_image_args_grep } from ".";
 
-let lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
+const lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
 
 export function checkTag(tag_name: string, tag_content: string): string {
-    return tag_content != '-' ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : '';
+    return tag_content != "-" ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : "";
 }
 
 export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void {
@@ -23,7 +25,7 @@ export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void
 }
 
 export function getLastTags(channel: TextBasedChannel): TagContainer {
-    return lastTags.get(channel.id) || { postInfo: { author: '-', character: '-', copyright: '-', tags: '-', url: '-' }, file: '-' };
+    return lastTags.get(channel.id) || { postInfo: { author: "-", character: "-", copyright: "-", tags: "-", url: "-" }, file: "-" };
 }
 
 export function getImageTag(file: string, arg: string): Promise<string> {
@@ -31,7 +33,7 @@ export function getImageTag(file: string, arg: string): Promise<string> {
 }
 
 export function mapXmpToName(xmp_tag: string): string {
-    let index = img_tags.findIndex((element) => {
+    const index = img_tags.findIndex((element) => {
         return element.xmpName == normalize(xmp_tag);
     });
     if (index != -1) {
@@ -42,7 +44,7 @@ export function mapXmpToName(xmp_tag: string): string {
 }
 
 export function mapArgToXmp(arg: string): string {
-    let index = image_args.indexOf(arg);
+    const index = image_args.indexOf(arg);
     if (index != -1) {
         return img_tags[index].xmpName;
     }
@@ -50,7 +52,7 @@ export function mapArgToXmp(arg: string): string {
     return arg;
 }
 
-export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: Function): Promise<void> {
+export async function writeTagsToFile(confString: string, file: string, channel: TextBasedChannel, callback: { (): Promise<void>; (): void }): Promise<void> {
 
     debug(`📝 Writing tags to file: ${file}`);
 
@@ -78,7 +80,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
         if (stdout) {
             const fields = stdout.toLowerCase().split("\n");
             for (let i = 0; i < fields.length - 1; i++) {
-                const split = trimStringArray(fields.at(i)!.split(':'));
+                const split = trimStringArray(fields.at(i)!.split(":"));
                 pushCallsAsync.push(db.push(`^${file}^tags^${split[0]}`, split[1], true));
             }
         }
@@ -87,7 +89,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
         await Promise.all(pushCallsAsync);
 
-        info('📄 Wrote tags to db');
+        info("📄 Wrote tags to db");
     } catch (err) {
         error(`❌ Error writing tags to db: ${err}`);
     }
@@ -95,8 +97,8 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
 
 export async function ensureTagsInDB(file: string): Promise<void> {
 
-    let real_hash = await getFileHash(file);
-    let database_hash = await getValueIfExists(db, `^${file}^hash`);
+    const real_hash = await getFileHash(file);
+    const database_hash = await getValueIfExists(db, `^${file}^hash`);
 
     debug(`⛓ Calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
 
@@ -110,12 +112,12 @@ export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
     const embed = new EmbedBuilder();
     embed.setTitle("🖼 Image metadata");
     embed.setDescription(getFileName(file));
-    embed.setColor('Green');
+    embed.setColor("Green");
 
     await ensureTagsInDB(file);
 
     for (const img_tag of img_tags) {
-        let tag_path = `^${file}^tags^${img_tag.xmpName}`;
+        const tag_path = `^${file}^tags^${img_tag.xmpName}`;
 
         embed.addFields([{
             name: mapXmpToName(img_tag.xmpName),

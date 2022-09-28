@@ -25,7 +25,7 @@ export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void
 }
 
 export function getLastTags(channel: TextBasedChannel): TagContainer {
-    return lastTags.get(channel.id) || { postInfo: { author: "-", character: "-", copyright: "-", tags: "-", url: "-" }, file: "-" };
+    return lastTags.get(channel.id) || { postInfo: { author: "-", character: "-", copyright: "-", tags: "-", source_url: "-" }, image_url: "-" };
 }
 
 export function getImageTag(file: string, arg: string): Promise<string> {

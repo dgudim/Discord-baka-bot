@@ -21,27 +21,21 @@ async function getFilePath(file_name: string, channel: TextChannel) {
     return file_path;
 }
 
-async function getMetadata(channel: TextChannel, source_url: string, is_plain_image: boolean, file_name: string) {
+async function getMetadata(channel: TextChannel, image_url: string, source_url: string, file_name: string) {
 
     const file_path = await getFilePath(file_name, channel);
     if (!file_path) {
         return undefined;
     }
 
+    const is_plain_image = image_url == source_url;
+
     let postInfo;
     if (!is_plain_image) {
         postInfo = await getPostInfoFromUrl(source_url);
     }
 
-    let image_url;
-
-    if (!is_plain_image) {
-        await sendImgToChannel(channel, file_path);
-        image_url = getLastImgUrl(channel);
-    } else {
-        await sendToChannel(channel, source_url);
-        image_url = source_url;
-    }
+    await sendToChannel(channel, image_url);
 
     if (!postInfo) {
         const sauce = await findSauce(image_url, channel, 85);
@@ -168,7 +162,7 @@ export default {
 
                 if (img_url) {
                     https.get(img_url, async (response) => {
-                        processAndSaveImage(response, await getMetadata(channel, img_url, is_plain_image, getFileName(img_url)), channel);
+                        processAndSaveImage(response, await getMetadata(channel, img_url, url, getFileName(img_url)), channel);
                     });
                 } else {
                     await sendToChannel(channel, "❌ Could not get image url from page", true);

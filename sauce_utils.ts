@@ -50,7 +50,7 @@ async function callFunction(func: string) {
 
 interface Post {
     source_db: string;
-    url: string;
+    source_url: string;
     similarity: number;
     thumbnail: string;
     author: string;
@@ -61,18 +61,18 @@ export interface PostInfo {
     character: string;
     tags: string;
     copyright: string;
-    url: string;
+    source_url: string;
 }
 
 export interface TagContainer {
     postInfo: PostInfo;
-    file: string;
+    image_url: string;
 }
 
-async function grabBySelectors(url: string,
+async function grabBySelectors(source_url: string,
     authorSelector: string, copyrightSelector: string,
     characterSelector: string, tagSelector: string) {
-    await page.goto(url);
+    await page.goto(source_url);
 
     const authorTags = await getTagsBySelector(authorSelector);
     const copyrightTags = await getTagsBySelector(copyrightSelector);
@@ -84,7 +84,7 @@ async function grabBySelectors(url: string,
         character: characterTags.join(",") || "-",
         tags: generalTags.join(",") || "-",
         copyright: copyrightTags.join(",") || "-",
-        url: url
+        source_url: source_url
     };
 }
 
@@ -111,9 +111,9 @@ export async function ensurePixivLogin() {
     }
 }
 
-export async function findSauce(file: string, channel: TextBasedChannel, min_similarity: number, only_accept_from = "", set_last_tags = true) {
+export async function findSauce(image_url: string, channel: TextBasedChannel, min_similarity: number, only_accept_from = "", set_last_tags = true) {
 
-    info(`searching sauce for ${file}`);
+    info(`searching sauce for ${image_url}`);
 
     await ensurePuppeteerStarted();
 
@@ -121,7 +121,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     const posts: Post[] = [];
     try {
-        sagiriResults = await sagiri_client(file);
+        sagiriResults = await sagiri_client(image_url);
 
         info(`got ${wrap(sagiriResults.length, colors.LIGHT_YELLOW)} results from saucenao`);
 
@@ -133,7 +133,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
             if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
                 posts.push({
                     source_db: `saucenao (${result.site})`,
-                    url: result.url,
+                    source_url: result.url,
                     similarity: result.similarity,
                     thumbnail: result.thumbnail,
                     author: result.authorName || "-"
@@ -147,7 +147,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     let callIq = !sagiriResults;
 
-    if (!posts.some((post) => post.url.includes("booru") && post.similarity >= min_similarity)) {
+    if (!posts.some((post) => post.source_url.includes("booru") && post.similarity >= min_similarity)) {
         callIq = true;
     }
 
@@ -157,7 +157,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
         while (!iqDbResults?.results) {
             try {
-                iqDbResults = await iqdb.search(file);
+                iqDbResults = await iqdb.search(image_url);
             } catch (err) {
                 error(err);
                 break;
@@ -172,7 +172,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
                 for (const result_source of result.sources) {
                     iqdb_posts.push({
                         source_db: `iqdb ${result_source.service}`,
-                        url: result_source.fixedHref,
+                        source_url: result_source.fixedHref,
                         similarity: result.similarity,
                         thumbnail: result.thumbnail.fixedSrc,
                         author: "-"
@@ -182,10 +182,10 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
             info(`got ${wrap(iqdb_posts.length, colors.LIGHT_YELLOW)} results from iqdb in ${iqDbResults.timeSeconds}s, searched ${iqDbResults.searched} images`);
 
-            for (const result of iqdb_posts) {
-                info(result.url + " " + wrap(result.similarity, colors.LIGHT_YELLOW));
-                if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
-                    posts.push(result);
+            for (const post of iqdb_posts) {
+                info(post.source_url + " " + wrap(post.similarity, colors.LIGHT_YELLOW));
+                if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some(accept_from => post.source_url.includes(accept_from))) {
+                    posts.push(post);
                 }
             }
         }
@@ -195,7 +195,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
 
     let best_post_combined = posts[0];
     for (const source of sourcePrecedence) {
-        const res = posts.find((value) => { return value.url.includes(source) && value.similarity >= min_similarity; });
+        const res = posts.find(post => { return post.source_url.includes(source) && post.similarity >= min_similarity; });
         if (res) {
             best_post_combined = res;
             break;
@@ -208,15 +208,15 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         embed.setColor(perc2color(best_post_combined.similarity));
         embed.setDescription(`similarity: ${best_post_combined.similarity}`);
 
-        const postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.url) || {
+        const postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.source_url) || {
             author: best_post_combined.author.replaceAll(" ", "_") || "-",
             character: "-",
             tags: "-",
             copyright: "-",
-            url: best_post_combined.url
+            source_url: best_post_combined.source_url
         };
 
-        embed.setURL(best_post_combined.url);
+        embed.setURL(best_post_combined.source_url);
         embed.setImage(best_post_combined.thumbnail);
         embed.addFields([{
             name: "Author",
@@ -236,7 +236,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
         }]);
 
         if (set_last_tags) {
-            setLastTags(channel, { postInfo: postInfo, file: file });
+            setLastTags(channel, { postInfo: postInfo, image_url: image_url });
         }
 
         return { "post": best_post_combined, "postInfo": postInfo, "embed": embed };
@@ -246,10 +246,10 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
     }
 }
 
-export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefined> {
+export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo | undefined> {
 
-    if (url.includes("pixiv")) {
-        const illust = await (await ensurePixivLogin())?.illust.get(url);
+    if (source_url.includes("pixiv")) {
+        const illust = await (await ensurePixivLogin())?.illust.get(source_url);
 
         if (illust) {
 
@@ -265,14 +265,14 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
                 character: "-",
                 copyright: "-",
                 tags: tags.join(",") || "-",
-                url: url
+                source_url: source_url
             };
         }
         return undefined;
     }
 
-    if (url.includes("danbooru")) {
-        const fileName = getFileName(url);
+    if (source_url.includes("danbooru")) {
+        const fileName = getFileName(source_url);
         const lastIndex = fileName.indexOf("?");
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
 
@@ -281,13 +281,13 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
             character: post.tag_string_character || "-",
             tags: post.tag_string_general || "-",
             copyright: post.tag_string_copyright || "-",
-            url: url
+            source_url: source_url
         };
     }
 
-    if (url.includes("gelbooru")) {
+    if (source_url.includes("gelbooru")) {
 
-        return grabBySelectors(url,
+        return grabBySelectors(source_url,
             "#tag-list > li.tag-type-artist > a",
             "#tag-list > li.tag-type-copyright > a",
             "#tag-list > li.tag-type-character > a",
@@ -295,9 +295,9 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     }
 
-    if (url.includes("sankakucomplex") || url.includes("rule34")) {
+    if (source_url.includes("sankakucomplex") || source_url.includes("rule34")) {
 
-        return grabBySelectors(url,
+        return grabBySelectors(source_url,
             "#tag-sidebar > li.tag-type-artist > a",
             "#tag-sidebar > li.tag-type-copyright > a",
             "#tag-sidebar > li.tag-type-character > a",
@@ -305,9 +305,9 @@ export async function getPostInfoFromUrl(url: string): Promise<PostInfo | undefi
 
     }
 
-    if (url.includes("yande") || url.includes("konachan")) {
+    if (source_url.includes("yande") || source_url.includes("konachan")) {
 
-        return grabBySelectors(url,
+        return grabBySelectors(source_url,
             "#tag-sidebar > li.tag-type-artist > a:nth-child(2)",
             "#tag-sidebar > li.tag-type-copyright > a:nth-child(2)",
             "#tag-sidebar > li.tag-type-character > a:nth-child(2)",
@@ -366,7 +366,7 @@ export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostIn
         checkTag("author", lastTagsFrom_get_sauce.author) +
         checkTag("copyright", lastTagsFrom_get_sauce.copyright) +
         checkTag("tags", lastTagsFrom_get_sauce.tags) +
-        ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.url)}'`;
+        ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.source_url)}'`;
 }
 
 const lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();

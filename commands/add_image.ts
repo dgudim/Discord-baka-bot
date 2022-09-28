@@ -71,7 +71,7 @@ async function processAndSaveImage(
 
         target.on("finish", async () => {
             target.close();
-            await sendToChannel(channel, `💾 Saved ${metadata.file_name}, `);
+            await sendToChannel(channel, `💾 Saved ${metadata.file_name}`);
 
             if (metadata.postInfo) {
                 await writeTagsToFile(getSauceConfString(metadata.postInfo), metadata.file_path, channel, async () => {

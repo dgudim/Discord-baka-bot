@@ -100,7 +100,7 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     const real_hash = await getFileHash(file);
     const database_hash = await getValueIfExists(db, `^${file}^hash`);
 
-    debug(`⛓ Calling ensureTagsInDB on ${file}, \nreal_hash: ${real_hash}, \ndatabase_hash: ${database_hash}`);
+    debug(`⛓ Calling ensureTagsInDB on ${file} \nreal_hash: ${real_hash} \ndatabase_hash: ${database_hash}`);
 
     if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);

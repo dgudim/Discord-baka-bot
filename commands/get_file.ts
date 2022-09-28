@@ -23,26 +23,25 @@ export default {
 
     callback: async ({ interaction, channel }) => {
 
-        const interaction_nn = interaction!;
-        const file_path = interaction_nn.options.getString("file-path")!;
+        const file_path = interaction!.options.getString("file-path")!;
 
         if (!fs.existsSync(file_path)) {
-            await safeReply(interaction_nn, "❌ File does not exist");
+            await safeReply(interaction, "❌ File does not exist");
             return;
         }
 
         if (fs.statSync(file_path).isDirectory()) {
-            await safeReply(interaction_nn, "❌ Can't send directories");
+            await safeReply(interaction, "❌ Can't send directories");
             return;
         }
 
         if (fs.statSync(file_path).size > eight_mb) {
-            await safeReply(interaction_nn, "❌ File too big ( > 8mb)");
+            await safeReply(interaction, "❌ File too big ( > 8mb)");
             return;
         }
 
         try {
-            await safeReply(interaction_nn, "📄 Here is your file");
+            await safeReply(interaction, "📄 Here is your file");
             await sendToChannel(channel, {
                 files: [{
                     attachment: file_path,
@@ -50,7 +49,7 @@ export default {
                 }]
             });
         } catch (err) {
-            await safeReply(interaction_nn, `❌ Error: ${err}`);
+            await safeReply(interaction, `❌ Error: ${err}`);
         }
 
     }

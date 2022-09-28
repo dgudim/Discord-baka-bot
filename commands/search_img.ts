@@ -30,24 +30,22 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        const interaction_nn = interaction!;
-
         let currImg = currImgs.get(channel.id) || 0;
         let images = imagesPerChannel.get(channel.id) || [];
 
-        const options = interaction_nn.options;
+        const options = interaction!.options;
 
         const searchQuery = normalize(options.getString("search-query"));
         let index = options.getInteger("index");
         const empty = !searchQuery.length && index == null;
 
         if (empty && currImg > images.length - 1) {
-            await safeReply(interaction_nn, `🚫 No more images in list`);
+            await safeReply(interaction, `🚫 No more images in list`);
             return;
         }
 
         if (searchQuery.length) {
-            await safeReply(interaction_nn, "🔎 Searching...");
+            await safeReply(interaction, "🔎 Searching...");
             images = await searchImages(searchQuery, channel);
             imagesPerChannel.set(channel.id, images);
             currImg = 0;
@@ -57,12 +55,12 @@ export default {
         if (index != null) {
             index = clamp(index, 0, images.length - 1);
             if (index > images.length - 1 || index < 0) {
-                await safeReply(interaction_nn, `🚫 Index too big or no images in the list, max is ${images.length - 1}`);
+                await safeReply(interaction, `🚫 Index too big or no images in the list, max is ${images.length - 1}`);
                 return;
             } else {
                 currImg = index;
                 currImgs.set(channel.id, index);
-                await safeReply(interaction_nn, `📍 Set current image index to ${index}`);
+                await safeReply(interaction, `📍 Set current image index to ${index}`);
             }
         }
 
@@ -71,7 +69,7 @@ export default {
         }
 
         const file = images[currImg];
-        await safeReply(interaction_nn, `🖼 Here is your image (index: ${currImg})`);
+        await safeReply(interaction, `🖼 Here is your image (index: ${currImg})`);
         await sendImgToChannel(channel, file, true);
         currImgs.set(channel.id, currImg + 1);
     }

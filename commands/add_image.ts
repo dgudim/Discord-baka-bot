@@ -113,15 +113,13 @@ export default {
 
     callback: async ({ interaction, channel }) => {
 
-        const interaction_nn = interaction!;
-
-        const urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
+        const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 
         if (!urls.length) {
-            await safeReply(interaction_nn, "🚫 No images to add");
+            await safeReply(interaction, "🚫 No images to add");
             return;
         } else {
-            await safeReply(interaction_nn, "📥 Adding image(s) to db");
+            await safeReply(interaction, "📥 Adding image(s) to db");
         }
 
         for (const url of urls) {
@@ -157,7 +155,7 @@ export default {
                         }
 
                     } else {
-                        await safeReply(interaction_nn, "🚫 Can't download from pixiv without token");
+                        await safeReply(interaction, "🚫 Can't download from pixiv without token");
                     }
                     return;
                 }

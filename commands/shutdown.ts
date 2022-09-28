@@ -30,14 +30,12 @@ export default {
 
     callback: async ({ channel, interaction, guild }) => {
 
-        const interaction_nn = interaction!;
-
-        const timeout = interaction_nn.options.getInteger("timeout-minutes") || 0;
-        const reboot = interaction_nn.options.getBoolean("reboot") || false;
+        const timeout = interaction!.options.getInteger("timeout-minutes") || 0;
+        const reboot = interaction!.options.getBoolean("reboot") || false;
 
         const msg_channel = status_channel ? status_channel : channel;
 
-        await safeReply(interaction_nn, "🔌 YES SIR! Shutting down");
+        await safeReply(interaction, "🔌 YES SIR! Shutting down");
         await sendToChannel(msg_channel, guild?.roles.everyone.toString() || "");
         await sendToChannel(msg_channel, getSimpleEmbed(`🟡 Shutting down server in ${timeout} minute(s)`, getDateTime(), "Yellow"));
         await sleep(timeout * 1000 * 60 - 15000);

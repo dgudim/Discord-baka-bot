@@ -51,26 +51,24 @@ export default {
 
     callback: async ({ channel, interaction, }) => {
 
-        const interaction_nn = interaction!;
+        const min_similarity = interaction!.options.getNumber("min-similarity") || 75;
 
-        const min_similarity = interaction_nn.options.getNumber("min-similarity") || 75;
-
-        const urls = await getAllUrlFileAttachements(interaction_nn, "url", "image", true);
+        const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 
         if (!urls.length) {
-            await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
+            await searchAndSendSauce(interaction, channel, min_similarity, getLastImgUrl(channel));
             return;
         }
 
-        await safeReply(interaction_nn, `📥 Getting sauce for ${urls.length} image(s)`);
+        await safeReply(interaction, `📥 Getting sauce for ${urls.length} image(s)`);
 
         for (const image_url of urls) {
             const res = await fetchUrl(image_url);
             if (isPngOrJpgUrlType(res.type)) {
-                await searchAndSendSauce(interaction_nn, channel, min_similarity, image_url);
+                await searchAndSendSauce(interaction, channel, min_similarity, image_url);
             } else {
 
-                await safeReply(interaction_nn, "🕜 Attachement is not jpg or png, converting, please wait");
+                await safeReply(interaction, "🕜 Attachement is not jpg or png, converting, please wait");
 
                 const filePath = "/tmp/temp.jpg";
                 const file_stream = fs.createWriteStream(filePath);
@@ -90,7 +88,7 @@ export default {
                     file_stream.on("finish", async () => {
                         file_stream.close();
                         await sendImgToChannel(channel, filePath);
-                        await searchAndSendSauce(interaction_nn, channel, min_similarity, getLastImgUrl(channel));
+                        await searchAndSendSauce(interaction, channel, min_similarity, getLastImgUrl(channel));
                     });
                 });
             }

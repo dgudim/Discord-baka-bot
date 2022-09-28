@@ -41,15 +41,14 @@ export default {
 
     callback: async ({ interaction }) => {
 
-        const interaction_nn = interaction!;
-        const command = interaction_nn.options.getString("command");
-        const as_root = interaction_nn.options.getBoolean("as_root");
+        const command = interaction!.options.getString("command")!;
+        const as_root = interaction!.options.getBoolean("as_root");
 
         const embed = new EmbedBuilder();
         embed.setTitle("exec");
         embed.setDescription(`⚙️ Executing ${command}...`);
 
-        await safeReply(interaction_nn, embed);
+        await safeReply(interaction, embed);
 
         exec(as_root ? ("timeout 5s " + command) : (`runuser -l kloud -c 'timeout 5s ${command}'`),
             (error, stdout, stderr) => {
@@ -71,7 +70,7 @@ export default {
 
                 embed.setDescription(`🟦 Result of executing ${command}`);
 
-                interaction_nn.editReply({
+                interaction?.editReply({
                     embeds: [embed]
                 });
 

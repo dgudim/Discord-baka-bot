@@ -18,16 +18,14 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        const interraction_nn = interaction!;
-
         if (!getLastImgPath(channel)) {
-            await safeReply(interraction_nn, "🚫 No image selected");
+            await safeReply(interaction, "🚫 No image selected");
             return;
         }
 
         let confString = "";
 
-        for (const interraction_option of interraction_nn.options.data) {
+        for (const interraction_option of interaction!.options.data) {
             const index = image_args.indexOf(interraction_option.name);
             if (index != -1) {
                 confString += ` -xmp-xmp:${img_tags[index].xmpName}='${normalize(interraction_option.value?.toString())}'`;
@@ -36,12 +34,12 @@ export default {
             }
         }
 
-        if (!interraction_nn.options.data.length) {
+        if (!interaction!.options.data.length) {
             const lastTagsFrom_get_sauce = getLastTags(channel);
             if (lastTagsFrom_get_sauce.file == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
-                await safeReply(interraction_nn, "🚫 No tags provided");
+                await safeReply(interaction, "🚫 No tags provided");
                 return;
             }
         }
@@ -50,6 +48,6 @@ export default {
             await sendToChannel(channel, await getImageMetatags(getLastImgPath(channel)));
         });
 
-        await safeReply(interraction_nn, "🪧 New tags");
+        await safeReply(interaction, "🪧 New tags");
     }
 } as ICommand;

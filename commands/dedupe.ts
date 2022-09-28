@@ -15,9 +15,7 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        const interaction_nn = interaction!;
-
-        await safeReply(interaction_nn, "🗃 Deduping databse...");
+        await safeReply(interaction, "🗃 Deduping databse...");
 
         const images = walk(await getImgDir());
         const hashMap = new Map<string, string>();
@@ -39,6 +37,6 @@ export default {
                 }
             }
         }
-        await safeReply(interaction_nn, `🟩 Dedupe finished, ${deleted} images deleted`);
+        await safeReply(interaction, `🟩 Dedupe finished, ${deleted} images deleted`);
     }
 } as ICommand;

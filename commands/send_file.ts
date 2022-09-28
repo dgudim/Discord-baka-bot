@@ -35,17 +35,15 @@ export default {
 
     callback: async ({ interaction, channel }) => {
 
-        const interaction_nn = interaction!;
+        const urls = await getAllUrlFileAttachements(interaction, "url", "file");
 
-        const urls = await getAllUrlFileAttachements(interaction_nn, "url", "file");
-
-        changeSavedDirectory(channel, "SAVE", interaction_nn.options.getString("save-path"));
+        changeSavedDirectory(channel, "SAVE", interaction!.options.getString("save-path"));
 
         if (!urls.length) {
-            await safeReply(interaction_nn, `🚫 No files so save`);
+            await safeReply(interaction, `🚫 No files so save`);
             return;
         } else {
-            await safeReply(interaction_nn, "📥 Saving file(s)");
+            await safeReply(interaction, "📥 Saving file(s)");
         }
 
         const sendDir = await getSendDir();

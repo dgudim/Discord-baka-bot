@@ -120,8 +120,7 @@ export default {
         const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 
         if (!urls.length) {
-            await safeReply(interaction, "🚫 No images to add");
-            return;
+            return safeReply(interaction, "🚫 No images to add");
         } else {
             await safeReply(interaction, "📥 Adding image(s) to db");
         }

@@ -114,6 +114,11 @@ export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
     embed.setDescription(getFileName(file));
     embed.setColor("Green");
 
+    const sourcepost = await getValueIfExists(db, `^${file}^tags^sourcepost`);
+    if (sourcepost != "-") {
+        embed.setURL(`https://${sourcepost}`);
+    }
+
     await ensureTagsInDB(file);
 
     for (const img_tag of img_tags) {

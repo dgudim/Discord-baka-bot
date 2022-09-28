@@ -19,8 +19,7 @@ export default {
     callback: async ({ channel, interaction }) => {
 
         if (!getLastImgPath(channel)) {
-            await safeReply(interaction, "🚫 No image selected");
-            return;
+            return safeReply(interaction, "🚫 No image selected");
         }
 
         let confString = "";
@@ -39,8 +38,7 @@ export default {
             if (lastTagsFrom_get_sauce.file == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
-                await safeReply(interaction, "🚫 No tags provided");
-                return;
+                return safeReply(interaction, "🚫 No tags provided");
             }
         }
 

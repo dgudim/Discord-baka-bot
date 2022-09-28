@@ -163,8 +163,7 @@ export async function findSauce(file: string, channel: TextBasedChannel, min_sim
                 break;
             }
             
-            sendToChannel(channel, `iqdb error`);
-            sendToChannel(channel, "retrying call to iqdb");  
+            sendToChannel(channel, `iqdb error, retrying`);
         }
 
         if (iqDbResults?.results) {

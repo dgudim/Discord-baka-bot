@@ -26,18 +26,15 @@ export default {
         const file_path = interaction!.options.getString("file-path")!;
 
         if (!fs.existsSync(file_path)) {
-            await safeReply(interaction, "❌ File does not exist");
-            return;
+            return safeReply(interaction, "❌ File does not exist");
         }
 
         if (fs.statSync(file_path).isDirectory()) {
-            await safeReply(interaction, "❌ Can't send directories");
-            return;
+            return safeReply(interaction, "❌ Can't send directories");
         }
 
         if (fs.statSync(file_path).size > eight_mb) {
-            await safeReply(interaction, "❌ File too big ( > 8mb)");
-            return;
+            return safeReply(interaction, "❌ File too big ( > 8mb)");
         }
 
         try {

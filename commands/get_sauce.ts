@@ -3,7 +3,7 @@ import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from "https";
 import sharp from "sharp";
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isPngOrJpgUrlType, none, nullableString, safeReply, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, isPngOrJpgUrlType, none, nullableString, safeReply, sendToChannel } from "discord_bots_common";
 import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
 
 async function searchAndSendSauce(
@@ -62,8 +62,12 @@ export default {
         await safeReply(interaction, `📥 Getting sauce for ${urls.length} image(s)`);
 
         for (const image_url of urls) {
-            
+
             const res = await fetchUrl(image_url);
+
+            if (isImageUrlType(res.type)) {
+                return safeReply(interaction, "🚫 Url does not point to an image");
+            }
 
             if (isPngOrJpgUrlType(res.type)) {
                 await sendToChannel(channel, image_url);

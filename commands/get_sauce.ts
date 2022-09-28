@@ -3,20 +3,20 @@ import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from "https";
 import sharp from "sharp";
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isPngOrJpgUrlType, safeReply, sendToChannel } from "discord_bots_common";
+import { fetchUrl, getAllUrlFileAttachements, getFileName, isPngOrJpgUrlType, none, nullableString, safeReply, sendToChannel } from "discord_bots_common";
 import { CommandInteraction, TextBasedChannel, ApplicationCommandOptionType } from "discord.js";
 
 async function searchAndSendSauce(
-    interaction: CommandInteraction, channel: TextBasedChannel,
-    min_similarity: number, fileOrUrl: string | undefined) {
+    interaction: CommandInteraction | none, channel: TextBasedChannel,
+    min_similarity: number, url: nullableString) {
 
-    if (!fileOrUrl) {
+    if (!url) {
         await safeReply(interaction, "❌ No file provided.");
         return;
     }
 
-    await safeReply(interaction, `🔎 Searching sauce for ${getFileName(fileOrUrl)}`);
-    const sauce = await findSauce(fileOrUrl, channel, min_similarity);
+    await safeReply(interaction, `🔎 Searching sauce for ${getFileName(url)}`);
+    const sauce = await findSauce(url, channel, min_similarity);
     if (sauce) {
         await sendToChannel(channel, sauce.embed);
     }
@@ -46,8 +46,7 @@ export default {
         description: "Minimum similarity of the image (1-100)",
         type: ApplicationCommandOptionType.Integer,
         required: false
-    }
-    ],
+    }],
 
     callback: async ({ channel, interaction, }) => {
 
@@ -63,8 +62,11 @@ export default {
         await safeReply(interaction, `📥 Getting sauce for ${urls.length} image(s)`);
 
         for (const image_url of urls) {
+            
             const res = await fetchUrl(image_url);
+
             if (isPngOrJpgUrlType(res.type)) {
+                await sendToChannel(channel, image_url);
                 await searchAndSendSauce(interaction, channel, min_similarity, image_url);
             } else {
 

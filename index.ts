@@ -9,7 +9,7 @@ import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString } from "discord_bots_common";
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString } from "discord_bots_common";
 import { getKeyByDirType } from "./sauce_utils";
 
 import * as readline from "readline";
@@ -39,9 +39,12 @@ function isBuiltin(str: string): boolean {
 
 export let status_channel: TextBasedChannel;
 
-export function toggleTerminalChannel(channel: TextBasedChannel | null, client_id: string): boolean {
+export function toggleTerminalChannel(channel: TextBasedChannel | none, client_id: nullableString): {state: boolean, error: boolean} {
     let added = false;
-    const channel_id = channel?.id || "";
+    const channel_id = channel?.id;
+    if (!channel_id || !client_id) {
+        return { state: false, error: true };
+    }
     if (!terminalShellsByChannel.has(channel_id)) {
         const shell_session = spawn("/bin/sh");
 
@@ -68,7 +71,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         channelTerminalShellUsers.set(channel_id, []);
     }
 
-    const client_index = channelTerminalShellUsers.get(channel_id)!.indexOf(client_id);
+    const client_index = channelTerminalShellUsers.get(channel_id)?.indexOf(client_id) || -1;
 
     if (client_index == -1) {
         channelTerminalShellUsers.get(channel_id)?.push(client_id);
@@ -77,7 +80,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | null, client_i
         channelTerminalShellUsers.get(channel_id)?.splice(client_index, 1);
     }
 
-    return added;
+    return { state: added, error: false };
 }
 
 const client = new Client({

@@ -11,11 +11,11 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    callback: async ({ interaction, channel }) => {
-
-        const user = interaction!.user;
-        const sucessfull = toggleTerminalChannel(channel, user.id);
-
-        await safeReply(interaction, `⚙️ Turned terminal mode ${sucessfull ? "ON" : "OFF"} for user ${user.username}`);
+    callback: async ({ interaction, channel, user }) => {
+        const result = toggleTerminalChannel(channel, user.id);
+        if (result.error) {
+            return safeReply(interaction, `❌ An error occured`);
+        }
+        await safeReply(interaction, `⚙️ Turned terminal mode ${result.state ? "ON" : "OFF"} for user ${user.username}`);
     }
 } as ICommand;

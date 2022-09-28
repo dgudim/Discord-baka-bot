@@ -21,7 +21,7 @@ async function getFilePath(file_name: string, channel: TextChannel) {
     return file_path;
 }
 
-async function getMetadata(channel: TextChannel, img_url: string, is_plain_image: boolean, file_name: string) {
+async function getMetadata(channel: TextChannel, source_url: string, is_plain_image: boolean, file_name: string) {
 
     const file_path = await getFilePath(file_name, channel);
     if (!file_path) {
@@ -30,17 +30,21 @@ async function getMetadata(channel: TextChannel, img_url: string, is_plain_image
 
     let postInfo;
     if (!is_plain_image) {
-        postInfo = await getPostInfoFromUrl(img_url);
+        postInfo = await getPostInfoFromUrl(source_url);
     }
+
+    let image_url;
 
     if (!is_plain_image) {
         await sendImgToChannel(channel, file_path);
+        image_url = getLastImgUrl(channel);
     } else {
-        await sendToChannel(channel, img_url);
+        await sendToChannel(channel, source_url);
+        image_url = source_url;
     }
 
     if (!postInfo) {
-        const sauce = await findSauce(getLastImgUrl(channel), channel, 85);
+        const sauce = await findSauce(image_url, channel, 85);
         if (sauce && sauce.post.similarity >= 85) {
             postInfo = sauce.postInfo;
         }

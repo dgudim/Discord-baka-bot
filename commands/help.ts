@@ -176,6 +176,6 @@ export default {
 
         embed.setColor("Aqua");
 
-        await safeReply(interaction!, embed);
+        await safeReply(interaction, embed);
     }
 } as ICommand;

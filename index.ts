@@ -9,7 +9,7 @@ import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString } from "discord_bots_common";
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString, getFileName } from "discord_bots_common";
 import { getKeyByDirType } from "./sauce_utils";
 
 import * as readline from "readline";

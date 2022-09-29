@@ -85,7 +85,7 @@ async function grabBySelectors(source_url: string,
         copyright: copyrightTags.join(",") || "-",
         source_url: source_url,
         image_url: "-",
-        rating: rating.join(",") || "-"
+        rating: rating.join(",").replace("Rating:", "").trim().toLowerCase() || "-"
     };
 }
 
@@ -290,7 +290,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             copyright: post.tag_string_copyright || "-",
             source_url: source_url,
             image_url: "-",
-            // rating: post.type || "-", // check this
+            rating: post.rating || "-"
         };
     }
 
@@ -300,7 +300,8 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             "#tag-list > li.tag-type-artist > a",
             "#tag-list > li.tag-type-copyright > a",
             "#tag-list > li.tag-type-character > a",
-            "#tag-list > li.tag-type-general > a");
+            "#tag-list > li.tag-type-general > a",
+            "li:has(> a)[style*=\"line-break: anywhere;\"] + li");
 
     }
 
@@ -310,7 +311,8 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             "#tag-sidebar > li.tag-type-artist > a",
             "#tag-sidebar > li.tag-type-copyright > a",
             "#tag-sidebar > li.tag-type-character > a",
-            "#tag-sidebar > li.tag-type-general > a");
+            "#tag-sidebar > li.tag-type-general > a",
+            "#stats > ul > li:not(:has(> a))");
 
     }
 
@@ -320,7 +322,8 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             "#tag-sidebar > li.tag-type-artist > a:nth-child(2)",
             "#tag-sidebar > li.tag-type-copyright > a:nth-child(2)",
             "#tag-sidebar > li.tag-type-character > a:nth-child(2)",
-            "#tag-sidebar > li.tag-type-general > a:nth-child(2)");
+            "#tag-sidebar > li.tag-type-general > a:nth-child(2)",
+            "#stats > ul > li:has(> span[class=\"vote-desc\"])");
 
     }
 
@@ -368,15 +371,27 @@ export function getKeyByDirType(dir_type: saveDirType): string {
 }
 
 function ratingToLevel(rating: string) {
-    // TODO: implement
     switch (rating) {
         case "explicit":
+        case "e":
             return "90";
+
         case "ero":
+        case "q":
+        case "questionable":
+            return "65";
+
+        case "s":
+        case "sensitive":
             return "50";
+
         case "safe":
+        case "general":
+        case "g":
             return "15";
+
         default:
+            warn(`Unknown rating: ${wrap(rating, colors.GREEN)}`);
             return "-";
     }
 }

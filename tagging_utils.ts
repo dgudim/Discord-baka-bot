@@ -1,5 +1,5 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
-import { TagContainer } from "./sauce_utils";
+
 import {
     getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray,
     debug, error, info, normalizeTags
@@ -13,19 +13,28 @@ import util from "util";
 const execPromise = util.promisify(exec);
 
 import { db, image_args, xpm_image_args_grep } from ".";
+import { PostInfo } from "./sauce_utils";
 
-const lastTags: Map<Snowflake, TagContainer> = new Map<Snowflake, TagContainer>();
+const lastTags: Map<Snowflake, PostInfo> = new Map<Snowflake, PostInfo>();
 
 export function checkTag(tag_name: string, tag_content: string): string {
     return tag_content != "-" ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : "";
 }
 
-export function setLastTags(channel: TextBasedChannel, tags: TagContainer): void {
+export function setLastTags(channel: TextBasedChannel, tags: PostInfo): void {
     lastTags.set(channel.id, tags);
 }
 
-export function getLastTags(channel: TextBasedChannel): TagContainer {
-    return lastTags.get(channel.id) || { postInfo: { author: "-", character: "-", copyright: "-", tags: "-", source_url: "-" }, image_url: "-" };
+export function getLastTags(channel: TextBasedChannel): PostInfo {
+    return lastTags.get(channel.id) || {
+        author: "-",
+        character: "-",
+        copyright: "-",
+        tags: "-",
+        source_url: "-",
+        image_url: "-",
+        rating: "-",
+    };
 }
 
 export function getImageTag(file: string, arg: string): Promise<string> {

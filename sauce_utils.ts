@@ -54,6 +54,7 @@ interface Post {
     similarity: number;
     thumbnail: string;
     author: string;
+    rating: string;
 }
 
 export interface PostInfo {
@@ -62,29 +63,29 @@ export interface PostInfo {
     tags: string;
     copyright: string;
     source_url: string;
-}
-
-export interface TagContainer {
-    postInfo: PostInfo;
     image_url: string;
+    rating: string;
 }
 
 async function grabBySelectors(source_url: string,
     authorSelector: string, copyrightSelector: string,
-    characterSelector: string, tagSelector: string) {
+    characterSelector: string, tagSelector: string, ratingSelector: string) {
     await page.goto(source_url);
 
     const authorTags = await getTagsBySelector(authorSelector);
     const copyrightTags = await getTagsBySelector(copyrightSelector);
     const characterTags = await getTagsBySelector(characterSelector);
     const generalTags = await getTagsBySelector(tagSelector);
+    const rating = await getTagsBySelector(ratingSelector);
 
     return {
         author: authorTags.join(",") || "-",
         character: characterTags.join(",") || "-",
         tags: generalTags.join(",") || "-",
         copyright: copyrightTags.join(",") || "-",
-        source_url: source_url
+        source_url: source_url,
+        image_url: "-",
+        rating: rating.join(",") || "-"
     };
 }
 
@@ -136,7 +137,8 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                     source_url: result.url,
                     similarity: result.similarity,
                     thumbnail: result.thumbnail,
-                    author: result.authorName || "-"
+                    author: result.authorName || "-",
+                    rating: "-"
                 });
             }
         }
@@ -162,7 +164,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                 error(err);
                 break;
             }
-            
+
             sendToChannel(channel, `iqdb error, retrying`);
         }
 
@@ -175,7 +177,8 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                         source_url: result_source.fixedHref,
                         similarity: result.similarity,
                         thumbnail: result.thumbnail.fixedSrc,
-                        author: "-"
+                        author: "-",
+                        rating: result.type
                     });
                 }
             }
@@ -213,7 +216,9 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             character: "-",
             tags: "-",
             copyright: "-",
-            source_url: best_post_combined.source_url
+            source_url: best_post_combined.source_url,
+            image_url: image_url,
+            rating: best_post_combined.rating
         };
 
         embed.setURL(best_post_combined.source_url);
@@ -221,22 +226,22 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         embed.addFields([{
             name: "Author",
             value: normalizeTags(postInfo.author)
-        },
-        {
+        }, {
             name: "Character",
             value: normalizeTags(postInfo.character)
-        },
-        {
+        }, {
             name: "Tags",
             value: limitLength(normalizeTags(postInfo.tags), 1024)
-        },
-        {
+        }, {
             name: "Copyright",
             value: normalizeTags(postInfo.copyright)
+        }, {
+            name: "Rating",
+            value: normalizeTags(postInfo.rating)
         }]);
 
         if (set_last_tags) {
-            setLastTags(channel, { postInfo: postInfo, image_url: image_url });
+            setLastTags(channel, postInfo);
         }
 
         return { "post": best_post_combined, "postInfo": postInfo, "embed": embed };
@@ -265,7 +270,9 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
                 character: "-",
                 copyright: "-",
                 tags: tags.join(",") || "-",
-                source_url: source_url
+                source_url: source_url,
+                image_url: "-",
+                rating: `${illust.sanity_level}`
             };
         }
         return undefined;
@@ -281,7 +288,9 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             character: post.tag_string_character || "-",
             tags: post.tag_string_general || "-",
             copyright: post.tag_string_copyright || "-",
-            source_url: source_url
+            source_url: source_url,
+            image_url: "-",
+            // rating: post.type || "-", // check this
         };
     }
 
@@ -358,14 +367,26 @@ export function getKeyByDirType(dir_type: saveDirType): string {
     return key;
 }
 
-export function getSauceConfString(lastTagsFrom_get_sauce: TagContainer | PostInfo) {
-    if ("postInfo" in lastTagsFrom_get_sauce) {
-        lastTagsFrom_get_sauce = lastTagsFrom_get_sauce.postInfo;
+function ratingToLevel(rating: string) {
+    // TODO: implement
+    switch (rating) {
+        case "explicit":
+            return "90";
+        case "ero":
+            return "50";
+        case "safe":
+            return "15";
+        default:
+            return "-";
     }
+}
+
+export function getSauceConfString(lastTagsFrom_get_sauce: PostInfo) {
     return checkTag("character", lastTagsFrom_get_sauce.character) +
         checkTag("author", lastTagsFrom_get_sauce.author) +
         checkTag("copyright", lastTagsFrom_get_sauce.copyright) +
         checkTag("tags", lastTagsFrom_get_sauce.tags) +
+        checkTag("hlvl", ratingToLevel(lastTagsFrom_get_sauce.rating)) +
         ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.source_url)}'`;
 }
 

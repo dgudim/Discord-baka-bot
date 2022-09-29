@@ -78,13 +78,26 @@ async function grabBySelectors(source_url: string,
     const generalTags = await getTagsBySelector(tagSelector);
     const rating = await getTagsBySelector(ratingSelector);
 
+    let image_url;
+    if (source_url.includes("yande.re")) {
+        image_url = await getAttributeBySelector("#highres-show", "href");
+    } else if (source_url.includes("gelbooru")) {
+        await callFunction("resizeTransition();");
+    } else if (source_url.includes("rule34")) {
+        await callFunction("Post.highres();");
+    } else if (source_url.includes("sankakucomplex")) {
+        await page.click("#image");
+    }
+
+    image_url = image_url || await getAttributeBySelector("#image", "src");
+
     return {
         author: authorTags.join(",") || "-",
         character: characterTags.join(",") || "-",
         tags: generalTags.join(",") || "-",
         copyright: copyrightTags.join(",") || "-",
         source_url: source_url,
-        image_url: "-",
+        image_url: image_url || "",
         rating: rating.join(",").replace("Rating:", "").trim().toLowerCase() || "-"
     };
 }
@@ -271,7 +284,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
                 copyright: "-",
                 tags: tags.join(",") || "-",
                 source_url: source_url,
-                image_url: "-",
+                image_url: "",
                 rating: `${illust.sanity_level}`
             };
         }
@@ -289,7 +302,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             tags: post.tag_string_general || "-",
             copyright: post.tag_string_copyright || "-",
             source_url: source_url,
-            image_url: "-",
+            image_url: post.large_file_url,
             rating: post.rating || "-"
         };
     }
@@ -328,29 +341,6 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
     }
 
     return undefined;
-}
-
-export async function grabImageUrl(url: string) {
-
-    await ensurePuppeteerStarted();
-
-    await page.goto(url);
-
-    let res;
-
-    if (url.includes("danbooru")) {
-        res = await getAttributeBySelector(".image-view-original-link", "href");
-    } else if (url.includes("yande.re")) {
-        res = await getAttributeBySelector("#highres-show", "href");
-    } else if (url.includes("gelbooru")) {
-        await callFunction("resizeTransition();");
-    } else if (url.includes("rule34")) {
-        await callFunction("Post.highres();");
-    } else if (url.includes("sankakucomplex")) {
-        await page.click("#image");
-    }
-
-    return res || getAttributeBySelector("#image", "src");
 }
 
 export type saveDirType =

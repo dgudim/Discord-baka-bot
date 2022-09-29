@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, grabImageUrl, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
@@ -24,30 +24,23 @@ async function getFile(raw_path: string, channel: TextChannel) {
     return { name: file_name, path: file_path };
 }
 
-async function getMetadata(channel: TextChannel, image_url: string, source_url: string) {
-
-    const file = await getFile(image_url, channel);
-    if (!file) {
-        return undefined;
-    }
-
-    const is_plain_image = image_url == source_url;
+async function getMetadata(channel: TextChannel, source_url: string, is_plain_image: boolean) {
 
     let postInfo;
     if (!is_plain_image) {
         postInfo = await getPostInfoFromUrl(source_url);
-    }
-
-    await sendToChannel(channel, image_url);
-
-    if (!postInfo) {
-        const sauce = await findSauce(image_url, channel, 85);
+    } else {
+        const sauce = await findSauce(source_url, channel, 85);
         if (sauce && sauce.post.similarity >= 85) {
             postInfo = sauce.postInfo;
         }
     }
 
-    return { postInfo, file };
+    if (postInfo) {
+        await sendToChannel(channel, postInfo.image_url);
+    }
+
+    return postInfo;
 }
 
 async function writePostInfoToFile(postInfo: PostInfo | undefined, file_path: string, channel: TextBasedChannel) {
@@ -63,12 +56,8 @@ async function writePostInfoToFile(postInfo: PostInfo | undefined, file_path: st
 
 async function processAndSaveImage(
     source: fs.ReadStream | IncomingMessage,
-    metadata: Metadata | undefined,
+    metadata: Metadata,
     channel: TextChannel) {
-
-    if (!metadata) {
-        return;
-    }
 
     await sendToChannel(channel, `📥 Saving as ${metadata.file.name}`);
 
@@ -146,6 +135,7 @@ export default {
                                 await processAndSaveImage(fs.createReadStream(image), {
                                     file: new_file
                                 }, channel);
+                                
                                 await sendImgToChannel(channel, new_file.path);
 
                                 let postInfo;
@@ -169,15 +159,17 @@ export default {
                     return;
                 }
 
+                const target_file = await getFile(source_url, channel);
+                if (!target_file) {
+                    return;
+                }
 
-                const img_url = is_plain_image ? source_url : await grabImageUrl(source_url);
+                const postInfo = await getMetadata(channel, source_url, is_plain_image);
 
-                if (img_url) {
-                    https.get(img_url, async (response) => {
-                        const metadata = await processAndSaveImage(response, await getMetadata(channel, img_url, source_url), channel);
-                        if (metadata) {
-                            await writePostInfoToFile(metadata.postInfo, metadata.file.path, channel);
-                        }
+                if (postInfo) {
+                    https.get(postInfo.image_url, async (response) => {
+                        await processAndSaveImage(response, { postInfo: postInfo, file: target_file }, channel);
+                        await writePostInfoToFile(postInfo, target_file.path, channel);
                     });
                 } else {
                     await sendToChannel(channel, "❌ Could not get image url from page", true);

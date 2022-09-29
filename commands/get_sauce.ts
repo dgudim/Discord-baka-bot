@@ -65,7 +65,7 @@ export default {
 
             const res = await fetchUrl(image_url);
 
-            if (isImageUrlType(res.type)) {
+            if (!isImageUrlType(res.type)) {
                 return safeReply(interaction, "🚫 Url does not point to an image");
             }
 

@@ -430,9 +430,10 @@ export async function getSendDir() {
     return db.getData(`^${getKeyByDirType("SAVE")}`);
 }
 
-export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): void {
+export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): string {
     lastFiles.set(channel.id, file);
     lastFileUrls.set(channel.id, fileUrl);
+    return fileUrl;
 }
 
 export function getLastImgUrl(channel: TextBasedChannel): string {
@@ -443,7 +444,7 @@ export function getLastImgPath(channel: TextBasedChannel): string {
     return lastFiles.get(channel.id) || "";
 }
 
-export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata = false): Promise<void> {
+export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata = false): Promise<string | undefined> {
     let attachment: BufferResolvable | undefined = file;
     let message: Promise<Message<boolean>> | undefined;
     const width = (await sharp(file).metadata()).width || 0;
@@ -483,9 +484,10 @@ export async function sendImgToChannel(channel: TextBasedChannel, file: string, 
         }
 
         if (message) {
-            setLastImg(channel, file, (await message).attachments.at(0)?.url || "");
+            return setLastImg(channel, file, (await message).attachments.at(0)?.url || "");
         }
     }
+    return undefined;
 }
 
 export async function searchImages(searchQuery: string, channel: TextBasedChannel | null) {

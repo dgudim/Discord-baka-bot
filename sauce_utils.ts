@@ -12,15 +12,15 @@ import pixiv from "pixiv.ts";
 
 import puppeteer, { Browser, Page } from "puppeteer";
 import {
-    getFileName, limitLength, perc2color, sendToChannel, sleep,
-    trimStringArray, walk, normalizeTags, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn
+    getFileName, perc2color, sendToChannel, sleep,
+    trimStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn
 } from "discord_bots_common";
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 
 import sharp from "sharp";
 import fs from "fs";
-import { checkTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
+import { appendPostInfoToEmbed, checkTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
 
 let browser: Browser;
 let page: Page;
@@ -230,29 +230,14 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             tags: "-",
             copyright: "-",
             source_url: best_post_combined.source_url,
-            image_url: image_url,
+            image_url: "",
             rating: best_post_combined.rating
         };
 
-        embed.setURL(best_post_combined.source_url);
         embed.setImage(best_post_combined.thumbnail);
-        embed.addFields([{
-            name: "Author",
-            value: normalizeTags(postInfo.author)
-        }, {
-            name: "Character",
-            value: normalizeTags(postInfo.character)
-        }, {
-            name: "Tags",
-            value: limitLength(normalizeTags(postInfo.tags), 1024)
-        }, {
-            name: "Copyright",
-            value: normalizeTags(postInfo.copyright)
-        }, {
-            name: "Rating",
-            value: normalizeTags(postInfo.rating)
-        }]);
 
+        appendPostInfoToEmbed(embed, postInfo);
+        
         if (set_last_tags) {
             setLastTags(channel, postInfo);
         }

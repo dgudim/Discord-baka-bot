@@ -116,6 +116,35 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     }
 }
 
+export function postInfoToEmbed(postInfo: PostInfo) {
+    const embed = new EmbedBuilder();
+    embed.setTitle("🖼 Image metadata");
+    embed.setDescription(getFileName(postInfo.source_url));
+    embed.setColor("Green");
+    appendPostInfoToEmbed(embed, postInfo);
+    return embed;
+}
+
+export function appendPostInfoToEmbed(embed: EmbedBuilder, postInfo: PostInfo) {
+    embed.setURL(postInfo.source_url);
+    embed.addFields([{
+        name: "Author",
+        value: normalizeTags(postInfo.author)
+    }, {
+        name: "Character",
+        value: normalizeTags(postInfo.character)
+    }, {
+        name: "Tags",
+        value: limitLength(normalizeTags(postInfo.tags), 1024)
+    }, {
+        name: "Copyright",
+        value: normalizeTags(postInfo.copyright)
+    }, {
+        name: "Rating",
+        value: normalizeTags(postInfo.rating)
+    }]);
+}
+
 export async function getImageMetatags(file: string): Promise<EmbedBuilder> {
 
     const embed = new EmbedBuilder();

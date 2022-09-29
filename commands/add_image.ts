@@ -5,7 +5,7 @@ import https from "https";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
-import { ensureTagsInDB, writeTagsToFile } from "../tagging_utils";
+import { ensureTagsInDB, postInfoToEmbed, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
 import { IncomingMessage } from "http";
 
@@ -45,6 +45,7 @@ async function getMetadata(channel: TextChannel, source_url: string, is_plain_im
 
 async function writePostInfoToFile(postInfo: PostInfo | undefined, file_path: string, channel: TextBasedChannel) {
     if (postInfo) {
+        await sendToChannel(channel, postInfoToEmbed(postInfo));
         await writeTagsToFile(getSauceConfString(postInfo), file_path, channel, async () => {
             await ensureTagsInDB(file_path);
             await sendToChannel(channel, `📝 Wrote tags`);
@@ -135,7 +136,7 @@ export default {
                                 await processAndSaveImage(fs.createReadStream(image), {
                                     file: new_file
                                 }, channel);
-                                
+
                                 await sendImgToChannel(channel, new_file.path);
 
                                 let postInfo;

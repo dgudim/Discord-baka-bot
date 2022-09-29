@@ -230,11 +230,11 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             tags: "-",
             copyright: "-",
             source_url: best_post_combined.source_url,
-            image_url: "",
+            image_url: best_post_combined.thumbnail,
             rating: best_post_combined.rating
         };
 
-        embed.setImage(best_post_combined.thumbnail);
+        embed.setImage(postInfo.image_url);
 
         appendPostInfoToEmbed(embed, postInfo);
         

@@ -98,7 +98,7 @@ async function grabBySelectors(source_url: string,
         copyright: copyrightTags.join(",") || "-",
         source_url: source_url,
         image_url: image_url || "",
-        rating: rating.join(",").replace("Rating:", "").trim().toLowerCase() || "-"
+        rating: ratingToReadable(rating.join(",").replace("Rating:", "").trim().toLowerCase() || "-")
     };
 }
 
@@ -231,7 +231,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             copyright: "-",
             source_url: best_post_combined.source_url,
             image_url: best_post_combined.thumbnail,
-            rating: best_post_combined.rating
+            rating: ratingToReadable(best_post_combined.rating)
         };
 
         embed.setImage(postInfo.image_url);
@@ -288,7 +288,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
             copyright: post.tag_string_copyright || "-",
             source_url: source_url,
             image_url: post.large_file_url,
-            rating: post.rating || "-"
+            rating: ratingToReadable(post.rating || "-")
         };
     }
 
@@ -345,24 +345,39 @@ export function getKeyByDirType(dir_type: saveDirType): string {
     return key;
 }
 
-function ratingToLevel(rating: string) {
+function ratingToReadable(rating: string) {
     switch (rating) {
-        case "explicit":
         case "e":
-            return "90";
+            return "explicit";
 
         case "ero":
         case "q":
+            return "questionable";
+
+        case "s":
+            return "sensitive";
+
+        case "general":
+        case "g":
+            return "safe";
+
+        default:
+            return rating;
+    }
+}
+
+function ratingToLevel(rating: string) {
+    switch (rating) {
+        case "explicit":
+            return "90";
+
         case "questionable":
             return "65";
 
-        case "s":
         case "sensitive":
             return "50";
 
         case "safe":
-        case "general":
-        case "g":
             return "15";
 
         default:

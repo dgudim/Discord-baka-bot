@@ -189,20 +189,21 @@ client.on("ready", async () => {
 
     if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_IDS) {
 
-        const channelIds = process.env.STATUS_CHANNEL_IDS.split(",");
-
-        for (const channelId of channelIds) {
-            let channel = await client.channels.fetch(channelId);
-            if (channel?.isTextBased() && !channel.isDMBased()) {
-                status_channels.push(channel);
-            } else {
-                error(`❌ ${wrap(channelId, colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
-                channel = null;
-            }
-            await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
-        }    
         if (!fs.existsSync(process.env.TEMP_DIR)) {
             fs.mkdirSync(process.env.TEMP_DIR);
+
+            const channelIds = process.env.STATUS_CHANNEL_IDS.split(",");
+
+            for (const channelId of channelIds) {
+                let channel = await client.channels.fetch(channelId);
+                if (channel?.isTextBased() && !channel.isDMBased()) {
+                    status_channels.push(channel);
+                } else {
+                    error(`❌ ${wrap(channelId, colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
+                    channel = null;
+                }
+                await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
+            }    
         }
     }
 

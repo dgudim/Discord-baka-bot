@@ -1,4 +1,4 @@
-import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake } from "discord.js"; // discord api
+import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake, GuildTextBasedChannel } from "discord.js"; // discord api
 import img_tags from "./image_tags.json";
 import path from "path";
 import fs from "fs";
@@ -37,7 +37,7 @@ function isBuiltin(str: string): boolean {
     return bultInCommands.some(bultInCommand => command == bultInCommand);
 }
 
-export let status_channel: TextBasedChannel;
+export const status_channels: GuildTextBasedChannel[] = [];
 
 export function toggleTerminalChannel(channel: TextBasedChannel | none, client_id: nullableString): {state: boolean, error: boolean} {
     let added = false;
@@ -170,7 +170,7 @@ client.on("ready", async () => {
     testEnvironmentVar("TEST_SERVERS", true);
     testEnvironmentVar("OWNERS", false);
     testEnvironmentVar("TEMP_DIR", false);
-    testEnvironmentVar("STATUS_CHANNEL_ID", false);
+    testEnvironmentVar("STATUS_CHANNEL_IDS", false);
     testEnvironmentVar("PIXIV_TOKEN", false);
 
     if (!process.env.EXIFTOOL_PATH) {
@@ -187,17 +187,22 @@ client.on("ready", async () => {
 
     dkrInit(client, __dirname);
 
-    if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_ID) {
-        let channel = await client.channels.fetch(process.env.STATUS_CHANNEL_ID);
-        if (channel?.isTextBased()) {
-            status_channel = channel;
-        } else {
-            error(`❌ ${wrap("STATUS_CHANNEL_ID", colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
-            channel = null;
-        }
-        if (!fs.existsSync(process.env.TEMP_DIR) && channel) {
-            fs.mkdirSync(process.env.TEMP_DIR);
+    if (process.env.TEMP_DIR && process.env.STATUS_CHANNEL_IDS) {
+
+        const channelIds = process.env.STATUS_CHANNEL_IDS.split(",");
+
+        for (const channelId of channelIds) {
+            let channel = await client.channels.fetch(channelId);
+            if (channel?.isTextBased() && !channel.isDMBased()) {
+                status_channels.push(channel);
+            } else {
+                error(`❌ ${wrap(channelId, colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
+                channel = null;
+            }
             await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
+        }    
+        if (!fs.existsSync(process.env.TEMP_DIR)) {
+            fs.mkdirSync(process.env.TEMP_DIR);
         }
     }
 

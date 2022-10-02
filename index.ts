@@ -1,15 +1,13 @@
-import { GatewayIntentBits, TextBasedChannel, Message, Client, ApplicationCommandOptionType, Snowflake, GuildTextBasedChannel } from "discord.js"; // discord api
+import { TextBasedChannel, Message, ApplicationCommandOptionType, Snowflake, GuildTextBasedChannel } from "discord.js"; // discord api
 import img_tags from "./image_tags.json";
 import path from "path";
 import fs from "fs";
 import { exec, spawn, ChildProcessWithoutNullStreams } from "child_process";
-import util from "util";
-const execPromise = util.promisify(exec);
 import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString } from "discord_bots_common";
+import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString, getClient, secondsToDhms } from "discord_bots_common";
 import { getKeyByDirType } from "./sauce_utils";
 
 import * as readline from "readline";
@@ -39,7 +37,7 @@ function isBuiltin(str: string): boolean {
 
 export const status_channels: GuildTextBasedChannel[] = [];
 
-export function toggleTerminalChannel(channel: TextBasedChannel | none, client_id: nullableString): {state: boolean, error: boolean} {
+export function toggleTerminalChannel(channel: TextBasedChannel | none, client_id: nullableString): { state: boolean, error: boolean } {
     let added = false;
     const channel_id = channel?.id;
     if (!channel_id || !client_id) {
@@ -83,18 +81,7 @@ export function toggleTerminalChannel(channel: TextBasedChannel | none, client_i
     return { state: added, error: false };
 }
 
-const client = new Client({
-    rest: {
-        timeout: 60000,
-        retries: 3
-    },
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.MessageContent
-    ]
-});
+const client = getClient();
 
 function writeExifToolConfig(): void {
     let exifToolConfig = `
@@ -144,19 +131,6 @@ function writeExifToolConfig(): void {
     debug("💾 Exiftool config written");
 }
 
-function secondsToDhms(seconds: number) {
-    const d = Math.floor(seconds / (3600 * 24));
-    const h = Math.floor(seconds % (3600 * 24) / 3600);
-    const m = Math.floor(seconds % 3600 / 60);
-    const s = Math.floor(seconds % 60);
-
-    const dDisplay = d > 0 ? (d + "d") : "";
-    const hDisplay = h > 0 ? (h + "h") : "";
-    const mDisplay = m > 0 ? (m + "m") : "";
-    const sDisplay = s > 0 ? (s + "s") : "";
-    return dDisplay + hDisplay + mDisplay + sDisplay;
-}
-
 client.on("ready", async () => {
 
     if (!await db.exists(`^${getKeyByDirType("IMAGE")}`)
@@ -167,6 +141,7 @@ client.on("ready", async () => {
 
     writeExifToolConfig();
 
+    testEnvironmentVar("TOKEN", true);
     testEnvironmentVar("TEST_SERVERS", true);
     testEnvironmentVar("OWNERS", false);
     testEnvironmentVar("TEMP_DIR", false);
@@ -179,7 +154,7 @@ client.on("ready", async () => {
     }
 
     try {
-        await execPromise(process.env.EXIFTOOL_PATH);
+        exec(process.env.EXIFTOOL_PATH);
     } catch (err) {
         error(`❌ ${err} \n exiting`);
         process.exit(1);
@@ -199,11 +174,11 @@ client.on("ready", async () => {
                 if (channel?.isTextBased() && !channel.isDMBased()) {
                     status_channels.push(channel);
                 } else {
-                    error(`❌ ${wrap(channelId, colors.LIGHTER_BLUE)} doesn't refer to a text channel`);
+                    error(`❌ ${wrap(channelId, colors.LIGHTER_BLUE)} is not a text channel`);
                     channel = null;
                 }
                 await sendToChannel(channel, getSimpleEmbed("🟢 Server is online", getDateTime(), "Green"));
-            }    
+            }
         }
     }
 

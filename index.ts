@@ -1,4 +1,4 @@
-import { TextBasedChannel, Message, ApplicationCommandOptionType, Snowflake, GuildTextBasedChannel } from "discord.js"; // discord api
+import { TextBasedChannel, Message, ApplicationCommandOptionType, Snowflake, GuildTextBasedChannel, GatewayIntentBits } from "discord.js"; // discord api
 import img_tags from "./image_tags.json";
 import path from "path";
 import fs from "fs";
@@ -81,7 +81,11 @@ export function toggleTerminalChannel(channel: TextBasedChannel | none, client_i
     return { state: added, error: false };
 }
 
-const client = getClient();
+const client = getClient([
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.MessageContent]);
 
 function writeExifToolConfig(): void {
     let exifToolConfig = `

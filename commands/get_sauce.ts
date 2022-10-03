@@ -11,15 +11,11 @@ async function searchAndSendSauce(
     min_similarity: number, url: nullableString) {
 
     if (!url) {
-        await safeReply(interaction, "❌ No file provided.");
-        return;
+        return safeReply(interaction, "❌ No file provided.");
     }
 
     await safeReply(interaction, `🔎 Searching sauce for ${getFileName(url)}`);
-    const sauce = await findSauce(url, channel, min_similarity);
-    if (sauce) {
-        await sendToChannel(channel, sauce.embed);
-    }
+    await sendToChannel(channel, (await findSauce(url, channel, min_similarity)).embed);
 }
 
 export default {
@@ -55,8 +51,7 @@ export default {
         const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 
         if (!urls.length) {
-            await searchAndSendSauce(interaction, channel, min_similarity, getLastImgUrl(channel));
-            return;
+            return searchAndSendSauce(interaction, channel, min_similarity, getLastImgUrl(channel));
         }
 
         await safeReply(interaction, `📥 Getting sauce for ${urls.length} image(s)`);

@@ -2,7 +2,7 @@ import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 
 import {
     getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray,
-    debug, error, info, normalizeTags
+    debug, error, info, normalizeTags, none
 } from "discord_bots_common";
 
 import img_tags from "./image_tags.json";
@@ -29,16 +29,8 @@ export function setLastTags(channel: TextBasedChannel, tags: PostInfo): void {
     lastTags.set(channel.id, tags);
 }
 
-export function getLastTags(channel: TextBasedChannel): PostInfo {
-    return lastTags.get(channel.id) || {
-        author: "-",
-        character: "-",
-        copyright: "-",
-        tags: "-",
-        source_url: "-",
-        image_url: "-",
-        rating: "-",
-    };
+export function getLastTags(channel: TextBasedChannel): PostInfo | none {
+    return lastTags.get(channel.id);
 }
 
 export function getImageTag(file: string, arg: string): Promise<string> {

@@ -35,7 +35,7 @@ export default {
 
         if (!interaction!.options.data.length) {
             const lastTagsFrom_get_sauce = getLastTags(channel);
-            if (lastTagsFrom_get_sauce.image_url == getLastImgUrl(channel)) {
+            if (lastTagsFrom_get_sauce && lastTagsFrom_get_sauce.image_url == getLastImgUrl(channel)) {
                 confString = getSauceConfString(lastTagsFrom_get_sauce);
             } else {
                 return safeReply(interaction, "🚫 No tags provided");

@@ -5,7 +5,7 @@ import https from "https";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
 import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
 import sharp from "sharp";
-import { ensureTagsInDB, postInfoToEmbed, writeTagsToFile } from "../tagging_utils";
+import { ensureTagsInDB, getLastTags, postInfoToEmbed, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
 import { IncomingMessage } from "http";
 
@@ -104,6 +104,13 @@ export default {
     callback: async ({ interaction, channel }) => {
 
         const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
+
+        if (!urls.length) {
+            const last_image_tags = getLastTags(channel);
+            if (last_image_tags) {
+                urls.push(last_image_tags.source_url);
+            }
+        }
 
         if (!urls.length) {
             return safeReply(interaction, "🚫 No images to add");

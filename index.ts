@@ -2,7 +2,7 @@ import { TextBasedChannel, Message, ApplicationCommandOptionType, Snowflake, Gui
 import img_tags from "./image_tags.json";
 import path from "path";
 import fs from "fs";
-import { exec, spawn, ChildProcessWithoutNullStreams } from "child_process";
+import { execSync, spawn, ChildProcessWithoutNullStreams } from "child_process";
 import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
@@ -158,7 +158,7 @@ client.on("ready", async () => {
     }
 
     try {
-        exec(process.env.EXIFTOOL_PATH);
+        execSync(process.env.EXIFTOOL_PATH);
     } catch (err) {
         error(`❌ ${err} \n exiting`);
         process.exit(1);

@@ -35,7 +35,7 @@ export default {
             if (phash != "-") {
                 let found = false;
                 for (const [fingerprint, similar] of phashMap) {
-                    if (phash_dist(fingerprint, phash) < 3) {
+                    if (phash_dist(fingerprint, phash) < 5) {
                         similar.push(phash);
                         found = true;
                         break;
@@ -50,13 +50,13 @@ export default {
         
         for (const [source_post, images] of sourcePostMap) {
             if (images.length > 1) {
-                sendToChannel(channel, `${source_post}: ${images}`);
+                await sendToChannel(channel, `${source_post}: ${images}`);
             }
         }
 
         for (const [source, images] of phashMap) {
             if (images.length > 1) {
-                sendToChannel(channel, `(90%) ${source}: ${images}`);
+                await sendToChannel(channel, `(90% similarity) ${source}: ${images}`);
             }
         }
 

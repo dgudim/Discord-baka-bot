@@ -109,11 +109,12 @@ export async function ensureTagsInDB(file: string): Promise<void> {
 
     debug(`⛓ Calling ensureTagsInDB on ${file} \nreal_hash: ${real_hash} \ndatabase_hash: ${database_hash} \nperceptual hash: ${p_hash}`);
 
-    if (real_hash != database_hash) {
-        await writeTagsToDB(file, real_hash);
-    }
     if (p_hash == "-" || real_hash != database_hash) {
         await db.push(`^${file}^phash`, phash(fs.readFileSync(file)), true);
+    }
+
+    if (real_hash != database_hash) {
+        await writeTagsToDB(file, real_hash);
     }
 }
 

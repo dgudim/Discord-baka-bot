@@ -90,7 +90,6 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
             }
         }
         
-        pushCallsAsync.push(db.push(`^${file}^phash`, phash(fs.readFileSync(file)), true));
         pushCallsAsync.push(db.push(`^${file}^hash`, hash, true));
 
         await Promise.all(pushCallsAsync);
@@ -106,10 +105,15 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     const real_hash = await getFileHash(file);
     const database_hash = await getValueIfExists(db, `^${file}^hash`);
 
-    debug(`⛓ Calling ensureTagsInDB on ${file} \nreal_hash: ${real_hash} \ndatabase_hash: ${database_hash}`);
+    const p_hash = await getValueIfExists(db, `^${file}^phash`);
+
+    debug(`⛓ Calling ensureTagsInDB on ${file} \nreal_hash: ${real_hash} \ndatabase_hash: ${database_hash} \nperceptual hash: ${p_hash}`);
 
     if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);
+    }
+    if (p_hash == "-" || real_hash != database_hash) {
+        await db.push(`^${file}^phash`, phash(fs.readFileSync(file)), true);
     }
 }
 

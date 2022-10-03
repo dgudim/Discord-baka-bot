@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
 import fs from "fs";
-import { getValueIfExists, safeReply, sendToChannel, walk } from "discord_bots_common";
+import { getValueIfExists, safeReply, sendToChannel, setOrAppendToMap, walk } from "discord_bots_common";
 import { getImgDir } from "../sauce_utils";
 import { ensureTagsInDB } from "../tagging_utils";
 
@@ -21,23 +21,15 @@ export default {
         await safeReply(interaction, "🗃 Deduping databse...");
 
         const images = walk(await getImgDir());
-        const sourcePostMap = new Map<string, string>();
+        const sourcePostMap = new Map<string, string[]>();
         const phashMap = new Map<string, string[]>();
-        let deleted = 0;
         for (const image of images) {
             await ensureTagsInDB(image);
             const sourcePost = await getValueIfExists(db, `^${image}^tags^sourcepost`);
             const phash = await getValueIfExists(db, `^${image}^phash`);
-            if (sourcePost != "-" && sourcePostMap.has(sourcePost)) {
-                try {
-                    fs.unlinkSync(image);
-                    deleted++;
-                    sendToChannel(channel, `🗑 Deleted ${image}`);
-                } catch (err) {
-                    sendToChannel(channel, `❌ Error deleting ${image}`, true);
-                }
-            } else {
-                sourcePostMap.set(sourcePost, image);
+
+            if (sourcePost != "-") {
+                setOrAppendToMap(sourcePostMap, sourcePost, image);
             }
 
             if (phash != "-") {
@@ -50,11 +42,24 @@ export default {
                     }
                 }
                 if (!found) {
-                    phashMap.set(phash, []);
+                    phashMap.set(phash, [phash]);
                 }
             }
-
         }
-        await safeReply(interaction, `🟩 Dedupe finished, ${deleted} images deleted`);
+    
+        
+        for (const [source_post, images] of sourcePostMap) {
+            if (images.length > 1) {
+                sendToChannel(channel, `${source_post}: ${images}`);
+            }
+        }
+
+        for (const [source, images] of phashMap) {
+            if (images.length > 1) {
+                sendToChannel(channel, `(90%) ${source}: ${images}`);
+            }
+        }
+
+        await safeReply(interaction, `🟩 Dedupe finished`);
     }
 } as ICommand;

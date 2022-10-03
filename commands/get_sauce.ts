@@ -14,7 +14,7 @@ async function searchAndSendSauce(
         return safeReply(interaction, "❌ No file provided.");
     }
 
-    await safeReply(interaction, `🔎 Searching sauce for ${getFileName(url)}`);
+    await safeReply(interaction, `🔎 Searching sauce for \`${getFileName(url)}\``);
     await sendToChannel(channel, (await findSauce(url, channel, min_similarity)).embed);
 }
 

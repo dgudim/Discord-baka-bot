@@ -51,8 +51,8 @@ async function callFunction(func: string) {
 interface Post {
     source_db: string;
     source_url: string;
+    image_url: string;
     similarity: number;
-    thumbnail: string;
     author: string;
     rating: string;
 }
@@ -149,7 +149,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                     source_db: `saucenao (${result.site})`,
                     source_url: result.url,
                     similarity: result.similarity,
-                    thumbnail: result.thumbnail,
+                    image_url: image_url,
                     author: result.authorName || "-",
                     rating: "-"
                 });
@@ -175,10 +175,10 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                 iqDbResults = await iqdb.search(image_url);
             } catch (err) {
                 error(err);
-                break;
+                sendToChannel(channel, `iqdb error, retrying`);
+                continue;
             }
-
-            sendToChannel(channel, `iqdb error, retrying`);
+            break;
         }
 
         if (iqDbResults?.results) {
@@ -189,7 +189,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
                         source_db: `iqdb ${result_source.service}`,
                         source_url: result_source.fixedHref,
                         similarity: result.similarity,
-                        thumbnail: result.thumbnail.fixedSrc,
+                        image_url: image_url,
                         author: "-",
                         rating: result.type
                     });
@@ -218,35 +218,47 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         }
     }
 
+    let postInfo;
+    let embed;
+
     if (best_post_combined) {
-        const embed = new EmbedBuilder();
+        embed = new EmbedBuilder();
         embed.setTitle(`Result from ${best_post_combined.source_db}`);
         embed.setColor(perc2color(best_post_combined.similarity));
         embed.setDescription(`similarity: ${best_post_combined.similarity}`);
 
-        const postInfo: PostInfo = await getPostInfoFromUrl(best_post_combined.source_url) || {
+        postInfo = await getPostInfoFromUrl(best_post_combined.source_url) || {
             author: best_post_combined.author.replaceAll(" ", "_") || "-",
             character: "-",
             tags: "-",
             copyright: "-",
             source_url: best_post_combined.source_url,
-            image_url: best_post_combined.thumbnail,
+            image_url: image_url,
             rating: ratingToReadable(best_post_combined.rating)
         };
 
         embed.setImage(postInfo.image_url);
 
         appendPostInfoToEmbed(embed, postInfo);
-        
-        if (set_last_tags) {
-            setLastTags(channel, postInfo);
-        }
 
-        return { "post": best_post_combined, "postInfo": postInfo, "embed": embed };
     } else {
         sendToChannel(channel, "No sauce found :(");
-        return null;
+        postInfo =  {
+            author: "-",
+            character: "-",
+            tags: "-",
+            copyright: "-",
+            source_url: "-",
+            image_url: image_url,
+            rating: "-"
+        };
     }
+
+    if (set_last_tags) {
+        setLastTags(channel, postInfo);
+    }
+
+    return { postInfo: postInfo, embed: embed };
 }
 
 export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo | undefined> {

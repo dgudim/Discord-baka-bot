@@ -29,16 +29,14 @@ async function getMetadata(channel: TextChannel, source_url: string, is_plain_im
     let postInfo;
     if (!is_plain_image) {
         postInfo = await getPostInfoFromUrl(source_url);
-    } else {
-        const sauce = await findSauce(source_url, channel, 85);
-        if (sauce && sauce.post.similarity >= 85) {
-            postInfo = sauce.postInfo;
+        if (!postInfo) {
+            return undefined;
         }
+    } else {
+        postInfo = (await findSauce(source_url, channel, 85)).postInfo;
     }
 
-    if (postInfo) {
-        await sendToChannel(channel, postInfo.image_url);
-    }
+    await sendToChannel(channel, postInfo.image_url);
 
     return postInfo;
 }
@@ -140,12 +138,11 @@ export default {
                                 await sendImgToChannel(channel, new_file.path);
 
                                 let postInfo;
-                                const image_url = getLastImgUrl(channel);
-                                const sauce = await findSauce(image_url, channel, 85);
-                                
-                                if (sauce && sauce.post.similarity >= 85) {
+                                const sauce = await findSauce(getLastImgUrl(channel), channel, 85);
+
+                                if (sauce.embed) {
                                     postInfo = sauce.postInfo;
-                                } else { 
+                                } else {
                                     postInfo = await getPostInfoFromUrl(source_url);
                                 }
 
@@ -173,7 +170,7 @@ export default {
                         await writePostInfoToFile(postInfo, target_file.path, channel);
                     });
                 } else {
-                    await sendToChannel(channel, "❌ Could not get image url from page", true);
+                    await sendToChannel(channel, "❌ Don't know how to handle that url", true);
                 }
             } else {
                 await sendToChannel(channel, `❌ Return code: ${res.status}, ${res.statusText}`, true);

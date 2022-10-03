@@ -1,8 +1,11 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
 import fs from "fs";
-import { safeReply, sendToChannel, walk } from "discord_bots_common";
+import { getValueIfExists, safeReply, sendToChannel, walk } from "discord_bots_common";
 import { getImgDir } from "../sauce_utils";
+import { ensureTagsInDB } from "../tagging_utils";
+
+const phash_dist = require("sharp-phash/distance");
 
 export default {
     category: "Image management",
@@ -18,24 +21,39 @@ export default {
         await safeReply(interaction, "🗃 Deduping databse...");
 
         const images = walk(await getImgDir());
-        const hashMap = new Map<string, string>();
+        const sourcePostMap = new Map<string, string>();
+        const phashMap = new Map<string, string[]>();
         let deleted = 0;
         for (const image of images) {
-            let sourcePost;
-            if (await db.exists(`^${image}^tags^sourcepost`)) {
-                sourcePost = await db.getData(`^${image}^tags^sourcepost`);
-                if (sourcePost != "-" && hashMap.has(sourcePost)) {
-                    try {
-                        fs.unlinkSync(image);
-                        deleted++;
-                        sendToChannel(channel, `🗑 Deleted ${image}`);
-                    } catch (err) {
-                        sendToChannel(channel, `❌ Error deleting ${image}`, true);
+            await ensureTagsInDB(image);
+            const sourcePost = await getValueIfExists(db, `^${image}^tags^sourcepost`);
+            const phash = await getValueIfExists(db, `^${image}^phash`);
+            if (sourcePost != "-" && sourcePostMap.has(sourcePost)) {
+                try {
+                    fs.unlinkSync(image);
+                    deleted++;
+                    sendToChannel(channel, `🗑 Deleted ${image}`);
+                } catch (err) {
+                    sendToChannel(channel, `❌ Error deleting ${image}`, true);
+                }
+            } else {
+                sourcePostMap.set(sourcePost, image);
+            }
+
+            if (phash != "-") {
+                let found = false;
+                for (const [fingerprint, similar] of phashMap) {
+                    if (phash_dist(fingerprint, phash) < 3) {
+                        similar.push(phash);
+                        found = true;
+                        break;
                     }
-                } else {
-                    hashMap.set(sourcePost, image);
+                }
+                if (!found) {
+                    phashMap.set(phash, []);
                 }
             }
+
         }
         await safeReply(interaction, `🟩 Dedupe finished, ${deleted} images deleted`);
     }

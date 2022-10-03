@@ -7,6 +7,10 @@ import {
 
 import img_tags from "./image_tags.json";
 
+const phash = require("sharp-phash");
+
+import fs from "fs";
+
 import path from "path";
 import { exec } from "child_process";
 import util from "util";
@@ -93,7 +97,8 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
                 pushCallsAsync.push(db.push(`^${file}^tags^${split[0]}`, split[1], true));
             }
         }
-
+        
+        pushCallsAsync.push(db.push(`^${file}^phash`, phash(fs.readFileSync(file)), true));
         pushCallsAsync.push(db.push(`^${file}^hash`, hash, true));
 
         await Promise.all(pushCallsAsync);

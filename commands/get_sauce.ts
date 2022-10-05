@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
 import fs from "fs";
 import https from "https";
 import sharp from "sharp";
@@ -45,6 +45,10 @@ export default {
     }],
 
     callback: async ({ channel, interaction, }) => {
+
+        if (!isNSFW(channel, interaction)) {
+            return;
+        }
 
         const min_similarity = interaction!.options.getNumber("min-similarity") || 75;
 

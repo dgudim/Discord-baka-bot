@@ -6,14 +6,14 @@ import sagiri from "sagiri";
 const sagiri_client = sagiri("d78bfeac5505ab0a2af7f19d369029d4f6cd5176");
 
 import * as iqdb from "@l2studio/iqdb-api";
-import { BufferResolvable, EmbedBuilder, Message, Snowflake, TextBasedChannel } from "discord.js";
+import { BufferResolvable, ChatInputCommandInteraction, EmbedBuilder, Message, Snowflake, TextBasedChannel, TextChannel } from "discord.js";
 
 import pixiv from "pixiv.ts";
 
 import puppeteer, { Browser, Page } from "puppeteer";
 import {
     getFileName, perc2color, sendToChannel, sleep,
-    trimStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn
+    trimStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn, getEnvironmentVar, safeReply, none
 } from "discord_bots_common";
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
@@ -545,4 +545,12 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
 
     sendToChannel(channel, `🔎 Found ${images.length} images`);
     return images;
+}
+
+export function isNSFW(channel: TextChannel, interaction: ChatInputCommandInteraction | none) {
+    if (!channel.nsfw && !getEnvironmentVar("NSFW_CHANNELS").split(",").includes(channel.id)) {
+        safeReply(interaction, "This channel is not nsfw. No horny allowed here", true);
+        return false;
+    }
+    return true;
 }

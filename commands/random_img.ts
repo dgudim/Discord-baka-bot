@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { getImgDir, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, getImgDir, sendImgToChannel } from "../sauce_utils";
 import { safeReply, walk } from "discord_bots_common";
 
 let indexUpToDate = false;
@@ -17,6 +17,10 @@ export default {
     hidden: false,
 
     callback: async ({ channel, interaction }) => {
+
+        if (!isNSFW(channel, interaction)) {
+            return;
+        }
 
         try {
             currImg++;

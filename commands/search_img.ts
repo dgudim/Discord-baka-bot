@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, Snowflake } from "discord.js";
 import { ICommand } from "dkrcommands";
-import { searchImages, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, searchImages, sendImgToChannel } from "../sauce_utils";
 import { clamp, normalize, safeReply } from "discord_bots_common";
 
 const currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();
@@ -29,6 +29,10 @@ export default {
     }],
 
     callback: async ({ channel, interaction }) => {
+
+        if (!isNSFW(channel, interaction)) {
+            return;
+        }
 
         let currImg = currImgs.get(channel.id) || 0;
         let images = imagesPerChannel.get(channel.id) || [];

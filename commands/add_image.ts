@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo } from "../sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo, isNSFW } from "../sauce_utils";
 import sharp from "sharp";
 import { ensureTagsInDB, getLastTags, postInfoToEmbed, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
@@ -102,6 +102,10 @@ export default {
     }],
 
     callback: async ({ interaction, channel }) => {
+
+        if (!isNSFW(channel, interaction)) {
+            return;
+        }
 
         const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 

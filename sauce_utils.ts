@@ -71,8 +71,7 @@ async function grabBySelectors(source_url: string,
     authorSelector: string, copyrightSelector: string,
     characterSelector: string, tagSelector: string, ratingSelector: string) {
 
-    await ensurePuppeteerStarted();
-    await page.goto(source_url);
+    await gotoPage(source_url);
 
     const authorTags = await getTagsBySelector(authorSelector);
     const copyrightTags = await getTagsBySelector(copyrightSelector);
@@ -115,6 +114,11 @@ async function ensurePuppeteerStarted() {
         page = await browser.newPage();
         debug("opening a new page");
     }
+}
+
+async function gotoPage(url: string) {
+    await ensurePuppeteerStarted();
+    await page.goto(url);
 }
 
 export async function ensurePixivLogin() {
@@ -298,8 +302,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
         const lastIndex = fileName.indexOf("?");
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
 
-        await ensurePuppeteerStarted();
-        await page.goto(source_url);
+        await gotoPage(source_url);
         const image_url = await getAttributeBySelector(".image-view-original-link", "href");
 
         return {

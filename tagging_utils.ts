@@ -1,8 +1,8 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 
 import {
-    getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel, trimStringArray,
-    debug, error, info, normalizeTags, none
+    getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel,
+    debug, error, info, none, normalizeStringArray
 } from "discord_bots_common";
 
 import img_tags from "./image_tags.json";
@@ -21,7 +21,7 @@ import { PostInfo } from "./sauce_utils";
 
 const lastTags: Map<Snowflake, PostInfo> = new Map<Snowflake, PostInfo>();
 
-export function checkTag(tag_name: string, tag_content: string): string {
+export function getXmpTag(tag_name: string, tag_content: string): string {
     return tag_content != "-" ? ` -xmp-xmp:${tag_name}='${normalizeTags(tag_content)}'` : "";
 }
 
@@ -85,7 +85,7 @@ async function writeTagsToDB(file: string, hash: string): Promise<void> {
         if (stdout) {
             const fields = stdout.toLowerCase().split("\n");
             for (let i = 0; i < fields.length - 1; i++) {
-                const split = trimStringArray(fields.at(i)!.split(":"));
+                const split = normalizeStringArray(fields.at(i)!.split(":"));
                 pushCallsAsync.push(db.push(`^${file}^tags^${split[0]}`, split[1], true));
             }
         }
@@ -116,6 +116,10 @@ export async function ensureTagsInDB(file: string): Promise<void> {
     if (real_hash != database_hash) {
         await writeTagsToDB(file, real_hash);
     }
+}
+
+export function normalizeTags(tags: string): string {
+    return tags.replaceAll(" ", ",").replaceAll("_", " ").replaceAll(":", "_").replaceAll("'", "");
 }
 
 export function postInfoToEmbed(postInfo: PostInfo) {

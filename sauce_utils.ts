@@ -13,14 +13,14 @@ import pixiv from "pixiv.ts";
 import puppeteer, { Browser, Page } from "puppeteer";
 import {
     getFileName, perc2color, sendToChannel, sleep,
-    trimStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn, getEnvironmentVar, safeReply, none
+    normalizeStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn, getEnvironmentVar, safeReply, none
 } from "discord_bots_common";
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 
 import sharp from "sharp";
 import fs from "fs";
-import { appendPostInfoToEmbed, checkTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
+import { appendPostInfoToEmbed, getXmpTag, ensureTagsInDB, getImageMetatags, getImageTag, setLastTags } from "./tagging_utils";
 
 let browser: Browser;
 let page: Page;
@@ -153,7 +153,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         }
 
         for (const result of sagiriResults) {
-            if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
+            if (!only_accept_from || normalizeStringArray(only_accept_from.split(",")).some((elem) => result.url.includes(elem))) {
                 posts.push({
                     source_db: `saucenao (${result.site})`,
                     source_url: result.url,
@@ -209,7 +209,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
 
             for (const post of iqdb_posts) {
                 info(post.source_url + " " + wrap(post.similarity, colors.LIGHT_YELLOW));
-                if (!only_accept_from || trimStringArray(only_accept_from.split(",")).some(accept_from => post.source_url.includes(accept_from))) {
+                if (!only_accept_from || normalizeStringArray(only_accept_from.split(",")).some(accept_from => post.source_url.includes(accept_from))) {
                     posts.push(post);
                 }
             }
@@ -411,11 +411,11 @@ function ratingToLevel(rating: string) {
 }
 
 export function getSauceConfString(lastTagsFrom_get_sauce: PostInfo) {
-    return checkTag("character", lastTagsFrom_get_sauce.character) +
-        checkTag("author", lastTagsFrom_get_sauce.author) +
-        checkTag("copyright", lastTagsFrom_get_sauce.copyright) +
-        checkTag("tags", lastTagsFrom_get_sauce.tags) +
-        checkTag("hlvl", ratingToLevel(lastTagsFrom_get_sauce.rating)) +
+    return getXmpTag("character", lastTagsFrom_get_sauce.character) +
+        getXmpTag("author", lastTagsFrom_get_sauce.author) +
+        getXmpTag("copyright", lastTagsFrom_get_sauce.copyright) +
+        getXmpTag("tags", lastTagsFrom_get_sauce.tags) +
+        getXmpTag("hlvl", ratingToLevel(lastTagsFrom_get_sauce.rating)) +
         ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.source_url)}'`;
 }
 
@@ -522,7 +522,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
         await sleep(5000); // let the database save
     }
 
-    const search_terms = trimStringArray(searchQuery.split(";"));
+    const search_terms = normalizeStringArray(searchQuery.split(";"));
     for (const search_term of search_terms) {
 
         let activeModifier_key = "";
@@ -535,7 +535,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
             }
         }
 
-        const search_term_split = trimStringArray(search_term.split(activeModifier_key));
+        const search_term_split = normalizeStringArray(search_term.split(activeModifier_key));
 
         if (search_term_split.length != 2) {
             sendToChannel(channel, `🚫 Invalid search term ${search_term}`, true);
@@ -548,8 +548,8 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
                 }));
                 images = images.filter((_element, index) => {
                     return activeModifier(
-                        trimStringArray(results[index].split(",")),
-                        trimStringArray(search_term_split[1].split(",")));
+                        normalizeStringArray(results[index].split(",")),
+                        normalizeStringArray(search_term_split[1].split(",")));
                 });
             }
         }

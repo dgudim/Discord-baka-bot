@@ -16,7 +16,7 @@
     "@l2studio/iqdb-api": "^0.2.0",
     "danbooru": "^3.1.0",
     "discord_bots_common": "github:dgudim/Discord_bots-common",
-    "discord.js": "^14.5.0",
+    "discord.js": "^14.6.0",
     "dkrcommands": "^1.0.0-beta.2",
     "dotenv": "^16.0.3",
     "hash-wasm": "^4.9.0",
@@ -29,9 +29,9 @@
   },
   "devDependencies": {
     "@types/sharp": "^0.31.0",
-    "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
-    "eslint": "^8.24.0",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "eslint": "^8.25.0",
     "pre-commit": "^1.2.2"
   }
 }

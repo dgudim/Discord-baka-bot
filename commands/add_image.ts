@@ -27,13 +27,13 @@ async function getFile(raw_path: string, channel: TextChannel) {
 async function getMetadata(channel: TextChannel, source_url: string, is_plain_image: boolean) {
 
     let postInfo;
-    if (!is_plain_image) {
+    if (is_plain_image) {
+        postInfo = (await findSauce(source_url, channel, 85)).postInfo;
+    } else {
         postInfo = await getPostInfoFromUrl(source_url);
         if (!postInfo) {
             return undefined;
         }
-    } else {
-        postInfo = (await findSauce(source_url, channel, 85)).postInfo;
     }
 
     await sendToChannel(channel, postInfo.image_url);

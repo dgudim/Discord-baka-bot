@@ -70,6 +70,8 @@ export interface PostInfo {
 async function grabBySelectors(source_url: string,
     authorSelector: string, copyrightSelector: string,
     characterSelector: string, tagSelector: string, ratingSelector: string) {
+
+    await ensurePuppeteerStarted();
     await page.goto(source_url);
 
     const authorTags = await getTagsBySelector(authorSelector);
@@ -107,8 +109,11 @@ async function ensurePuppeteerStarted() {
         browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
-        page = await browser.newPage();
         debug("starting puppeteer");
+    }
+    if (!page) {
+        page = await browser.newPage();
+        debug("opening a new page");
     }
 }
 
@@ -281,7 +286,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
                 copyright: "-",
                 tags: tags.join(",") || "-",
                 source_url: source_url,
-                image_url: "",
+                image_url: "-",
                 rating: `${illust.sanity_level}`
             };
         }
@@ -293,13 +298,17 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
         const lastIndex = fileName.indexOf("?");
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
 
+        await ensurePuppeteerStarted();
+        await page.goto(source_url);
+        const image_url = await getAttributeBySelector(".image-view-original-link", "href");
+
         return {
             author: post.tag_string_artist || "-",
             character: post.tag_string_character || "-",
             tags: post.tag_string_general || "-",
             copyright: post.tag_string_copyright || "-",
             source_url: source_url,
-            image_url: post.large_file_url,
+            image_url: image_url || "-",
             rating: ratingToReadable(post.rating || "-")
         };
     }

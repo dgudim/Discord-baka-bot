@@ -1,8 +1,8 @@
 import { ICommand } from "dkrcommands";
-import { getDateTime, getSimpleEmbed, safeReply, sendToChannel, sleep } from "discord_bots_common";
 import { exec } from "child_process";
 import { status_channels } from "..";
 import { ApplicationCommandOptionType } from "discord.js";
+import { safeReply, sendToChannel, getSimpleEmbed, getDateTime, sleep } from "discord_bots_common/dist/utils/utils";
 
 export default {
 

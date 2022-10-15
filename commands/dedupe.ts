@@ -1,9 +1,9 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
-import fs from "fs";
-import { getValueIfExists, safeReply, sendToChannel, setOrAppendToMap, walk } from "discord_bots_common";
 import { getImgDir } from "../sauce_utils";
 import { ensureTagsInDB } from "../tagging_utils";
+
+import { safeReply, walk, getValueIfExists, setOrAppendToMap, sendToChannel } from "discord_bots_common/dist/utils/utils";
 
 const phash_dist = require("sharp-phash/distance");
 

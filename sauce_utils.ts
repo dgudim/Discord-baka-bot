@@ -11,10 +11,10 @@ import { BufferResolvable, ChatInputCommandInteraction, EmbedBuilder, Message, S
 import pixiv from "pixiv.ts";
 
 import puppeteer, { Browser, Page } from "puppeteer";
-import {
-    getFileName, perc2color, sendToChannel, sleep,
-    normalizeStringArray, walk, isDirectory, eight_mb, colors, wrap, debug, error, info, stripUrlScheme, warn, getEnvironmentVar, safeReply, none
-} from "discord_bots_common";
+import { debug, error, info, warn } from "discord_bots_common/dist/utils/logger";
+import { colors, wrap } from "discord_bots_common/dist/utils/colors";
+import { getEnvironmentVar } from "discord_bots_common/dist/utils/init_utils";
+import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply } from "discord_bots_common/dist/utils/utils";
 import { db, image_args } from ".";
 import { search_modifiers, sourcePrecedence } from "./config";
 

@@ -1,9 +1,7 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 
-import {
-    getFileHash, getFileName, getValueIfExists, limitLength, normalize, sendToChannel,
-    debug, error, info, none, normalizeStringArray
-} from "discord_bots_common";
+import { error, debug, info } from "discord_bots_common/dist/utils/logger";
+import { none, getValueIfExists, normalize, sendToChannel, normalizeStringArray, getFileHash, getFileName, limitLength } from "discord_bots_common/dist/utils/utils";
 
 import img_tags from "./image_tags.json";
 

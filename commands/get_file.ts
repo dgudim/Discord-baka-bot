@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import fs from "fs";
-import { eight_mb, safeReply, sendToChannel } from "discord_bots_common";
 import { ApplicationCommandOptionType } from "discord.js";
+import { safeReply, eight_mb, sendToChannel } from "discord_bots_common/dist/utils/utils";
 
 export default {
     category: "Administration",

@@ -1,9 +1,9 @@
 import { ICommand } from "dkrcommands";
-import { normalize, safeReply, sendToChannel } from "discord_bots_common";
 import img_tags from "../image_tags.json";
 import { getLastImgPath, getLastImgUrl, getSauceConfString } from "../sauce_utils";
 import { getImageMetatags, getLastTags, writeTagsToFile } from "../tagging_utils";
 import { image_args, image_args_command_options } from "..";
+import { safeReply, normalize, sendToChannel } from "discord_bots_common/dist/utils/utils";
 
 export default {
     category: "Admin image management",

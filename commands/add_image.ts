@@ -1,13 +1,14 @@
 import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
-import https from "https";
-import { fetchUrl, getAllUrlFileAttachements, getFileName, isImageUrlType, safeReply, sendToChannel, walk } from "discord_bots_common";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo, isNSFW } from "../sauce_utils";
 import sharp from "sharp";
+import https from "https";
+import { IncomingMessage } from "http";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo, isNSFW } from "../sauce_utils";
 import { ensureTagsInDB, getLastTags, postInfoToEmbed, writeTagsToFile } from "../tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
-import { IncomingMessage } from "http";
+
+import { getFileName, sendToChannel, getAllUrlFileAttachements, safeReply, fetchUrl, isImageUrlType, walk } from "discord_bots_common/dist/utils/utils";
 
 type Metadata = { postInfo?: PostInfo, file: { name: string, path: string } };
 

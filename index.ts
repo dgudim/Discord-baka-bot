@@ -7,11 +7,15 @@ import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
-import { getDateTime, getSimpleEmbed, messageReply, sendToChannel, debug, error, info, warn, colors, wrap, testEnvironmentVar, dkrInit, channelToString, userToString, messageContentToString, none, nullableString, getClient, secondsToDhms } from "discord_bots_common";
 import { getKeyByDirType } from "./sauce_utils";
 
 import * as readline from "readline";
 import { messageReplies } from "./config";
+
+import { colors, wrap } from "discord_bots_common/dist/utils/colors";
+import { getClient, testEnvironmentVar, dkrInit } from "discord_bots_common/dist/utils/init_utils";
+import { error, debug, warn, info } from "discord_bots_common/dist/utils/logger";
+import { none, nullableString, sendToChannel, getSimpleEmbed, getDateTime, secondsToDhms, messageReply, channelToString, userToString, messageContentToString } from "discord_bots_common/dist/utils/utils";
 
 export const db = new JsonDB(new Config("db", true, true, "^"));
 

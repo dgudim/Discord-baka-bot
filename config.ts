@@ -1,5 +1,5 @@
-import { messageReply } from "discord_bots_common";
 import { Message } from "discord.js";
+import { messageReply } from "discord_bots_common/dist/utils/utils";
 
 export const search_modifiers = new Map([
     ["@*=",

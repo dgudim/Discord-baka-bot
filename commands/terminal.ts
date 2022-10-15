@@ -1,6 +1,6 @@
+import { safeReply } from "discord_bots_common/dist/utils/utils";
 import { ICommand } from "dkrcommands";
 import { toggleTerminalChannel } from "../index";
-import { safeReply } from "discord_bots_common";
 
 export default {
     category: "Administration",

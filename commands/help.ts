@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
+import { safeReply } from "discord_bots_common/dist/utils/utils";
 import { ICommand } from "dkrcommands";
-import { safeReply } from "discord_bots_common";
 
 export default {
 

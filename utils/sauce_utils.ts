@@ -14,7 +14,7 @@ import puppeteer, { Browser, Page } from "puppeteer";
 import { debug, error, info, warn } from "discord_bots_common/dist/utils/logger";
 import { colors, wrap } from "discord_bots_common/dist/utils/colors";
 import { getEnvironmentVar } from "discord_bots_common/dist/utils/init_utils";
-import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply } from "discord_bots_common/dist/utils/utils";
+import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply, clamp } from "discord_bots_common/dist/utils/utils";
 import { db, image_args } from "..";
 import { search_modifiers, sourcePrecedence } from "../config";
 
@@ -390,6 +390,7 @@ function ratingToReadable(rating: string) {
 }
 
 function ratingToLevel(rating: string) {
+    let rating_int;
     switch (rating) {
         case "explicit":
             return "90";
@@ -404,6 +405,12 @@ function ratingToLevel(rating: string) {
             return "15";
 
         default:
+
+            rating_int = parseInt(rating);
+            if (!isNaN(rating_int)) {
+                return (clamp(rating_int * 10, 0, 100)).toString();
+            }
+
             warn(`Unknown rating: ${wrap(rating, colors.GREEN)}`);
             return "-";
     }

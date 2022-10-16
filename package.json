@@ -1,6 +1,6 @@
 {
   "name": "imagebaka",
-  "version": "1.2.3-2",
+  "version": "1.2.4",
   "description": "Discord image management bot built with discord.js",
   "main": "index.ts",
   "author": "Danila Gudim <dgudim@gmail.com>",

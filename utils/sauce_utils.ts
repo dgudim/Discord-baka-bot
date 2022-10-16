@@ -408,7 +408,7 @@ function ratingToLevel(rating: string) {
 
             rating_int = parseInt(rating);
             if (!isNaN(rating_int)) {
-                return (clamp(rating_int, 0, 100)).toString();
+                return clamp(rating_int, 0, 100).toString();
             }
 
             warn(`Unknown rating: ${wrap(rating, colors.GREEN)}`);

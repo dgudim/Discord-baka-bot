@@ -150,8 +150,8 @@ export default {
                         await client.util.downloadIllust(source_url, img_dir, "original");
                         let images = walk(img_dir);
 
-                        const upper_limit = interaction?.options.getNumber("upper_limit") || 0;
-                        const lower_limit = interaction?.options.getNumber("lower_limit") || images.length;
+                        const lower_limit = interaction?.options.getNumber("lower_limit") || 0;
+                        const upper_limit = interaction?.options.getNumber("upper_limit") || images.length;
 
                         images = images.slice(lower_limit, upper_limit);
 
@@ -182,6 +182,12 @@ export default {
                             }
                             fs.unlinkSync(image);
                             offset++;
+                        }
+
+                        // delete leftowers
+                        images = walk(img_dir);
+                        for (const image of images) {
+                            fs.unlinkSync(image);
                         }
 
                     } else {

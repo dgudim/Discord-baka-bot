@@ -14,7 +14,7 @@ import puppeteer, { Browser, Page } from "puppeteer";
 import { debug, error, info, warn } from "discord_bots_common/dist/utils/logger";
 import { colors, wrap } from "discord_bots_common/dist/utils/colors";
 import { getEnvironmentVar } from "discord_bots_common/dist/utils/init_utils";
-import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply, clamp } from "discord_bots_common/dist/utils/utils";
+import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply, clamp, isUrl } from "discord_bots_common/dist/utils/utils";
 import { db, image_args } from "..";
 import { search_modifiers, sourcePrecedence } from "../config";
 
@@ -246,8 +246,10 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             rating: ratingToReadable(best_post_combined.rating)
         };
 
-        embed.setImage(postInfo.image_url);
-
+        if (await isUrl(postInfo.image_url)) {
+            embed.setImage(postInfo.image_url);
+        }
+        
         appendPostInfoToEmbed(embed, postInfo);
 
     } else {

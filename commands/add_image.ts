@@ -44,7 +44,7 @@ async function getMetadata(channel: TextChannel, source_url: string, is_plain_im
 
 async function writePostInfoToFile(postInfo: PostInfo | undefined, file_path: string, channel: TextBasedChannel) {
     if (postInfo) {
-        await sendToChannel(channel, postInfoToEmbed(postInfo));
+        await sendToChannel(channel, await postInfoToEmbed(postInfo));
         await writeTagsToFile(getSauceConfString(postInfo), file_path, channel, async () => {
             await ensureTagsInDB(file_path);
             await sendToChannel(channel, `📝 Wrote tags`);
@@ -74,7 +74,7 @@ async function processAndSaveImage(
 
         target.on("finish", async () => {
             target.close();
-            await sendToChannel(channel, `💾 Saved ${metadata.file.name}`);
+            await sendToChannel(channel, `💾 Saved`);
             resolve(metadata);
         });
 

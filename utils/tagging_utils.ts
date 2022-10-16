@@ -1,7 +1,7 @@
 import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 
 import { error, debug, info } from "discord_bots_common/dist/utils/logger";
-import { none, getValueIfExists, normalize, sendToChannel, normalizeStringArray, getFileHash, getFileName, limitLength } from "discord_bots_common/dist/utils/utils";
+import { none, getValueIfExists, normalize, sendToChannel, normalizeStringArray, getFileHash, getFileName, limitLength, getStringHash } from "discord_bots_common/dist/utils/utils";
 
 import img_tags from "../image_tags.json";
 
@@ -121,10 +121,10 @@ export function normalizeTags(tags: string): string {
     return tags.replaceAll(" ", ",").replaceAll("_", " ").replaceAll(":", "_").replaceAll("'", "");
 }
 
-export function postInfoToEmbed(postInfo: PostInfo) {
+export async function postInfoToEmbed(postInfo: PostInfo) {
     const embed = new EmbedBuilder();
     embed.setTitle("🖼 Image metadata");
-    embed.setDescription(getFileName(postInfo.source_url));
+    embed.setDescription(await getStringHash(postInfo.source_url));
     embed.setColor("Green");
     appendPostInfoToEmbed(embed, postInfo);
     return embed;

@@ -8,12 +8,12 @@ import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfSt
 import { ensureTagsInDB, getLastTags, postInfoToEmbed, writeTagsToFile } from "../utils/tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
 
-import { getFileName, sendToChannel, getAllUrlFileAttachements, safeReply, fetchUrl, isImageUrlType, walk } from "discord_bots_common/dist/utils/utils";
+import { sendToChannel, getAllUrlFileAttachements, safeReply, fetchUrl, isImageUrlType, walk, getStringHash } from "discord_bots_common/dist/utils/utils";
 
 type Metadata = { postInfo?: PostInfo, file: { name: string, path: string } };
 
 async function getFile(raw_path: string, channel: TextChannel) {
-    let file_name = getFileName(raw_path);
+    let file_name = await getStringHash(raw_path);
     file_name = file_name.endsWith(".jpeg") ? file_name : file_name + ".jpeg";
     const file_path = path.join(await getImgDir(), file_name);
 

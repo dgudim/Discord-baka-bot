@@ -290,7 +290,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
                 tags: tags.join(",") || "-",
                 source_url: source_url,
                 image_url: "-",
-                rating: `${illust.sanity_level}`
+                rating: `${illust.sanity_level * 10}`
             };
         }
         return undefined;
@@ -408,7 +408,7 @@ function ratingToLevel(rating: string) {
 
             rating_int = parseInt(rating);
             if (!isNaN(rating_int)) {
-                return (clamp(rating_int * 10, 0, 100)).toString();
+                return (clamp(rating_int, 0, 100)).toString();
             }
 
             warn(`Unknown rating: ${wrap(rating, colors.GREEN)}`);

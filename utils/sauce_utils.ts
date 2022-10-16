@@ -371,7 +371,7 @@ export function getKeyByDirType(dir_type: saveDirType): string {
 }
 
 function ratingToReadable(rating: string) {
-    rating = rating.toLowerCase().replace("_", "").replace("rating:", "").trim();
+    rating = rating.toLowerCase().replaceAll("_", "").replace("rating:", "").trim();
     switch (rating) {
         case "e":
             return "explicit";

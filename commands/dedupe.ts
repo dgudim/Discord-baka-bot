@@ -18,13 +18,17 @@ export default {
 
     callback: async ({ channel, interaction }) => {
 
-        await safeReply(interaction, "🗃 Deduping databse...");
+        await safeReply(interaction, "🗃 Deduping database...");
 
         const images = walk(await getImgDir());
         const sourcePostMap = new Map<string, string[]>();
         const phashMap = new Map<string, string[]>();
+
+        await Promise.all(images.map(image => {
+            return ensureTagsInDB(image);
+        }));
+
         for (const image of images) {
-            await ensureTagsInDB(image);
             const sourcePost = await getValueIfExists(db, `^${image}^tags^sourcepost`);
             const phash = await getValueIfExists(db, `^${image}^phash`);
 
@@ -42,7 +46,7 @@ export default {
                     }
                 }
                 if (!found) {
-                    phashMap.set(phash, [phash]);
+                    phashMap.set(phash, [image]);
                 }
             }
         }
@@ -54,9 +58,9 @@ export default {
             }
         }
 
-        for (const [source, images] of phashMap) {
+        for (const [, images] of phashMap) {
             if (images.length > 1) {
-                await sendToChannel(channel, `(90% similarity) ${source}: ${images}`);
+                await sendToChannel(channel, `(90% similarity) ${images.join(" ")}`);
             }
         }
 

@@ -15,8 +15,8 @@ import { debug, error, info, warn } from "discord_bots_common/dist/utils/logger"
 import { colors, wrap } from "discord_bots_common/dist/utils/colors";
 import { getEnvironmentVar } from "discord_bots_common/dist/utils/init_utils";
 import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply } from "discord_bots_common/dist/utils/utils";
-import { db, image_args } from ".";
-import { search_modifiers, sourcePrecedence } from "./config";
+import { db, image_args } from "..";
+import { search_modifiers, sourcePrecedence } from "../config";
 
 import sharp from "sharp";
 import fs from "fs";
@@ -134,7 +134,7 @@ export async function ensurePixivLogin() {
     }
 }
 
-export async function findSauce(image_url: string, channel: TextBasedChannel, min_similarity: number, only_accept_from = "", set_last_tags = true) {
+export async function findSauce(image_url: string, channel: TextBasedChannel, min_similarity: number, only_accept_from = "") {
 
     info(`searching sauce for ${image_url}`);
 
@@ -218,7 +218,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
 
     posts.sort((a, b) => { return b.similarity - a.similarity; });
 
-    let best_post_combined = posts[0];
+    let best_post_combined;
     for (const source of sourcePrecedence) {
         const res = posts.find(post => { return post.source_url.includes(source) && post.similarity >= min_similarity; });
         if (res) {
@@ -263,9 +263,8 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         };
     }
 
-    if (set_last_tags) {
-        setLastTags(channel, postInfo);
-    }
+    
+    setLastTags(channel, postInfo);
 
     return { postInfo: postInfo, embed: embed };
 }

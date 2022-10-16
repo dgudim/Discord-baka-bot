@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, Snowflake } from "discord.js";
 import { ICommand } from "dkrcommands";
-import { isNSFW, searchImages, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, searchImages, sendImgToChannel } from "../utils/sauce_utils";
 import { clamp, normalize, safeReply } from "discord_bots_common/dist/utils/utils";
 
 const currImgs: Map<Snowflake, number> = new Map<Snowflake, number>();

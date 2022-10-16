@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { isNSFW, findSauce, getLastImgUrl, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, findSauce, getLastImgUrl, sendImgToChannel } from "../utils/sauce_utils";
 import fs from "fs";
 import https from "https";
 import sharp from "sharp";

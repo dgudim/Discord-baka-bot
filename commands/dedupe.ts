@@ -1,7 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { db } from "..";
-import { getImgDir } from "../sauce_utils";
-import { ensureTagsInDB } from "../tagging_utils";
+import { getImgDir } from "../utils/sauce_utils";
+import { ensureTagsInDB } from "../utils/tagging_utils";
 
 import { safeReply, walk, getValueIfExists, setOrAppendToMap, sendToChannel } from "discord_bots_common/dist/utils/utils";
 

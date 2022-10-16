@@ -3,7 +3,7 @@ import { EmbedBuilder, Snowflake, TextBasedChannel } from "discord.js";
 import { error, debug, info } from "discord_bots_common/dist/utils/logger";
 import { none, getValueIfExists, normalize, sendToChannel, normalizeStringArray, getFileHash, getFileName, limitLength } from "discord_bots_common/dist/utils/utils";
 
-import img_tags from "./image_tags.json";
+import img_tags from "../image_tags.json";
 
 const phash = require("sharp-phash");
 
@@ -14,7 +14,7 @@ import { exec } from "child_process";
 import util from "util";
 const execPromise = util.promisify(exec);
 
-import { db, image_args, xpm_image_args_grep } from ".";
+import { db, image_args, xpm_image_args_grep } from "..";
 import { PostInfo } from "./sauce_utils";
 
 const lastTags: Map<Snowflake, PostInfo> = new Map<Snowflake, PostInfo>();

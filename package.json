@@ -1,16 +1,23 @@
 {
-  "name": "baka_bot",
+  "name": "imagebaka",
   "version": "1.2.3-2",
-  "description": "",
+  "description": "Discord image management bot built with discord.js",
   "main": "index.ts",
+  "author": "Danila Gudim <dgudim@gmail.com>",
+  "private": true,
+  "homepage": "https://github.com/dgudim/Discord-baka-bot",
+  "repository": "github:dgudim/Discord-baka-bot",
+  "bugs": "https://github.com/dgudim/Discord-baka-bot/ssues",
   "scripts": {
+    "start": "ts-node ./index.ts",
     "lint": "eslint --ext .ts ."
+  },
+  "engines": {
+    "node": ">=17.0.0"
   },
   "pre-commit": [
     "lint"
   ],
-  "keywords": [],
-  "author": "",
   "license": "GPLV3",
   "dependencies": {
     "@l2studio/iqdb-api": "^0.2.0",
@@ -22,7 +29,7 @@
     "hash-wasm": "^4.9.0",
     "node-json-db": "^2.1.3",
     "pixiv.ts": "^0.5.9",
-    "puppeteer": "^18.2.1",
+    "puppeteer": "^19.0.0",
     "sagiri": "^3.2.4",
     "sharp": "^0.31.1",
     "sharp-phash": "^2.0.0"
@@ -34,6 +41,7 @@
     "eslint": "^8.25.0",
     "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-import": "^2.26.0",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "ts-node": "^10.9.1"
   }
 }

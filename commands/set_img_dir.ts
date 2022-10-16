@@ -1,5 +1,5 @@
 import { ICommand } from "dkrcommands";
-import { changeSavedDirectory } from "../sauce_utils";
+import { changeSavedDirectory } from "../utils/sauce_utils";
 import { ApplicationCommandOptionType } from "discord.js";
 
 export default {

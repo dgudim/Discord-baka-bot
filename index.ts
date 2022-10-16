@@ -7,7 +7,7 @@ import dotenv from "dotenv"; // evironment vars
 
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
-import { getKeyByDirType } from "./sauce_utils";
+import { getKeyByDirType } from "./utils/sauce_utils";
 
 import * as readline from "readline";
 import { messageReplies } from "./config";

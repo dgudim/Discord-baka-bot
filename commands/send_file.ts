@@ -2,7 +2,7 @@ import { ICommand } from "dkrcommands";
 import fs from "fs";
 import path from "path";
 import https from "https";
-import { changeSavedDirectory, getSendDir } from "../sauce_utils";
+import { changeSavedDirectory, getSendDir } from "../utils/sauce_utils";
 import { ApplicationCommandOptionType } from "discord.js";
 import { getAllUrlFileAttachements, safeReply, getFileName, sendToChannel } from "discord_bots_common/dist/utils/utils";
 

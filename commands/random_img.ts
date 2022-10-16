@@ -1,6 +1,6 @@
 import { walk, safeReply } from "discord_bots_common/dist/utils/utils";
 import { ICommand } from "dkrcommands";
-import { isNSFW, getImgDir, sendImgToChannel } from "../sauce_utils";
+import { isNSFW, getImgDir, sendImgToChannel } from "../utils/sauce_utils";
 
 let indexUpToDate = false;
 let index: string[] = [];

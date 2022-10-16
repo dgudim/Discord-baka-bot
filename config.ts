@@ -59,4 +59,4 @@ export const messageReplies = new Map([ // put your message replies here
     ["amogus", (message: Message) => { messageReply(message, "sus"); }]
 ]);
 
-export const sourcePrecedence = ["danbooru", "gelbooru", "sankakucomplex", "konachan", "yande.re"];
+export const sourcePrecedence = ["danbooru", "gelbooru", "sankakucomplex", "konachan", "yande.re", "pixiv", ""]; // emty string means all other services

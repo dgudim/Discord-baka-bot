@@ -100,6 +100,16 @@ export default {
         description: "Image file",
         type: ApplicationCommandOptionType.Attachment,
         required: false,
+    }, {
+        name: "lower_limit",
+        description: "Lower image index (if post contains several images)",
+        type: ApplicationCommandOptionType.Number,
+        required: false,
+    }, {
+        name: "upper_limit",
+        description: "Upper image index (if post contains several images)",
+        type: ApplicationCommandOptionType.Number,
+        required: false,
     }],
 
     callback: async ({ interaction, channel }) => {
@@ -138,8 +148,13 @@ export default {
                         const img_dir = "./downloaded";
                         await sendToChannel(channel, `📥 Downloading from pixiv`);
                         await client.util.downloadIllust(source_url, img_dir, "original");
-                        const images = walk(img_dir);
+                        let images = walk(img_dir);
 
+                        const upper_limit = interaction?.options.getNumber("upper_limit") || 0;
+                        const lower_limit = interaction?.options.getNumber("lower_limit") || images.length;
+
+                        images = images.slice(lower_limit, upper_limit);
+                        
                         for (const image of images) {
                             const new_file = await getFile(image, channel);
                             if (new_file) {

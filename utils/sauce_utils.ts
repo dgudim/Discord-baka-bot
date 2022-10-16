@@ -99,7 +99,7 @@ async function grabBySelectors(source_url: string,
         copyright: copyrightTags.join(",") || "-",
         source_url: source_url,
         image_url: image_url || "",
-        rating: ratingToReadable(rating.join(",").replace("Rating:", "").trim().toLowerCase() || "-")
+        rating: ratingToReadable(rating.join("") || "-")
     };
 }
 
@@ -249,7 +249,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         if (await isUrl(postInfo.image_url)) {
             embed.setImage(postInfo.image_url);
         }
-        
+
         appendPostInfoToEmbed(embed, postInfo);
 
     } else {
@@ -371,6 +371,7 @@ export function getKeyByDirType(dir_type: saveDirType): string {
 }
 
 function ratingToReadable(rating: string) {
+    rating = rating.toLowerCase().replace("_", "").replace("rating:", "").trim();
     switch (rating) {
         case "e":
             return "explicit";

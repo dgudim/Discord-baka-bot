@@ -154,7 +154,8 @@ export default {
                         const lower_limit = interaction?.options.getNumber("lower_limit") || images.length;
 
                         images = images.slice(lower_limit, upper_limit);
-                        
+
+                        let offset = 0;
                         for (const image of images) {
                             const new_file = await getFile(image, channel);
                             if (new_file) {
@@ -171,11 +172,16 @@ export default {
                                     postInfo = sauce.postInfo;
                                 } else {
                                     postInfo = await getPostInfoFromUrl(source_url);
+                                    if (postInfo) {
+                                        postInfo.source_url += postInfo.source_url.includes("?") ? `&` : "?";
+                                        postInfo.source_url += `offset=${offset}`;
+                                    }
                                 }
 
                                 await writePostInfoToFile(postInfo, new_file.path, channel);
                             }
                             fs.unlinkSync(image);
+                            offset++;
                         }
 
                     } else {

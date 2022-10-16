@@ -1,6 +1,7 @@
 import { ICommand } from "dkrcommands";
 import { changeSavedDirectory } from "../utils/sauce_utils";
 import { ApplicationCommandOptionType } from "discord.js";
+import { safeReply } from "discord_bots_common/dist/utils/utils";
 
 export default {
     category: "Administration",
@@ -19,7 +20,7 @@ export default {
     }],
 
     callback: async ({ interaction, channel }) => {
-        interaction?.reply("Changing image directory");
+        await safeReply(interaction, "Changing image directory");
         changeSavedDirectory(channel, "IMAGE", interaction!.options.getString("img-dir"));
     }
 } as ICommand;

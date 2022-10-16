@@ -425,8 +425,8 @@ export function getSauceConfString(lastTagsFrom_get_sauce: PostInfo) {
         ` -xmp-xmp:sourcepost='${stripUrlScheme(lastTagsFrom_get_sauce.source_url)}'`;
 }
 
-const lastFiles: Map<Snowflake, string> = new Map<Snowflake, string>();
-const lastFileUrls: Map<Snowflake, string> = new Map<Snowflake, string>();
+const lastImagesPerChannel: Map<Snowflake, string> = new Map<Snowflake, string>();
+const lastImageUrlsPerChannel: Map<Snowflake, string> = new Map<Snowflake, string>();
 
 export function changeSavedDirectory(channel: TextBasedChannel, dir_type: saveDirType, dir: string | null): boolean | undefined {
     if (dir) {
@@ -450,18 +450,19 @@ export async function getSendDir() {
     return db.getData(`^${getKeyByDirType("SAVE")}`);
 }
 
-export function setLastImg(channel: TextBasedChannel, file: string, fileUrl: string): string {
-    lastFiles.set(channel.id, file);
-    lastFileUrls.set(channel.id, fileUrl);
-    return fileUrl;
+export function setLastImg(channel: TextBasedChannel, image: string, imageUrl: string): string {
+    debug(`Set last image path to ${image} | url to ${imageUrl}`);
+    lastImagesPerChannel.set(channel.id, image);
+    lastImageUrlsPerChannel.set(channel.id, imageUrl);
+    return imageUrl;
 }
 
 export function getLastImgUrl(channel: TextBasedChannel): string {
-    return lastFileUrls.get(channel.id) || "";
+    return lastImageUrlsPerChannel.get(channel.id) || "";
 }
 
 export function getLastImgPath(channel: TextBasedChannel): string {
-    return lastFiles.get(channel.id) || "";
+    return lastImagesPerChannel.get(channel.id) || "";
 }
 
 export async function sendImgToChannel(channel: TextBasedChannel, file: string, attachMetadata = false): Promise<string | undefined> {

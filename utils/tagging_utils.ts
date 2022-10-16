@@ -60,14 +60,15 @@ export async function writeTagsToFile(confString: string, file: string, channel:
     debug(`📝 Writing tags to file: ${file}`);
 
     try {
-        const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "./exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
+        const { stdout, stderr } = await execPromise((`${process.env.EXIFTOOL_PATH} -config ${path.join(__dirname, "../exiftoolConfig.conf")} ${confString} -overwrite_original '${file}'`));
         debug(stdout);
         if (stderr) {
             error(`❌ Exiftool stderr: ${stderr}`);
         }
         await callback();
     } catch (err) {
-        await sendToChannel(channel, `❌ Xmp tagging error: ${err}`, true);
+        error(err);
+        await sendToChannel(channel, `❌ Tagging error`, true);
     }
 }
 

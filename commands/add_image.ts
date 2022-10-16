@@ -4,7 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import https from "https";
 import { IncomingMessage } from "http";
-import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo, isNSFW } from "../utils/sauce_utils";
+import { findSauce, getImgDir, getLastImgUrl, getPostInfoFromUrl, getSauceConfString, ensurePixivLogin, sendImgToChannel, PostInfo, isNSFW, setLastImg } from "../utils/sauce_utils";
 import { ensureTagsInDB, getLastTags, postInfoToEmbed, writeTagsToFile } from "../utils/tagging_utils";
 import { ApplicationCommandOptionType, TextBasedChannel, TextChannel } from "discord.js";
 
@@ -180,6 +180,7 @@ export default {
                     https.get(postInfo.image_url, async (response) => {
                         await processAndSaveImage(response, { postInfo: postInfo, file: target_file }, channel);
                         await writePostInfoToFile(postInfo, target_file.path, channel);
+                        setLastImg(channel, target_file.path, postInfo.image_url);
                     });
                 } else {
                     await sendToChannel(channel, "❌ Don't know how to handle that url", true);

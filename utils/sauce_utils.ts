@@ -273,6 +273,8 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
 
 export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo | undefined> {
 
+    debug(`Getting post info from url: ${source_url}`);
+
     if (source_url.includes("pixiv")) {
         const illust = await (await ensurePixivLogin())?.illust.get(source_url);
 
@@ -304,15 +306,15 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
         const post = await booru.posts(+fileName.slice(0, lastIndex == -1 ? fileName.length : lastIndex));
 
         await gotoPage(source_url);
-        const image_url = await getAttributeBySelector(".image-view-original-link", "href");
-
+        const image_url = await getAttributeBySelector(".image-view-original-link", "href") || await getAttributeBySelector("#image", "src");
+        
         return {
             author: post.tag_string_artist || "-",
             character: post.tag_string_character || "-",
             tags: post.tag_string_general || "-",
             copyright: post.tag_string_copyright || "-",
             source_url: source_url,
-            image_url: image_url || "-",
+            image_url: image_url || post.large_file_url || post.file_url,
             rating: ratingToReadable(post.rating || "-")
         };
     }

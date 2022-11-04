@@ -529,7 +529,7 @@ export async function searchImages(searchQuery: string, channel: TextBasedChanne
     if (images.length > 0 && !await db.exists(`^${images[0]}`)) {
         await sendToChannel(channel, "🕝 Refreshing image tag database, might take a while...");
         await Promise.all(images.map((value) => {
-            ensureTagsInDB(value);
+            return ensureTagsInDB(value);
         }));
         await sleep(5000); // let the database save
     }

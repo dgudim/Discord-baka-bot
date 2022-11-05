@@ -69,7 +69,7 @@ export interface PostInfo {
 
 async function grabBySelectors(source_url: string,
     authorSelector: string, copyrightSelector: string,
-    characterSelector: string, tagSelector: string, ratingSelector: string) {
+    characterSelector: string, tagSelector: string, ratingSelector: string): Promise<PostInfo> {
 
     await gotoPage(source_url);
 
@@ -92,7 +92,7 @@ async function grabBySelectors(source_url: string,
 
     image_url = image_url || await getAttributeBySelector("#image", "src");
 
-    return {
+    const postInfo = {
         author: authorTags.join(",") || "-",
         character: characterTags.join(",") || "-",
         tags: generalTags.join(",") || "-",
@@ -101,6 +101,10 @@ async function grabBySelectors(source_url: string,
         image_url: image_url || "",
         rating: ratingToReadable(rating.join("") || "-")
     };
+
+    debug(`Grabbed by selectors from ${source_url} | result: ${postInfo}`);
+
+    return postInfo;
 }
 
 async function ensurePuppeteerStarted() {

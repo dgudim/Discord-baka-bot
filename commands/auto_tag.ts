@@ -1,4 +1,4 @@
-import { Snowflake, TextBasedChannel } from "discord.js";
+import { ApplicationCommandOptionType, Snowflake, TextBasedChannel } from "discord.js";
 import { error } from "discord_bots_common/dist/utils/logger";
 import { getFileName, safeReply, sendToChannel } from "discord_bots_common/dist/utils/utils";
 import { ICommand } from "dkrcommands";
@@ -55,15 +55,34 @@ export default {
     ownerOnly: true,
     hidden: true,
 
-    expectedArgs: "<min-similarity> <accept-from> <search-query> <index>",
-    expectedArgsTypes: ["NUMBER", "STRING", "STRING", "INTEGER", "STRING"],
-    minArgs: 0,
-    maxArgs: 5,
-
+    options: [
+        {
+            name: "min-similarity",
+            description: "Minimum similarity of the image (1-100)",
+            type: ApplicationCommandOptionType.Integer,
+            required: false
+        }, {
+            name: "accept-from",
+            description: "What websites are acceptable (e.g: booru, sankakucomplex)",
+            type: ApplicationCommandOptionType.String,
+            required: false
+        }, {
+            name: "search-query",
+            description: "Autotag images matching this query",
+            type: ApplicationCommandOptionType.String,
+            required: false
+        }, {
+            name: "index",
+            description: "Image index to start from",
+            type: ApplicationCommandOptionType.Integer,
+            required: false
+        }
+    ],
+    
     callback: async ({ channel, interaction }) => {
 
         const accept_from = interaction?.options.getString("accept-from") || "booru,sankakucomplex";
-        const min_similarity = interaction?.options.getNumber("min-similarity") || 90;
+        const min_similarity = interaction?.options.getInteger("min-similarity") || 90;
         const search_query = interaction?.options.getString("search-query");
         const startingIndex = interaction?.options.getInteger("index") || 0;
 

@@ -14,7 +14,7 @@ import puppeteer, { Browser, Page } from "puppeteer";
 import { debug, error, info, warn } from "discord_bots_common/dist/utils/logger";
 import { colors, wrap } from "discord_bots_common/dist/utils/colors";
 import { getEnvironmentVar } from "discord_bots_common/dist/utils/init_utils";
-import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply, clamp, isUrl } from "discord_bots_common/dist/utils/utils";
+import { normalizeStringArray, sendToChannel, perc2color, getFileName, stripUrlScheme, isDirectory, eight_mb, walk, sleep, none, safeReply, clamp, isUrl, nullableString } from "discord_bots_common/dist/utils/utils";
 import { db, image_args } from "..";
 import { search_modifiers, sourcePrecedence } from "../config";
 
@@ -98,7 +98,7 @@ async function grabBySelectors(source_url: string,
         tags: generalTags.join(",") || "-",
         copyright: copyrightTags.join(",") || "-",
         source_url: source_url,
-        image_url: image_url || "",
+        image_url: normalizeUrl(image_url),
         rating: ratingToReadable(rating.join("") || "-")
     };
 
@@ -112,6 +112,19 @@ async function grabBySelectors(source_url: string,
     rating: ${postInfo.rating}`);
 
     return postInfo;
+}
+
+function normalizeUrl(url: nullableString): string {
+    if (!url) {
+        return "";
+    }
+    url = stripUrlScheme(url);
+    if (url.startsWith("//")) {
+        url = "https:" + url;
+    } else {
+        url = "https://" + url;
+    }
+    return url;
 }
 
 async function ensurePuppeteerStarted() {
@@ -265,7 +278,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
 
     } else {
         sendToChannel(channel, "No sauce found :(");
-        postInfo =  {
+        postInfo = {
             author: "-",
             character: "-",
             tags: "-",
@@ -276,7 +289,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
         };
     }
 
-    
+
     setLastTags(channel, postInfo);
 
     return { postInfo: postInfo, embed: embed };
@@ -318,7 +331,7 @@ export async function getPostInfoFromUrl(source_url: string): Promise<PostInfo |
 
         await gotoPage(source_url);
         const image_url = await getAttributeBySelector(".image-view-original-link", "href") || await getAttributeBySelector("#image", "src");
-        
+
         return {
             author: post.tag_string_artist || "-",
             character: post.tag_string_character || "-",

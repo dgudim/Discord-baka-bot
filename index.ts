@@ -15,7 +15,7 @@ import { messageReplies } from "./config";
 import { colors, wrap } from "discord_bots_common/dist/utils/colors";
 import { getClient, testEnvironmentVar, dkrInit } from "discord_bots_common/dist/utils/init_utils";
 import { error, debug, warn, info } from "discord_bots_common/dist/utils/logger";
-import { none, nullableString, sendToChannel, getSimpleEmbed, getDateTime, secondsToDhms, messageReply, channelToString, userToString, messageContentToString } from "discord_bots_common/dist/utils/utils";
+import { none, nullableString, sendToChannel, getSimpleEmbed, getDateTime, secondsToDhms, messageReply, channelToString, userToString, messageContentToString, messageToString } from "discord_bots_common/dist/utils/utils";
 
 export const db = new JsonDB(new Config("db", true, true, "^"));
 
@@ -254,10 +254,7 @@ client.on("messageCreate", (message) => {
         if (messageCache.size > 50) {
             messageCache.delete(Array.from(messageCache.keys()).at(0)!);
         }
-        info(`${channelToString(message.channel, true)} ${userToString(message.author)}: ${messageContentToString({
-            content: message.content,
-            embeds: message.embeds
-        })} (${wrap(messageId, colors.GRAY)})`);
+        info(`${channelToString(message.channel, true)} ${userToString(message.author)}: ${messageToString(message)} (${wrap(messageId, colors.GRAY)})`);
     }
 
     if (!message.content.startsWith(">") &&

@@ -102,7 +102,14 @@ async function grabBySelectors(source_url: string,
         rating: ratingToReadable(rating.join("") || "-")
     };
 
-    debug(`Grabbed by selectors from ${source_url} | result: ${postInfo}`);
+    debug(`Grabbed from ${source_url} |
+    author: ${postInfo.author}
+    character: ${postInfo.character}
+    tags: ${postInfo.tags}
+    copyright: ${postInfo.copyright}
+    source_url: ${postInfo.source_url}
+    image_url: ${postInfo.image_url}
+    rating: ${postInfo.rating}`);
 
     return postInfo;
 }

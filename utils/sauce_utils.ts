@@ -219,7 +219,7 @@ export async function findSauce(image_url: string, channel: TextBasedChannel, mi
             for (const result of iqDbResults.results) {
                 for (const result_source of result.sources) {
                     iqdb_posts.push({
-                        source_db: `iqdb ${result_source.service}`,
+                        source_db: `iqdb (${result_source.service})`,
                         source_url: result_source.fixedHref,
                         similarity: result.similarity,
                         image_url: image_url,

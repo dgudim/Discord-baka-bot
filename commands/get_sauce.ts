@@ -50,7 +50,7 @@ export default {
             return;
         }
 
-        const min_similarity = interaction!.options.getNumber("min-similarity") || 75;
+        const min_similarity = interaction!.options.getInteger("min-similarity") || 75;
 
         const urls = await getAllUrlFileAttachements(interaction, "url", "image", true);
 
